@@ -29,9 +29,13 @@ export interface CreateShipmentResponse {
 }
 
 export async function createShipment(payload: CreateShipmentRequest, token: string): Promise<CreateShipmentResponse> {
+  const authHeader = token.trim().startsWith('Bearer ')
+    ? token.trim()
+    : `Bearer ${token.trim()}`
+
   const { data } = await apiClient.post<CreateShipmentResponse>('/shipments', payload, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: authHeader,
     },
   })
   return data

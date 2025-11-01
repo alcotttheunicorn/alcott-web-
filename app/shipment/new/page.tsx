@@ -5,9 +5,14 @@ import type { ChangeEvent, ComponentType, RefObject, SVGProps } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { createShipment, type CreateShipmentRequest } from '@/lib/api/shipment-api'
 import { toast } from '@/components/ui/use-toast'
+import { Stepper } from '@/components/shipment/Stepper'
+import { FormSection } from '@/components/shipment/FormSection'
+import { ContinueButton } from '@/components/shipment/ContinueButton'
+import { InputRow } from '@/components/shipment/InputRow'
+import { TextareaRow } from '@/components/shipment/TextareaRow'
+import { useShipmentWizard } from '@/hooks/use-shipment-wizard'
 import type {
   ShipmentContact,
   ShipmentOption,
@@ -17,14 +22,9 @@ import type {
   ShipmentStepKey,
   ShipmentSteps,
   ShipmentPackage,
+  ShipmentWeightUnit,
+  ShipmentDimensionUnit,
 } from '@/lib/types/shipment-types'
-import { useShipmentWizard } from '@/hooks/use-shipment-wizard'
-import { Stepper } from '@/components/shipment/Stepper'
-import { FormSection } from '@/components/shipment/FormSection'
-import { ContinueButton } from '@/components/shipment/ContinueButton'
-import { InputRow } from '@/components/shipment/InputRow'
-import { TextareaRow } from '@/components/shipment/TextareaRow'
-import { CountryCode } from '@/components/shipment/CountryCode'
 
 // Step configuration
 const steps: ShipmentSteps = [
@@ -48,6 +48,9 @@ const paymentMethods: ShipmentPaymentMethods = [
   { id: 'card', label: '•••• 4679', details: 'Visa - Expires 12/27' },
 ]
 
+const weightUnitOptions: ShipmentWeightUnit[] = ['kg', 'lb']
+const dimensionUnitOptions: ShipmentDimensionUnit[] = ['cm', 'in']
+
 const initialContact: ShipmentContact = {
   name: '',
   phone: '',
@@ -64,6 +67,8 @@ const initialPackage: ShipmentPackage = {
   width: '',
   height: '',
   shippingOption: 'regular',
+  weightUnit: 'kg',
+  dimensionUnit: 'cm',
 }
 
 const initialPayment: ShipmentPaymentSelection = {
@@ -72,6 +77,24 @@ const initialPayment: ShipmentPaymentSelection = {
 
 export default function NewShipmentPage() {
   const router = useRouter()
+
+  const sanitizePhoneInput = (value: string) => {
+    const stripped = value.replace(/[^0-9+]/g, '')
+    if (!stripped) return ''
+    if (stripped.startsWith('+')) {
+      return `+${stripped.slice(1).replace(/\+/g, '')}`
+    }
+    return stripped.replace(/\+/g, '')
+  }
+
+  const sanitizeDecimalInput = (value: string) => {
+    const cleaned = value.replace(/[^0-9.]/g, '')
+    const [integer, fraction] = cleaned.split('.')
+    if (fraction !== undefined) {
+      return `${integer}${fraction ? `.${fraction.replace(/\./g, '')}` : ''}`
+    }
+    return integer
+  }
 
   const {
     currentStep,
@@ -166,9 +189,23 @@ export default function NewShipmentPage() {
       return
     }
 
+    const formattedToken = authToken.trim()
+
+    if (!formattedToken) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in again to create a shipment.',
+      })
+      router.push('/auth/sign-in')
+      return
+    }
+
     const ensureIntlPhone = (value: string, defaultPrefix: string) => {
       const trimmed = value.trim()
       if (!trimmed) return ''
+      if (trimmed.startsWith('00')) {
+        return `+${trimmed.slice(2)}`
+      }
       if (trimmed.startsWith('+')) return trimmed
       if (trimmed.startsWith('0')) {
         return `${defaultPrefix}${trimmed.slice(1)}`
@@ -180,6 +217,11 @@ export default function NewShipmentPage() {
       const parsed = parseFloat(value)
       return Number.isFinite(parsed) ? parsed : 0
     }
+
+    const weightInKg = pkg.weightUnit === 'lb' ? toNumber(pkg.weight) * 0.453592 : toNumber(pkg.weight)
+    const lengthInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.length) * 2.54 : toNumber(pkg.length)
+    const widthInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.width) * 2.54 : toNumber(pkg.width)
+    const heightInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.height) * 2.54 : toNumber(pkg.height)
 
     const shippingRateId = shippingSelection.rateId ?? shippingSelection.id
     const paymentMethodLabel =
@@ -197,10 +239,10 @@ export default function NewShipmentPage() {
       receiver_city: receiver.city.trim(),
       receiver_address: receiver.address.trim(),
       package_category: (pkg.category || 'GENERAL').trim().toUpperCase(),
-      package_weight: toNumber(pkg.weight),
-      package_length: toNumber(pkg.length),
-      package_width: toNumber(pkg.width),
-      package_height: toNumber(pkg.height),
+      package_weight: parseFloat(weightInKg.toFixed(2)),
+      package_length: parseFloat(lengthInCm.toFixed(2)),
+      package_width: parseFloat(widthInCm.toFixed(2)),
+      package_height: parseFloat(heightInCm.toFixed(2)),
       shipping_rate_id: shippingRateId,
       status: 'PENDING',
       payment_method: paymentMethodLabel,
@@ -208,7 +250,7 @@ export default function NewShipmentPage() {
 
     try {
       setIsSubmitting(true)
-      const response = await createShipment(payload, authToken)
+      const response = await createShipment(payload, formattedToken)
       toast({
         title: 'Shipment created',
         description: 'Your shipment has been created successfully.',
@@ -271,10 +313,22 @@ export default function NewShipmentPage() {
 
             <div className="max-w-4xl w-full mx-auto space-y-5 lg:space-y-6">
               {currentStep === 'sender' && (
-                <SenderForm data={sender} onChange={setSender} onContinue={moveToNext} canContinue={canMoveForward} />
+                <SenderForm
+                  data={sender}
+                  onChange={setSender}
+                  onContinue={moveToNext}
+                  canContinue={canMoveForward}
+                  sanitizePhone={sanitizePhoneInput}
+                />
               )}
               {currentStep === 'receiver' && (
-                <ReceiverForm data={receiver} onChange={setReceiver} onContinue={moveToNext} canContinue={canMoveForward} />
+                <ReceiverForm
+                  data={receiver}
+                  onChange={setReceiver}
+                  onContinue={moveToNext}
+                  canContinue={canMoveForward}
+                  sanitizePhone={sanitizePhoneInput}
+                />
               )}
               {currentStep === 'package' && (
                 <PackageForm
@@ -283,6 +337,9 @@ export default function NewShipmentPage() {
                   shippingSelection={shippingSelection}
                   onContinue={moveToNext}
                   canContinue={canMoveForward}
+                  weightUnits={weightUnitOptions}
+                  dimensionUnits={dimensionUnitOptions}
+                  sanitizeDecimal={sanitizeDecimalInput}
                 />
               )}
               {currentStep === 'payment' && (
@@ -487,16 +544,29 @@ function SenderForm({
   onChange,
   onContinue,
   canContinue,
+  sanitizePhone,
 }: {
   data: ShipmentContact
   onChange: (value: ShipmentContact) => void
   onContinue: () => void
   canContinue: boolean
+  sanitizePhone: (value: string) => string
 }) {
   return (
     <FormSection title="Sender Details" subtitle="Who is sending this package?">
       <InputRow label="Sender Name" placeholder="Sender Name" value={data.name} onChange={(value) => onChange({ ...data, name: value })} />
-      <InputRow label="Phone Number" placeholder="Phone Number" value={data.phone} onChange={(value) => onChange({ ...data, phone: value })} prefix={<CountryCode />} />
+      <InputRow
+        label="Phone Number"
+        placeholder="Phone Number"
+        value={data.phone}
+        onChange={(value) => onChange({ ...data, phone: value })}
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        maxLength={20}
+        pattern="[0-9+]*"
+        transform={sanitizePhone}
+      />
       <InputRow label="Email" placeholder="Email" type="email" value={data.email} onChange={(value) => onChange({ ...data, email: value })} />
       <InputRow label="City / Province" placeholder="City / Province" value={data.city} onChange={(value) => onChange({ ...data, city: value })} />
       <TextareaRow label="Address Details" placeholder="Address Details" value={data.address} onChange={(value) => onChange({ ...data, address: value })} />
@@ -510,16 +580,29 @@ function ReceiverForm({
   onChange,
   onContinue,
   canContinue,
+  sanitizePhone,
 }: {
   data: ShipmentContact
   onChange: (value: ShipmentContact) => void
   onContinue: () => void
   canContinue: boolean
+  sanitizePhone: (value: string) => string
 }) {
   return (
     <FormSection title="Receiver Details" subtitle="Who will receive this package?">
       <InputRow label="Receiver Name" placeholder="Receiver Name" value={data.name} onChange={(value) => onChange({ ...data, name: value })} />
-      <InputRow label="Phone Number" placeholder="Phone Number" value={data.phone} onChange={(value) => onChange({ ...data, phone: value })} prefix={<CountryCode country="US" flagColor="bg-red-500" />} />
+      <InputRow
+        label="Phone Number"
+        placeholder="Phone Number"
+        value={data.phone}
+        onChange={(value) => onChange({ ...data, phone: value })}
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        maxLength={20}
+        pattern="[0-9+]*"
+        transform={sanitizePhone}
+      />
       <InputRow label="Email" placeholder="Email" type="email" value={data.email} onChange={(value) => onChange({ ...data, email: value })} />
       <InputRow label="City / Province" placeholder="City / Province" value={data.city} onChange={(value) => onChange({ ...data, city: value })} />
       <TextareaRow label="Address Details" placeholder="Address Details" value={data.address} onChange={(value) => onChange({ ...data, address: value })} />
@@ -534,24 +617,82 @@ function PackageForm({
   shippingSelection,
   onContinue,
   canContinue,
+  weightUnits,
+  dimensionUnits,
+  sanitizeDecimal,
 }: {
   data: ShipmentPackage
   onChange: (value: ShipmentPackage) => void
   shippingSelection: ShipmentOption
   onContinue: () => void
   canContinue: boolean
+  weightUnits: ShipmentWeightUnit[]
+  dimensionUnits: ShipmentDimensionUnit[]
+  sanitizeDecimal: (value: string) => string
 }) {
   const [showOptions, setShowOptions] = useState(false)
+
+  const handleWeightUnitChange = (unit: ShipmentWeightUnit) => {
+    onChange({ ...data, weightUnit: unit })
+  }
+
+  const handleDimensionUnitChange = (unit: ShipmentDimensionUnit) => {
+    onChange({ ...data, dimensionUnit: unit })
+  }
 
   return (
     <FormSection title="Package Details" subtitle="Describe the package and choose shipping.">
       <InputRow label="Package Category" placeholder="Category" value={data.category} onChange={(value) => onChange({ ...data, category: value })} />
       <TextareaRow label="Package Description" placeholder="Description" value={data.description} onChange={(value) => onChange({ ...data, description: value })} />
-      <InputRow label="Weight" placeholder="Weight" value={data.weight} onChange={(value) => onChange({ ...data, weight: value })} suffix={<span className="text-sm text-gray-500">kg</span>} />
+      <InputRow
+        label="Weight"
+        placeholder="Weight"
+        value={data.weight}
+        onChange={(value) => onChange({ ...data, weight: value })}
+        type="text"
+        inputMode="decimal"
+        pattern="[0-9.]*"
+        transform={sanitizeDecimal}
+        suffix={
+          <UnitSelect
+            value={data.weightUnit}
+            options={weightUnits}
+            onChange={(unit) => handleWeightUnitChange(unit as ShipmentWeightUnit)}
+          />
+        }
+        suffixClassName="pr-1 text-gray-900"
+      />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">{/* Adjust dimension field spacing here */}
-        <Input type="number" min="0" placeholder="Length" value={data.length} onChange={(e) => onChange({ ...data, length: e.target.value })} className="h-12 rounded-lg border-gray-200 focus:ring-[#4043FF] focus:border-[#4043FF]" />
-        <Input type="number" min="0" placeholder="Width" value={data.width} onChange={(e) => onChange({ ...data, width: e.target.value })} className="h-12 rounded-lg border-gray-200 focus:ring-[#4043FF] focus:border-[#4043FF]" />
-        <Input type="number" min="0" placeholder="Height" value={data.height} onChange={(e) => onChange({ ...data, height: e.target.value })} className="h-12 rounded-lg border-gray-200 focus:ring-[#4043FF] focus:border-[#4043FF]" />
+        <DimensionInput
+          label="Length"
+          placeholder="Length"
+          value={data.length}
+          onChange={(value) => onChange({ ...data, length: value })}
+          unit={data.dimensionUnit}
+          options={dimensionUnits}
+          onUnitChange={(unit) => handleDimensionUnitChange(unit as ShipmentDimensionUnit)}
+          sanitizeDecimal={sanitizeDecimal}
+        />
+        <DimensionInput
+          label="Width"
+          placeholder="Width"
+          value={data.width}
+          onChange={(value) => onChange({ ...data, width: value })}
+          unit={data.dimensionUnit}
+          options={dimensionUnits}
+          onUnitChange={(unit) => handleDimensionUnitChange(unit as ShipmentDimensionUnit)}
+          sanitizeDecimal={sanitizeDecimal}
+        />
+        <DimensionInput
+          label="Height"
+          placeholder="Height"
+          value={data.height}
+          onChange={(value) => onChange({ ...data, height: value })}
+          unit={data.dimensionUnit}
+          options={dimensionUnits}
+          onUnitChange={(unit) => handleDimensionUnitChange(unit as ShipmentDimensionUnit)}
+          sanitizeDecimal={sanitizeDecimal}
+        />
       </div>
       <div className="relative">
         <label className="text-sm font-semibold text-gray-700">Select Shipping</label>
@@ -560,7 +701,7 @@ function PackageForm({
           onClick={() => setShowOptions((prev) => !prev)}
           className="mt-2 w-full h-11 px-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between text-sm text-gray-700 hover:bg-gray-100"
         >
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 whitespace-normal break-words text-left">
             <MenuIcon className="w-4 h-4" />
             {shippingSelection ? `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}` : 'Shipping'}
           </span>
@@ -579,7 +720,7 @@ function PackageForm({
                   data.shippingOption === option.id ? 'bg-gray-50' : ''
                 }`}
               >
-                <div>
+                <div className="whitespace-normal break-words">
                   <p className="text-sm font-semibold text-gray-900">{option.label}</p>
                   <p className="text-xs text-gray-500">{option.eta}</p>
                 </div>
@@ -669,8 +810,8 @@ function ReviewSummary({
         ]} />
         <SummaryCard title="Package" items={[
           ['Category', pkg.category],
-          ['Weight', pkg.weight ? `${pkg.weight} kg` : ''],
-          ['Dimensions', `${pkg.length || 0} × ${pkg.width || 0} × ${pkg.height || 0} cm`],
+          ['Weight', pkg.weight ? `${pkg.weight} ${pkg.weightUnit.toUpperCase()}` : ''],
+          ['Dimensions', `${pkg.length || 0} × ${pkg.width || 0} × ${pkg.height || 0} ${pkg.dimensionUnit.toUpperCase()}`],
           ['Shipping', `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}`],
         ]} />
         <SummaryCard title="Payment" items={[[
@@ -817,5 +958,70 @@ function CaretDownIcon(props: SVGProps<SVGSVGElement>) {
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
+  )
+}
+
+function UnitSelect({
+  value,
+  options,
+  onChange,
+}: {
+  value: string
+  options: ReadonlyArray<string>
+  onChange: (value: string) => void
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="bg-transparent text-sm font-semibold text-gray-900 focus:outline-none focus:ring-0"
+    >
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option.toUpperCase()}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+function DimensionInput({
+  label,
+  placeholder,
+  value,
+  onChange,
+  unit,
+  options,
+  onUnitChange,
+  sanitizeDecimal,
+}: {
+  label: string
+  placeholder: string
+  value: string
+  onChange: (value: string) => void
+  unit: string
+  options: ReadonlyArray<string>
+  onUnitChange: (value: string) => void
+  sanitizeDecimal: (value: string) => string
+}) {
+  return (
+    <InputRow
+      label={label}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      type="text"
+      inputMode="decimal"
+      pattern="[0-9.]*"
+      transform={sanitizeDecimal}
+      suffix={
+        <UnitSelect
+          value={unit}
+          options={options}
+          onChange={onUnitChange}
+        />
+      }
+      suffixClassName="pr-1 text-gray-900"
+    />
   )
 }

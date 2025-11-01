@@ -39,6 +39,9 @@ export interface ShipmentContact {
   address: string
 }
 
+export type ShipmentWeightUnit = 'kg' | 'lb'
+export type ShipmentDimensionUnit = 'cm' | 'in'
+
 export interface ShipmentPackage {
   category: string
   description: string
@@ -47,6 +50,8 @@ export interface ShipmentPackage {
   width: string
   height: string
   shippingOption: ShipmentOptionId
+  weightUnit: ShipmentWeightUnit
+  dimensionUnit: ShipmentDimensionUnit
 }
 
 export interface ShipmentPaymentSelection {
