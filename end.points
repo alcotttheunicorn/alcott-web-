@@ -1,0 +1,821 @@
+firesolami: analyze the model, controllers and routes, and create mock requests that i can use to test out all the routes in postman so i can create a postman doc and share with my frontend team
+
+Workspace: Collecting workspace informationI'll analyze your models, controllers, and routes to create comprehensive Postman requests for all endpoints.
+
+# Postman API Collection for Alcott Backend
+
+## Environment Variables
+First, set up these environment variables in Postman:
+- base_url: http://localhost:3000 (or your deployed URL)
+- token: (will be set automatically after login/verification)
+
+---
+
+## 1. Authentication Routes (/api/auth)
+
+### 1.1 Sign Up
+*POST* {{base_url}}/api/auth/signup
+
+*Body (JSON):*
+json
+{
+  "email": "john.doe@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "dob": "1995-05-15T00:00:00.000Z",
+  "phone_number": "+2348012345678",
+  "gender": "MALE",
+  "address": "123 Main Street, Lagos",
+  "password": "SecurePassword123!"
+}
+
+
+*Response (201):*
+json
+{
+  "status": "success",
+  "message": "Verification email sent. Please verify your email to continue."
+}
+
+
+---
+
+### 1.2 Verify Email
+*POST* {{base_url}}/api/auth/verify-email
+
+*Body (JSON):*
+json
+{
+  "email": "john.doe@example.com",
+  "otp": "123456"
+}
+
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": "uuid-here",
+      "email": "john.doe@example.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "created_at": "2024-01-15T10:30:00.000Z"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+
+
+*Test Script* (to save token):
+javascript
+if (pm.response.code === 200) {
+    const response = pm.response.json();
+    pm.environment.set("token", response.data.token);
+}
+
+
+---
+
+### 1.3 Sign In
+*POST* {{base_url}}/api/auth/signin
+
+*Body (JSON):*
+json
+{
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!"
+}
+
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": "uuid-here",
+      "profile_pic_link": null,
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "is_verified": true,
+      "created_at": "2024-01-15T10:30:00.000Z"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+
+
+*Test Script*:
+javascript
+if (pm.response.code === 200) {
+    const response = pm.response.json();
+    pm.environment.set("token", response.data.token);
+}
+
+
+---
+
+### 1.4 Forgot Password
+*POST* {{base_url}}/api/auth/forgot-password
+
+*Body (JSON):*
+json
+{
+  "email": "john.doe@example.com"
+}
+
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "message": "Password reset instructions sent to email"
+}
+
+
+---
+
+### 1.5 Reset Password
+*POST* {{base_url}}/api/auth/reset-password
+
+*Body (JSON):*
+json
+{
+  "email": "john.doe@example.com",
+  "otp": "123456",
+  "new_password": "NewSecurePassword123!"
+}
+
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "message": "Password reset successful"
+}
+
+
+---
+
+### 1.6 Resend Verification
+*POST* {{base_url}}/api/auth/resend-verification
+
+*Body (JSON):*
+json
+{
+  "email": "john.doe@example.com"
+}
+
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "message": "Verification email sent successfully"
+}
+
+
+---
+
+## 2. Profile Routes (/api/profile)
+
+*Authorization Required*: Add to Headers for all profile routes:
+- Authorization: Bearer {{token}}
+
+### 2.1 Setup Profile
+*POST* {{base_url}}/api/profile
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Body (form-data):*
+- first_name: John
+- last_name: Doe
+- dob: 1995-05-15T00:00:00.000Z
+- gender: MALE
+- address: 456 New Address, Lagos
+- phone_number: +2348012345678
+- profile_pic: (File - select an image file)
+
+*Response (201):*
+json
+{
+  "status": "success",
+  "data": {
+    "profile_pic_link": "https://res.cloudinary.com/...",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "phone_number": "+2348012345678",
+    "dob": "1995-05-15T00:00:00.000Z",
+    "address": "456 New Address, Lagos",
+    "gender": "MALE",
+    "created_at": "2024-01-15T10:30:00.000Z"
+  }
+}
+
+
+---
+
+### 2.2 Get Profile
+*GET* {{base_url}}/api/profile/:username
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Path Variable:*
+- username: (Not implemented in controller - uses req.user.id instead)
+
+*Actual Request:* {{base_url}}/api/profile/any-username (username is ignored)
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "data": {
+    "profile_pic_link": "https://res.cloudinary.com/...",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "phone_number": "+2348012345678",
+    "dob": "1995-05-15T00:00:00.000Z",
+    "address": "456 New Address, Lagos",
+    "gender": "MALE",
+    "created_at": "2024-01-15T10:30:00.000Z"
+  }
+}
+
+
+---
+
+### 2.3 Update Profile
+*PATCH* {{base_url}}/api/profile/:username
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Path Variable:*
+- username: (Not implemented in controller)
+
+*Body (form-data):*
+- first_name: Johnny (optional)
+- last_name: Doe Jr (optional)
+- phone_number: +2348098765432 (optional)
+- address: 789 Updated Street, Abuja (optional)
+- gender: MALE (optional)
+- profile_pic: (File - optional)
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "data": {
+    "profile_pic_link": "https://res.cloudinary.com/...",
+    "first_name": "Johnny",
+    "last_name": "Doe Jr",
+    "email": "john.doe@example.com",
+    "phone_number": "+2348098765432",
+    "dob": "1995-05-15T00:00:00.000Z",
+    "address": "789 Updated Street, Abuja",
+    "gender": "MALE",
+    "created_at": "2024-01-15T10:30:00.000Z"
+  }
+}
+
+
+---
+
+## 3. Shipment Routes (/api/shipments)
+
+*Authorization Required*: Add to Headers for all shipment routes:
+- Authorization: Bearer {{token}}
+
+### 3.1 Get All Shipments
+*GET* {{base_url}}/api/shipments
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "results": 2,
+  "data": [
+    {
+      "id": "uuid-1",
+      "user_id": "user-uuid",
+      "sender_name": "John Doe",
+      "sender_phone_number": "+2348012345678",
+      "sender_email": "john.doe@example.com",
+      "sender_city": "Lagos",
+      "sender_address": "123 Sender St",
+      "receiver_name": "Jane Smith",
+      "receiver_phone_number": "+2348087654321",
+      "receiver_email": "jane.smith@example.com",
+      "receiver_city": "Abuja",
+      "receiver_address": "456 Receiver Ave",
+      "package_categorgy": "ELECTRONICS",
+      "package_weight": 2.5,
+      "package_length": 30,
+      "package_width": 20,
+      "package_height": 15,
+      "shipping_rate_id": "rate-uuid",
+      "shipping_rate": {
+        "id": "rate-uuid",
+        "type": "EXPRESS",
+        "lower_eta": 1,
+        "upper_eta": 3,
+        "price": 5000,
+        "currency": "NGN"
+      },
+      "status": "PENDING",
+      "tracking_id": "ABC123XYZ456DEF",
+      "payment_method": "Alcott Wallet",
+      "created_at": "2024-01-15T14:30:00.000Z",
+      "updated_at": "2024-01-15T14:30:00.000Z"
+    }
+  ]
+}
+
+
+---
+
+### 3.2 Create Shipment
+*POST* {{base_url}}/api/shipments
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Body (JSON):*
+json
+{
+  "sender_name": "John Doe",
+  "sender_phone_number": "+2348012345678",
+  "sender_email": "john.doe@example.com",
+  "sender_city": "Lagos",
+  "sender_address": "123 Sender Street, Ikeja",
+  
+  "receiver_name": "Jane Smith",
+  "receiver_phone_number": "+2348087654321",
+  "receiver_email": "jane.smith@example.com",
+  "receiver_city": "Abuja",
+  "receiver_address": "456 Receiver Avenue, Wuse",
+  
+  "package_category": "ELECTRONICS",
+  "package_weight": 2.5,
+  "package_length": 30.0,
+  "package_width": 20.0,
+  "package_height": 15.0,
+  
+  "shipping_rate_id": "your-shipping-rate-uuid",
+  
+  "status": "PENDING",
+  "payment_method": "Alcott Wallet"
+}
+
+
+*Response (201):*
+json
+{
+  "status": "success",
+  "data": {
+    "id": "new-shipment-uuid",
+    "user_id": "user-uuid",
+    "sender_name": "John Doe",
+    "sender_phone_number": "+2348012345678",
+    "sender_email": "john.doe@example.com",
+    "sender_city": "Lagos",
+    "sender_address": "123 Sender Street, Ikeja",
+    "receiver_name": "Jane Smith",
+    "receiver_phone_number": "+2348087654321",
+    "receiver_email": "jane.smith@example.com",
+    "receiver_city": "Abuja",
+    "receiver_address": "456 Receiver Avenue, Wuse",
+    "package_categorgy": "ELECTRONICS",
+    "package_weight": 2.5,
+    "package_length": 30,
+    "package_width": 20,
+    "package_height": 15,
+    "shipping_rate_id": "your-shipping-rate-uuid",
+    "shipping_rate": {
+      "id": "your-shipping-rate-uuid",
+      "type": "EXPRESS",
+      "lower_eta": 1,
+      "upper_eta": 3,
+      "price": 5000,
+      "currency": "NGN"
+    },
+    "status": "PENDING",
+    "tracking_id": "ABC123XYZ456DEF",
+    "payment_method": "Alcott Wallet",
+    "created_at": "2024-01-15T14:30:00.000Z",
+    "updated_at": "2024-01-15T14:30:00.000Z"
+  }
+}
+
+
+---
+
+### 3.3 Get Shipment by ID
+*GET* {{base_url}}/api/shipments/:id
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Path Variable:*
+- id: your-shipment-uuid
+
+*Example:* {{base_url}}/api/shipments/abc-123-def-456
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "data": {
+    "id": "abc-123-def-456",
+    "user_id": "user-uuid",
+    "sender_name": "John Doe",
+    "sender_phone_number": "+2348012345678",
+    "sender_email": "john.doe@example.com",
+    "sender_city": "Lagos",
+    "sender_address": "123 Sender St",
+    "receiver_name": "Jane Smith",
+    "receiver_phone_number": "+2348087654321",
+    "receiver_email": "jane.smith@example.com",
+    "receiver_city": "Abuja",
+    "receiver_address": "456 Receiver Ave",
+    "package_categorgy": "ELECTRONICS",
+    "package_weight": 2.5,
+    "package_length": 30,
+    "package_width": 20,
+    "package_height": 15,
+    "shipping_rate_id": "rate-uuid",
+    "shipping_rate": {
+      "id": "rate-uuid",
+      "type": "EXPRESS",
+      "lower_eta": 1,
+      "upper_eta": 3,
+      "price": 5000,
+      "currency": "NGN"
+    },
+    "status": "PENDING",
+    "tracking_id": "ABC123XYZ456DEF",
+    "payment_method": "Alcott Wallet",
+    "created_at": "2024-01-15T14:30:00.000Z",
+    "updated_at": "2024-01-15T14:30:00.000Z"
+  }
+}
+
+
+---
+
+### 3.4 Get Shipment by Tracking ID
+*GET* {{base_url}}/api/shipments/tracking/:trackingId
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Path Variable:*
+- trackingId: ABC123XYZ456DEF
+
+*Example:* {{base_url}}/api/shipments/tracking/ABC123XYZ456DEF
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "data": {
+    "id": "shipment-uuid",
+    "user_id": "user-uuid",
+    "sender_name": "John Doe",
+    "sender_phone_number": "+2348012345678",
+    "sender_email": "john.doe@example.com",
+    "sender_city": "Lagos",
+    "sender_address": "123 Sender St",
+    "receiver_name": "Jane Smith",
+    "receiver_phone_number": "+2348087654321",
+    "receiver_email": "jane.smith@example.com",
+    "receiver_city": "Abuja",
+    "receiver_address": "456 Receiver Ave",
+    "package_categorgy": "ELECTRONICS",
+    "package_weight": 2.5,
+    "package_length": 30,
+    "package_width": 20,
+    "package_height": 15,
+    "shipping_rate_id": "rate-uuid",
+    "shipping_rate": {
+      "id": "rate-uuid",
+      "type": "EXPRESS",
+      "lower_eta": 1,
+      "upper_eta": 3,
+      "price": 5000,
+      "currency": "NGN"
+    },
+    "status": "PENDING",
+    "tracking_id": "ABC123XYZ456DEF",
+    "payment_method": "Alcott Wallet",
+    "created_at": "2024-01-15T14:30:00.000Z",
+    "updated_at": "2024-01-15T14:30:00.000Z"
+  }
+}
+
+
+---
+
+### 3.5 Get Package Categories
+*GET* {{base_url}}/api/shipments/categories/list
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "data": [
+    "ELECTRONICS",
+    "CLOTHING",
+    "DOCUMENTS",
+    "PERISHABLES",
+    "FURNITURE",
+    "FRAGILE",
+    "JEWELRY",
+    "MEDICAL",
+    "OTHER"
+  ]
+}
+
+
+---
+
+### 3.6 Get Shipping Rates
+*GET* {{base_url}}/api/shipments/rates/list
+
+*Headers:*
+- Authorization: Bearer {{token}}
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "results": 3,
+  "data": [
+    {
+      "id": "rate-uuid-1",
+      "type": "REGULAR",
+      "lower_eta": 5,
+      "upper_eta": 7,
+      "price": 2000,
+      "currency": "NGN",
+      "created_at": "2024-01-10T10:00:00.000Z",
+      "updated_at": "2024-01-10T10:00:00.000Z"
+    },
+    {
+      "id": "rate-uuid-2",
+      "type": "CARGO",
+      "lower_eta": 3,
+      "upper_eta": 5,
+      "price": 3500,
+      "currency": "NGN",
+      "created_at": "2024-01-10T10:00:00.000Z",
+      "updated_at": "2024-01-10T10:00:00.000Z"
+    },
+    {
+      "id": "rate-uuid-3",
+      "type": "EXPRESS",
+      "lower_eta": 1,
+      "upper_eta": 3,
+      "price": 5000,
+      "currency": "NGN",
+      "created_at": "2024-01-10T10:00:00.000Z",
+      "updated_at": "2024-01-10T10:00:00.000Z"
+    }
+  ]
+}
+
+
+---
+
+## 4. Health Check
+
+### 4.1 Ping
+*GET* {{base_url}}/ping
+
+*Response (200):*
+json
+{
+  "status": "success",
+  "message": "pong"
+}
+
+
+---
+
+## Notes for Your Frontend Team
+
+### 1. *Authentication Flow*
+1. User signs up → receives OTP via email
+2. User verifies email with OTP → receives JWT token
+3. Store token in localStorage/sessionStorage
+4. Include token in Authorization header for all protected routes
+
+### 2. *Gender Enum Values*
+- MALE
+- FEMALE
+- OTHER
+
+### 3. *Package Category Enum Values*
+- ELECTRONICS, CLOTHING, DOCUMENTS, PERISHABLES, FURNITURE, FRAGILE, JEWELRY, MEDICAL, OTHER
+
+### 4. *Shipment Status Enum Values*
+- PENDING
+- SUCCESSFUL
+- FAILED
+
+### 5. *Currency Enum Values*
+- NGN
+- USD
+
+### 6. *File Upload Requirements*
+- Only image files allowed
+- Maximum file size: 5MB
+- Use multipart/form-data for profile picture uploads
+
+### 7. *Error Response Format*
+json
+{
+  "status": "fail",
+  "message": "Error message here"
+}
+
+
+### 8. *Known Issues to Note*
+- updateProfile has a missing import for profileSchema
+- Profile routes use username parameter but controller ignores it and uses req.user.id
+- Before creating shipments, you need to seed ShippingRate data in the database
+
+firesolami: create a simple seed script for the shipping rate data
+
+GitHub Copilot: I'll create a seed script for the shipping rate data.
+
+`javascript
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('🌱 Starting seed...');
+
+  // Clear existing shipping rates (optional)
+  await prisma.shippingRate.deleteMany({});
+  console.log('🗑  Cleared existing shipping rates');
+
+  // Create shipping rates
+  const shippingRates = [
+    {
+      type: 'REGULAR',
+      lower_eta: 5,
+      upper_eta: 7,
+      price: 2000,
+      currency: 'NGN',
+    },
+    {
+      type: 'CARGO',
+      lower_eta: 3,
+      upper_eta: 5,
+      price: 3500,
+      currency: 'NGN',
+    },
+    {
+      type: 'EXPRESS',
+      lower_eta: 1,
+      upper_eta: 3,
+      price: 5000,
+      currency: 'NGN',
+    },
+  ];
+
+  for (const rate of shippingRates) {
+    const createdRate = await prisma.shippingRate.create({
+      data: rate,
+    });
+    console.log(`✅ Created ${createdRate.type} shipping rate - ₦${createdRate.price}`);
+  }
+
+  console.log('🎉 Seed completed successfully!');
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Error seeding database:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+`
+
+Now add the seed script to your package.json:
+
+`json
+{
+  // ...existing code...
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "scripts": {
+    // ...existing code...
+    "seed": "node prisma/seed.js"
+  }
+  // ...existing code...
+}
+`
+
+## Usage
+
+Run the seed script with either of these commands:
+
+bash
+# Using npm
+npm run seed
+
+# Or using Prisma CLI
+npx prisma db seed
+
+
+## Expected Output
+
+
+🌱 Starting seed...
+🗑  Cleared existing shipping rates
+✅ Created REGULAR shipping rate - ₦2000
+✅ Created CARGO shipping rate - ₦3500
+✅ Created EXPRESS shipping rate - ₦5000
+🎉 Seed completed successfully!
+
+
+## Alternative: Seed with USD Rates
+
+If you want to include USD rates as well, modify the seed script:
+
+`javascript
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('🌱 Starting seed...');
+
+  await prisma.shippingRate.deleteMany({});
+  console.log('🗑  Cleared existing shipping rates');
+
+  const shippingRates = [
+    // NGN Rates
+    {
+      type: 'REGULAR',
+      lower_eta: 5,
+      upper_eta: 7,
+      price: 2000,
+      currency: 'NGN',
+    },
+    {
+      type: 'CARGO',
+      lower_eta: 3,
+      upper_eta: 5,
+      price: 3500,
+      currency: 'NGN',
+    },
+    {
+      type: 'EXPRESS',
+      lower_eta: 1,
+      upper_eta: 3,
+      price: 5000,
+      currency: 'NGN',
+    },
+  ];
+
+  for (const rate of shippingRates) {
+    const createdRate = await prisma.shippingRate.create({
+      data: rate,
+    });
+    console.log(`✅ Created ${createdRate.type} (${createdRate.currency}) - ${createdRate.currency === 'NGN' ? '₦' : '$'}${createdRate.price}`);
+  }
+
+  console.log('🎉 Seed completed successfully!');
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Error seeding database:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+`
+
+*Note:* Since your schema has type as @unique, you can only have one rate per shipping type. If you need different currencies, you'll need to modify your schema to allow multiple rates per type with different currencies.

@@ -1,10 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ImagePicker } from '@/components/ui/image-picker'
 import Link from 'next/link'
+import { Textarea } from '@/components/ui/textarea'
+import { useRouter } from 'next/navigation'
+import apiClient from '@/lib/api-client'
+import { toast } from '@/components/ui/use-toast'
 
 export default function ProfileSetupPage() {
   const [formData, setFormData] = useState({
@@ -17,8 +21,10 @@ export default function ProfileSetupPage() {
     address: '',
     profileImage: null as File | null
   })
-
-  const [step, setStep] = useState(1) // 1 = empty form, 2 = filled form
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -34,23 +40,91 @@ export default function ProfileSetupPage() {
     }))
   }
 
-  const fillMockData = () => {
-    setFormData({
-      firstName: 'Olusegun',
-      lastName: 'Matanmi',
-      dateOfBirth: '1992-11-13',
-      email: 'info@alcott.com.ng',
-      phoneNumber: '+234 111 467 378 399',
-      gender: 'Male',
-      address: 'Address',
-      profileImage: null
-    })
-    setStep(2)
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('authUser') || sessionStorage.getItem('authUser')
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser)
+          setFormData(prev => ({
+            ...prev,
+            email: parsed.email || prev.email,
+            firstName: prev.firstName || parsed.first_name || '',
+            lastName: prev.last_name || prev.lastName || ''
+          }))
+        } catch (error) {
+          console.error('Failed to parse stored user', error)
+        }
+      }
+    }
+  }, [])
 
-  const handleContinue = () => {
-    // Navigate to location page
-    window.location.href = '/profile-setup/location'
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phoneNumber', 'gender', 'address']
+    const missingField = requiredFields.find((field) => !(formData as any)[field])
+    if (missingField) {
+      const message = 'Please fill in all required fields before continuing.'
+      setErrorMessage(message)
+      toast({ title: 'Missing information', description: message })
+      return
+    }
+
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+        : null
+
+    if (!token) {
+      const message = 'You need to sign in before setting up your profile.'
+      setErrorMessage(message)
+      toast({ title: 'Not signed in', description: message })
+      router.push('/auth/sign-in')
+      return
+    }
+
+    const payload = new FormData()
+    payload.append('first_name', formData.firstName)
+    payload.append('last_name', formData.lastName)
+    payload.append('dob', new Date(formData.dateOfBirth).toISOString())
+    payload.append('gender', formData.gender)
+    payload.append('address', formData.address)
+    payload.append('phone_number', formData.phoneNumber)
+    if (formData.profileImage) {
+      payload.append('profile_pic', formData.profileImage)
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await apiClient.post('/profile', payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+
+      const message = response?.data?.message || 'Profile created successfully.'
+      setSuccessMessage(message)
+      toast({ title: 'Profile complete', description: message })
+
+      setTimeout(() => {
+        router.push('/profile-setup/success')
+      }, 800)
+    } catch (err: any) {
+      const apiErrorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Unable to complete profile setup. Please try again.'
+      setErrorMessage(apiErrorMessage)
+      toast({ title: 'Profile setup failed', description: apiErrorMessage })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -70,8 +144,8 @@ export default function ProfileSetupPage() {
       {/* Main Content */}
       <div className="flex-1 flex">
         {/* Left Side - Form (60% width) */}
-        <div className="w-3/5 p-6">
-          <div className="space-y-6 max-w-sm">
+        <div className="w-full lg:w-3/5 p-6">
+          <form className="space-y-6 max-w-sm" onSubmit={handleSubmit}>
             {/* First Name */}
             <div>
               <Input
@@ -81,6 +155,7 @@ export default function ProfileSetupPage() {
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                 className="w-full h-12 px-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                required
               />
             </div>
 
@@ -93,6 +168,7 @@ export default function ProfileSetupPage() {
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                 className="w-full h-12 px-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                required
               />
             </div>
 
@@ -105,6 +181,7 @@ export default function ProfileSetupPage() {
                 onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                 className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                required
               />
               <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -120,6 +197,7 @@ export default function ProfileSetupPage() {
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                required
               />
               <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -140,6 +218,7 @@ export default function ProfileSetupPage() {
                   onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   className="flex-1 h-12 px-4 border border-gray-200 rounded-r-lg rounded-l-none text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
                   style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                required
                 />
               </div>
             </div>
@@ -151,11 +230,12 @@ export default function ProfileSetupPage() {
                 onChange={(e) => handleInputChange('gender', e.target.value)}
                 className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent appearance-none bg-white font-[Urbanist] font-bold"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                required
               >
                 <option value="" className="text-gray-500 font-bold">Gender</option>
-                <option value="Male" className="font-bold">Male</option>
-                <option value="Female" className="font-bold">Female</option>
-                <option value="Other" className="font-bold">Other</option>
+                <option value="MALE" className="font-bold">Male</option>
+                <option value="FEMALE" className="font-bold">Female</option>
+                <option value="OTHER" className="font-bold">Other</option>
               </select>
               <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -164,37 +244,43 @@ export default function ProfileSetupPage() {
 
             {/* Address */}
             <div className="relative">
-              <select
+              <Textarea
+                placeholder="Home address"
                 value={formData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent appearance-none bg-white font-[Urbanist] font-bold"
+                className="w-full min-h-[100px] px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
-              >
-                <option value="" className="text-gray-500 font-bold">Address</option>
-                <option value="Lagos, Nigeria" className="font-bold">Lagos, Nigeria</option>
-                <option value="Abuja, Nigeria" className="font-bold">Abuja, Nigeria</option>
-                <option value="Port Harcourt, Nigeria" className="font-bold">Port Harcourt, Nigeria</option>
-              </select>
-              <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+                required
+              />
             </div>
 
-            {/* Continue Button */}
-            <div className="mt-8">
+            {errorMessage && (
+              <p className="text-sm text-red-600 text-center font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                {errorMessage}
+              </p>
+            )}
+            {successMessage && (
+              <p className="text-sm text-green-600 text-center font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                {successMessage}
+              </p>
+            )}
+
+            {/* Submit Button */}
+            <div className="pt-2">
               <Button 
-                onClick={step === 1 ? fillMockData : handleContinue}
-                className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-[Urbanist] max-w-sm"
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-[Urbanist] max-w-sm disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
               >
-                Continue
+                {isSubmitting ? 'Saving profile…' : 'Complete profile'}
               </Button>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Right Side - Profile Image (40% width) */}
-        <div className="w-2/5 flex items-center justify-center p-6">
+        <div className="hidden lg:flex w-2/5 items-center justify-center p-6">
           <ImagePicker 
             onImageSelect={handleImageSelect}
             className=""

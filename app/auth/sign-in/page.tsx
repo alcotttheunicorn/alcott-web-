@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import apiClient from '@/lib/api-client'
+import { toast } from '@/components/ui/use-toast'
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -13,23 +14,82 @@ export default function SignInPage() {
   const [passwordFocused, setPasswordFocused] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Basic validation
+    setErrorMessage(null)
+
     if (!email || !password) {
-      alert('Please fill in all fields')
+      setErrorMessage('Please enter your email and password.')
+      toast({
+        title: 'Missing details',
+        description: 'Please enter your email and password.',
+      })
       return
     }
-    
-    // Mock authentication - in real app, you'd validate against your backend
-    console.log('Sign in attempt:', { email, password })
-    
-    // Simulate successful login and redirect to home
-    alert('Sign in successful!')
-    router.push('/home')
+
+    setIsLoading(true)
+
+    try {
+      const response = await apiClient.post('/auth/signin', {
+        email,
+        password,
+      })
+
+      const { user, token } = response?.data?.data || {}
+
+      if (!user || !token) {
+        throw new Error('Unexpected response from server. Please try again.')
+      }
+
+      if (!user.is_verified) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('pendingSignupEmail', user.email)
+          // Ensure any previous auth data is cleared if user isn't verified
+          localStorage.removeItem('authToken')
+          localStorage.removeItem('authUser')
+          sessionStorage.removeItem('authToken')
+          sessionStorage.removeItem('authUser')
+        }
+        toast({
+          title: 'Verify your email',
+          description: 'Please verify your email before signing in.',
+        })
+        router.push('/auth/verify-email')
+        return
+      }
+
+      if (typeof window !== 'undefined') {
+        // Persist auth data
+        const storage = rememberMe ? window.localStorage : window.sessionStorage
+        storage.setItem('authToken', token)
+        storage.setItem('authUser', JSON.stringify(user))
+        // Clear any pending signup data
+        window.localStorage.removeItem('pendingSignupEmail')
+      }
+
+      toast({
+        title: 'Welcome back!',
+        description: `Hello ${user.first_name || ''}!`,
+      })
+
+      router.push('/home')
+    } catch (err: any) {
+      const apiErrorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Sign-in failed. Please try again.'
+
+      setErrorMessage(apiErrorMessage)
+      toast({ title: 'Sign-in failed', description: apiErrorMessage })
+    } finally {
+      setIsLoading(false)
+    }
   }
   
   return (
@@ -116,7 +176,7 @@ export default function SignInPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                     className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
@@ -168,6 +228,8 @@ export default function SignInPage() {
                         checkmark.classList.add('opacity-0');
                         checkmark.classList.remove('opacity-100');
                       }
+
+                      setRememberMe(checkbox.checked)
                     }}
                   />
                   <div className="w-5 h-5 bg-white border-2 border-gray-300 rounded flex items-center justify-center transition-all duration-200 cursor-pointer">
@@ -182,11 +244,16 @@ export default function SignInPage() {
               </div>
 
               {/* Sign In Button */}
+              {errorMessage && (
+                <p className="text-sm text-red-600 text-center font-['Urbanist'] font-bold">{errorMessage}</p>
+              )}
+
               <Button 
                 type="submit"
-                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-['Urbanist']"
+                disabled={isLoading}
+                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-['Urbanist'] disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Sign In
+                {isLoading ? 'Signing in…' : 'Sign In'}
               </Button>
             </form>
 

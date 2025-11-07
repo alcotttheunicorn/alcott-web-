@@ -5,11 +5,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
+import apiClient from '@/lib/api-client'
+import { toast } from '@/components/ui/use-toast'
+import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [emailFocused, setEmailFocused] = useState(false)
   const [passwordFocused, setPasswordFocused] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Top Logo */}
@@ -53,11 +62,48 @@ export default function RegisterPage() {
             </div>
 
             {/* Registration Form */}
-            <form className="space-y-6 mb-8" onSubmit={(e) => {
-              e.preventDefault()
-              // Mock sign up - redirect to profile setup
-              window.location.href = '/profile-setup'
-            }}>
+            <form
+              className="space-y-6 mb-8"
+              onSubmit={async (e) => {
+                e.preventDefault()
+                setErrorMessage(null)
+                setSuccessMessage(null)
+                setIsLoading(true)
+                try {
+                  const res = await apiClient.post('/auth/signup/', {
+                    email,
+                    password,
+                  })
+                  // Save temp info for next steps if needed
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('pendingSignupEmail', email)
+                  }
+                  const message =
+                    res?.data?.message ||
+                    'Verification email sent. Please verify your email to continue.'
+                  setSuccessMessage(message)
+                  toast({
+                    title: 'Signup successful',
+                    description: message,
+                  })
+                  // Route to verify email screen
+                  setTimeout(() => router.push('/auth/verify-email'), 800)
+                } catch (err: any) {
+                  const apiErrorMessage =
+                    err?.response?.data?.message ||
+                    err?.response?.data?.error ||
+                    err?.message ||
+                    'Signup failed. Please try again.'
+                  setErrorMessage(apiErrorMessage)
+                  toast({
+                    title: 'Signup failed',
+                    description: apiErrorMessage,
+                  })
+                } finally {
+                  setIsLoading(false)
+                }
+              }}
+            >
               {/* Email Field */}
               <div className="relative">
                 <div className={`flex items-center rounded-xl px-4 py-4 transition-all duration-300 ease-in-out ${
@@ -76,6 +122,9 @@ export default function RegisterPage() {
                     className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                     onFocus={() => setEmailFocused(true)}
                     onBlur={() => setEmailFocused(false)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -98,6 +147,9 @@ export default function RegisterPage() {
                     className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                   <button
                     type="button"
@@ -159,12 +211,21 @@ export default function RegisterPage() {
                 </label>
               </div>
 
+              {/* Error / Success Feedback */}
+              {errorMessage && (
+                <p className="text-sm text-red-600 text-center font-['Urbanist'] font-bold">{errorMessage}</p>
+              )}
+              {successMessage && (
+                <p className="text-sm text-green-600 text-center font-['Urbanist'] font-bold">{successMessage}</p>
+              )}
+
               {/* Sign Up Button */}
               <Button 
                 type="submit"
-                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-['Urbanist']"
+                disabled={isLoading}
+                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-['Urbanist'] disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Sign up
+                {isLoading ? 'Creating account…' : 'Sign up'}
               </Button>
             </form>
 
