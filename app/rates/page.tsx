@@ -479,7 +479,7 @@ function DesktopSidebar() {
       <nav className="flex-1 px-4 py-6">
         <ul className="space-y-2">
           <SidebarLink href="/home" icon={DashboardIcon} label="Dashboard" />
-          <SidebarLink href="/shipment/new" icon={OrderIcon} label="My Order" />
+          <SidebarLink href="/orders" icon={OrderIcon} label="My Order" />
           <SidebarLink href="/inbox" icon={InboxIcon} label="Inbox" />
           <SidebarLink href="/settings" icon={SettingsIcon} label="Settings" />
         </ul>
@@ -504,7 +504,7 @@ function MobileSidebar({ onClose }: { onClose: () => void }) {
         <nav className="flex-1 px-4 py-6">
           <ul className="space-y-2">
             <SidebarLink href="/home" icon={DashboardIcon} label="Dashboard" onClick={onClose} mobile />
-            <SidebarLink href="/shipment/new" icon={OrderIcon} label="My Order" onClick={onClose} mobile />
+            <SidebarLink href="/orders" icon={OrderIcon} label="My Order" onClick={onClose} mobile />
             <SidebarLink href="/inbox" icon={InboxIcon} label="Inbox" onClick={onClose} mobile />
             <SidebarLink href="/settings" icon={SettingsIcon} label="Settings" onClick={onClose} mobile />
           </ul>
@@ -652,7 +652,7 @@ function MobileBottomNav() {
     <div className="lg:hidden sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
       <nav className="flex justify-around items-center">
         <BottomNavLink href="/home" label="Dashboard" icon={DashboardIcon} />
-        <BottomNavLink href="/shipment/new" label="My Order" icon={OrderIcon} />
+        <BottomNavLink href="/orders" label="My Order" icon={OrderIcon} />
         <BottomNavLink href="/inbox" label="Inbox" icon={InboxIcon} />
         <BottomNavLink href="/settings" label="Settings" icon={SettingsIcon} />
       </nav>
