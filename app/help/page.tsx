@@ -35,6 +35,8 @@ export default function HelpCenterPage() {
       answer: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
       category: 'general',
     },
+
+    
     {
       id: 'create-shipping',
       question: 'Can I create my own shipping?',
