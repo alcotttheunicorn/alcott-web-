@@ -63,7 +63,7 @@ export default function HomePage() {
 
   const handleQuickAction = (action: string) => {
     console.log(`${action} clicked`)
-    switch(action) {
+    switch (action) {
       case 'New Shipment':
         // Navigate to new shipment page
         router.push('/shipment/new')
@@ -150,11 +150,11 @@ export default function HomePage() {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out"
             onClick={() => setMobileMenuOpen(false)}
           ></div>
-          
+
           {/* Sidebar */}
           <div className="relative w-64 bg-[#4043FF] text-white flex flex-col transform transition-transform duration-300 ease-in-out">
             {/* Header with close button */}
@@ -164,7 +164,7 @@ export default function HomePage() {
                 alt="Alcott Logo"
                 className="h-8 w-auto"
               />
-              <button 
+              <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-1 rounded-lg hover:bg-white/10"
               >
@@ -223,7 +223,7 @@ export default function HomePage() {
         <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button */}
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
             >
@@ -247,7 +247,7 @@ export default function HomePage() {
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-lg focus:ring-2 focus:ring-[#4043FF] focus:bg-white text-gray-900 placeholder:text-gray-500 font-[Urbanist] font-bold placeholder:font-bold"
                   style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
                 />
-                
+
                 {/* Recent Searches Dropdown */}
                 {isSearchFocused && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
@@ -256,9 +256,9 @@ export default function HomePage() {
                         <h3 className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                           Recent
                         </h3>
-                        <button 
+                        <button
                           onClick={handleClearAllRecents}
-                          className="text-xs text-[#4043FF] font-bold hover:text-[#3333CC] font-[Urbanist]" 
+                          className="text-xs text-[#4043FF] font-bold hover:text-[#3333CC] font-[Urbanist]"
                           style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
                         >
                           Clear All
@@ -303,6 +303,19 @@ export default function HomePage() {
                 </svg>
                 {/* Notification dot */}
                 <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+              </button>
+
+              {/* Admin Button */}
+              <button
+                onClick={() => router.push('/admin/orders')}
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-[#4043FF] text-white text-sm font-bold rounded-lg hover:bg-[#3333CC] transition-colors font-[Urbanist]"
+                style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Admin
               </button>
 
               {/* Currency Dropdown */}
@@ -351,13 +364,13 @@ export default function HomePage() {
                   <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                     941,800.00NGN
                   </h3>
-                  <button 
+                  <button
                     onClick={handleTopUp}
                     className="mt-2 sm:mt-4 bg-white text-[#4043FF] hover:bg-gray-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold shadow transition-colors font-[Urbanist] flex items-center gap-1"
                     style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
                   >
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M7 14l5-5 5 5z"/>
+                      <path d="M7 14l5-5 5 5z" />
                     </svg>
                     Top Up
                   </button>
@@ -366,9 +379,9 @@ export default function HomePage() {
                 {/* Right - Greeting */}
                 <div className="hidden sm:block text-right">
                   <p className="text-white/90 text-xs lg:text-sm font-[Urbanist] flex items-center gap-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    Good Morning 
+                    Good Morning
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.81-.34-3.68L23 12z"/>
+                      <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.81-.34-3.68L23 12z" />
                     </svg>
                   </p>
                   <p className="text-white text-lg lg:text-xl font-bold font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Olusegun Matanmi</p>
@@ -380,17 +393,25 @@ export default function HomePage() {
           {/* Quick Actions */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
             {[
-              { label: 'New Shipment', icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18"/></svg>) },
-              { label: 'Check Rates', icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 11V3a8 8 0 100 16 8 8 0 008-8h-8z"/></svg>) },
-              { label: 'Nearby Drop', icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22s7-4.434 7-12.5A7 7 0 105 9.5C5 17.566 12 22 12 22z"/></svg>) },
-              { label: 'Help Center', icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>) }
+              {
+                label: 'New Shipment', icon: (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" /></svg>)
+              },
+              {
+                label: 'Check Rates', icon: (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 11V3a8 8 0 100 16 8 8 0 008-8h-8z" /></svg>)
+              },
+              {
+                label: 'Nearby Drop', icon: (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22s7-4.434 7-12.5A7 7 0 105 9.5C5 17.566 12 22 12 22z" /></svg>)
+              },
+              {
+                label: 'Help Center', icon: (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>)
+              }
             ].map((item, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 onClick={() => handleQuickAction(item.label)}
                 className="bg-white border border-gray-200 rounded-xl p-3 lg:p-4 flex flex-col items-center justify-center gap-2 lg:gap-3 hover:shadow-md transition-shadow cursor-pointer"
               >
@@ -406,7 +427,7 @@ export default function HomePage() {
           <section>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg md:text-xl font-extrabold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Transaction History</h3>
-              <button 
+              <button
                 onClick={handleSeeAllTransactions}
                 className="text-[#4043FF] text-sm font-bold hover:text-[#3333CC] transition-colors font-[Urbanist]"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
@@ -424,7 +445,7 @@ export default function HomePage() {
                 <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 lg:p-4 flex items-start justify-between hover:shadow-md transition-shadow">
                   <div className="flex items-start gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.color} flex-shrink-0`}>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs lg:text-sm font-bold text-gray-900 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.title}</p>
