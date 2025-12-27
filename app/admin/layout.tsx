@@ -12,8 +12,12 @@ const sidebarLinks = [
 
 const settingsLinks = [
     { href: '/admin/settings/policies', label: 'Policies', icon: 'policies' },
-    { href: '/admin/settings/pricing', label: 'Pricing', icon: 'pricing' },
-    { href: '/admin/settings/events', label: 'Events', icon: 'events' },
+]
+
+const pricingLinks = [
+    { href: '/admin/settings/pricing/premise', label: 'Premise', icon: 'premise' },
+    { href: '/admin/settings/pricing/zones', label: 'Zones', icon: 'zones' },
+    { href: '/admin/settings/pricing/regions', label: 'Regions', icon: 'regions' },
 ]
 
 function SidebarIcon({ type }: { type: string }) {
@@ -67,6 +71,25 @@ function SidebarIcon({ type }: { type: string }) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
             )
+        case 'premise':
+            return (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            )
+        case 'zones':
+            return (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            )
+        case 'regions':
+            return (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            )
         default:
             return null
     }
@@ -75,14 +98,16 @@ function SidebarIcon({ type }: { type: string }) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
     const [settingsOpen, setSettingsOpen] = useState(false)
+    const [pricingOpen, setPricingOpen] = useState(false)
     const [searchValue, setSearchValue] = useState('')
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     const isActive = (href: string) => pathname.startsWith(href)
 
     return (
-        <div className="min-h-screen bg-[#F8F9FC] flex" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-            {/* Sidebar */}
-            <aside className="w-56 bg-[#4043FF] text-white flex flex-col fixed h-full">
+        <div className="min-h-screen bg-[#F8F9FC] flex w-full overflow-x-hidden" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:flex w-56 bg-[#4043FF] text-white flex-col fixed h-full z-40">
                 {/* Logo */}
                 <div className="p-5 border-b border-[#5A5DFF]">
                     <img src="/alcott-white-logo-sidebar-home.png" alt="Alcott Logo" className="h-8 w-auto" />
@@ -96,8 +121,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 <Link
                                     href={link.href}
                                     className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ${isActive(link.href)
-                                            ? 'bg-white/20 text-white'
-                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                        ? 'bg-white/20 text-white'
+                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
                                         }`}
                                 >
                                     <SidebarIcon type={link.icon} />
@@ -129,13 +154,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             {/* Settings submenu */}
                             {settingsOpen && (
                                 <ul className="ml-6 mt-1 space-y-1">
+                                    {/* Policies */}
                                     {settingsLinks.map((link) => (
                                         <li key={link.href}>
                                             <Link
                                                 href={link.href}
                                                 className={`flex items-center gap-3 px-5 py-2 text-sm font-medium transition-colors ${isActive(link.href)
-                                                        ? 'bg-white/20 text-white'
-                                                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                    ? 'bg-white/20 text-white'
+                                                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                     }`}
                                             >
                                                 <SidebarIcon type={link.icon} />
@@ -143,6 +169,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             </Link>
                                         </li>
                                     ))}
+
+                                    {/* Pricing Dropdown */}
+                                    <li>
+                                        <button
+                                            onClick={() => setPricingOpen(!pricingOpen)}
+                                            className={`w-full flex items-center justify-between gap-3 px-5 py-2 text-sm font-medium transition-colors text-white/70 hover:bg-white/10 hover:text-white`}
+                                        >
+                                            <span className="flex items-center gap-3">
+                                                <SidebarIcon type="pricing" />
+                                                Pricing
+                                            </span>
+                                            <svg
+                                                className={`w-3 h-3 transition-transform ${pricingOpen ? 'rotate-180' : ''}`}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Pricing submenu */}
+                                        {pricingOpen && (
+                                            <ul className="ml-4 mt-1 space-y-1">
+                                                {pricingLinks.map((link) => (
+                                                    <li key={link.href}>
+                                                        <Link
+                                                            href={link.href}
+                                                            className={`flex items-center gap-3 px-5 py-2 text-sm font-medium transition-colors ${isActive(link.href)
+                                                                ? 'bg-white/20 text-white'
+                                                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                                }`}
+                                                        >
+                                                            <SidebarIcon type={link.icon} />
+                                                            {link.label}
+                                                        </Link>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </li>
+
+                                    {/* Events */}
+                                    <li>
+                                        <Link
+                                            href="/admin/settings/events"
+                                            className={`flex items-center gap-3 px-5 py-2 text-sm font-medium transition-colors ${isActive('/admin/settings/events')
+                                                ? 'bg-white/20 text-white'
+                                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                }`}
+                                        >
+                                            <SidebarIcon type="events" />
+                                            Events
+                                        </Link>
+                                    </li>
                                 </ul>
                             )}
                         </li>
@@ -152,8 +233,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <Link
                                 href="/admin/monitor"
                                 className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ${isActive('/admin/monitor')
-                                        ? 'bg-white/20 text-white'
-                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/80 hover:bg-white/10 hover:text-white'
                                     }`}
                             >
                                 <SidebarIcon type="monitor" />
@@ -164,10 +245,120 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </nav>
             </aside>
 
+            {/* Mobile Sidebar Overlay */}
+            {mobileMenuOpen && (
+                <div className="fixed inset-0 z-50 lg:hidden">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setMobileMenuOpen(false)}
+                    />
+                    {/* Sidebar */}
+                    <aside className="absolute left-0 top-0 bottom-0 w-64 bg-[#4043FF] text-white flex flex-col">
+                        {/* Logo and Close */}
+                        <div className="p-5 border-b border-[#5A5DFF] flex items-center justify-between">
+                            <img src="/alcott-white-logo-sidebar-home.png" alt="Alcott Logo" className="h-8 w-auto" />
+                            <button onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-white">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Navigation */}
+                        <nav className="flex-1 py-4 overflow-y-auto">
+                            <ul className="space-y-1">
+                                {sidebarLinks.map((link) => (
+                                    <li key={link.href}>
+                                        <Link
+                                            href={link.href}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ${isActive(link.href)
+                                                ? 'bg-white/20 text-white'
+                                                : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                }`}
+                                        >
+                                            <SidebarIcon type={link.icon} />
+                                            {link.label}
+                                        </Link>
+                                    </li>
+                                ))}
+
+                                {/* Settings with submenu */}
+                                <li>
+                                    <button
+                                        onClick={() => setSettingsOpen(!settingsOpen)}
+                                        className={`w-full flex items-center justify-between gap-3 px-5 py-3 text-sm font-semibold transition-colors text-white/80 hover:bg-white/10 hover:text-white`}
+                                    >
+                                        <span className="flex items-center gap-3">
+                                            <SidebarIcon type="settings" />
+                                            Settings
+                                        </span>
+                                        <svg
+                                            className={`w-4 h-4 transition-transform ${settingsOpen ? 'rotate-180' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {settingsOpen && (
+                                        <ul className="ml-6 mt-1 space-y-1">
+                                            {settingsLinks.map((link) => (
+                                                <li key={link.href}>
+                                                    <Link
+                                                        href={link.href}
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                        className={`flex items-center gap-3 px-5 py-2 text-sm font-medium transition-colors ${isActive(link.href)
+                                                            ? 'bg-white/20 text-white'
+                                                            : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                            }`}
+                                                    >
+                                                        <SidebarIcon type={link.icon} />
+                                                        {link.label}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </li>
+
+                                {/* Monitor */}
+                                <li>
+                                    <Link
+                                        href="/admin/monitor"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ${isActive('/admin/monitor')
+                                            ? 'bg-white/20 text-white'
+                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                            }`}
+                                    >
+                                        <SidebarIcon type="monitor" />
+                                        Monitor
+                                    </Link>
+                                </li>
+                            </ul>
+                        </nav>
+                    </aside>
+                </div>
+            )}
+
             {/* Main Content */}
-            <div className="flex-1 ml-56 flex flex-col">
+            <div className="flex-1 lg:ml-56 flex flex-col">
                 {/* Header */}
-                <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <header className="bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] px-4 lg:px-6 py-4 flex items-center justify-between">
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={() => setMobileMenuOpen(true)}
+                        className="lg:hidden p-2 rounded-lg hover:bg-gray-100 mr-2"
+                    >
+                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
                     {/* Search */}
                     <div className="flex-1 max-w-md">
                         <div className="relative">
@@ -185,7 +376,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
 
                     {/* Right side */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 lg:gap-4 ml-2">
                         {/* Notifications */}
                         <button className="relative p-2 rounded-lg hover:bg-gray-100">
                             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,12 +386,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </button>
 
                         {/* Profile */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 lg:gap-3">
                             <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden">
                                 <img src="/avatar-placeholder.png" alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                             </div>
-                            <span className="text-sm font-semibold text-gray-900">Olusegun Matanmi</span>
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span className="hidden md:block text-sm font-semibold text-gray-900">Olusegun Matanmi</span>
+                            <svg className="hidden md:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                         </div>
@@ -208,9 +399,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto">
+                <main className="flex-1 overflow-auto pb-20 lg:pb-0">
                     {children}
                 </main>
+
+                {/* Mobile Bottom Navigation */}
+                <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
+                    <div className="flex justify-around py-2">
+                        <Link
+                            href="/admin/orders"
+                            className={`flex flex-col items-center px-3 py-2 ${isActive('/admin/orders') ? 'text-[#4043FF]' : 'text-gray-500'}`}
+                        >
+                            <SidebarIcon type="orders" />
+                            <span className="text-xs mt-1 font-medium">Orders</span>
+                        </Link>
+                        <Link
+                            href="/admin/rates"
+                            className={`flex flex-col items-center px-3 py-2 ${isActive('/admin/rates') ? 'text-[#4043FF]' : 'text-gray-500'}`}
+                        >
+                            <SidebarIcon type="rates" />
+                            <span className="text-xs mt-1 font-medium">Rates</span>
+                        </Link>
+                        <Link
+                            href="/admin/users"
+                            className={`flex flex-col items-center px-3 py-2 ${isActive('/admin/users') ? 'text-[#4043FF]' : 'text-gray-500'}`}
+                        >
+                            <SidebarIcon type="users" />
+                            <span className="text-xs mt-1 font-medium">Users</span>
+                        </Link>
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="flex flex-col items-center px-3 py-2 text-gray-500"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <span className="text-xs mt-1 font-medium">More</span>
+                        </button>
+                    </div>
+                </nav>
             </div>
         </div>
     )

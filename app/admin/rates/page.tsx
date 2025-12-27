@@ -129,19 +129,19 @@ export default function RatesCheckPage() {
     }
 
     return (
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
             {/* Page Header */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4 lg:mb-6">
                 <Link href="/admin/orders" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                 </Link>
-                <h1 className="text-xl font-bold text-gray-900">RATE CHECK</h1>
+                <h1 className="text-lg lg:text-xl font-bold text-gray-900">RATE CHECK</h1>
             </div>
 
             {/* Month Navigation */}
-            <div className="relative flex items-center gap-2 mb-8">
+            <div className="relative flex items-center gap-2 mb-6 lg:mb-8">
                 <button
                     onClick={handlePrevMonth}
                     className="text-[#4043FF] hover:text-[#3333CC] transition-colors"
@@ -207,10 +207,10 @@ export default function RatesCheckPage() {
                                     key={index}
                                     onClick={() => handleDayClick(item.day, item.isCurrentMonth)}
                                     className={`text-center text-sm py-1.5 rounded transition-colors ${item.isCurrentMonth
-                                            ? item.day === selectedDay
-                                                ? 'bg-[#4043FF] text-white'
-                                                : 'text-gray-900 hover:bg-gray-100'
-                                            : 'text-gray-300'
+                                        ? item.day === selectedDay
+                                            ? 'bg-[#4043FF] text-white'
+                                            : 'text-gray-900 hover:bg-gray-100'
+                                        : 'text-gray-300'
                                         }`}
                                 >
                                     {item.day}
@@ -233,31 +233,31 @@ export default function RatesCheckPage() {
             </div>
 
             {/* Rate Entries List */}
-            <div className="space-y-8">
+            <div className="space-y-6 lg:space-y-8">
                 {mockRateEntries.map((entry) => (
-                    <div key={entry.id} className="flex justify-between items-start">
+                    <div key={entry.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                         {/* Left side - Entry details */}
-                        <div className="space-y-1">
-                            <p className="text-lg font-bold text-gray-900">
+                        <div className="space-y-1 flex-1 min-w-0">
+                            <p className="text-base lg:text-lg font-bold text-gray-900">
                                 {entry.time}  {entry.date}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs lg:text-sm text-gray-600 break-words">
                                 <span className="font-semibold">From:</span> {entry.from}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs lg:text-sm text-gray-600 break-words">
                                 <span className="font-semibold">To:</span> {entry.to}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs lg:text-sm text-gray-600 break-words">
                                 <span className="font-semibold">By:</span> {entry.email}, {entry.phone}
                             </p>
                         </div>
 
                         {/* Right side - Price and weight */}
-                        <div className="text-right">
-                            <p className="text-lg font-bold text-gray-900">
+                        <div className="text-left sm:text-right flex-shrink-0">
+                            <p className="text-base lg:text-lg font-bold text-gray-900">
                                 {entry.currency} {entry.price.toLocaleString()}.00
                             </p>
-                            <p className="text-sm font-semibold text-gray-700">{entry.weight}</p>
+                            <p className="text-xs lg:text-sm font-semibold text-gray-700">{entry.weight}</p>
                         </div>
                     </div>
                 ))}

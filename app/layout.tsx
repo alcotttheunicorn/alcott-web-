@@ -6,8 +6,8 @@ import './globals.css'
 // Import Urbanist font from Google Fonts with fallback
 import { Urbanist } from 'next/font/google'
 
-const urbanist = Urbanist({ 
-  subsets: ['latin'], 
+const urbanist = Urbanist({
+  subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800', '900'],
   display: 'swap',
   fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
@@ -16,6 +16,11 @@ const urbanist = Urbanist({
 export const metadata: Metadata = {
   title: 'Alcott Shipping Service',
   description: 'Ship and track packages worldwide with Alcott.',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
 }
 
 export default function RootLayout({
