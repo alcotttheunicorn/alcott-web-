@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 
 const regions = [
@@ -66,6 +67,41 @@ const zonedPrices = [
 ]
 
 export default function PricingRegionsPage() {
+    const [isRegionModalOpen, setIsRegionModalOpen] = useState(false)
+    const [regionName, setRegionName] = useState('North')
+    const [regionStates, setRegionStates] = useState([
+        'Plateau', 'Adamawa', 'Nasarawa', 'Kaduna',
+        'Zamfara', 'Bauchi', 'Katsina', 'Kogi',
+        'Kebbi', 'Jigawa', 'Taraba', 'Gombe',
+        'Sokoto', 'Kebbi', 'Borno', 'Benue',
+        'Federal Capital Territory', 'Niger', 'Kano'
+    ])
+    const [newState, setNewState] = useState('')
+
+    const handleRemoveState = (stateToRemove: string) => {
+        setRegionStates(regionStates.filter(state => state !== stateToRemove))
+    }
+
+    const handleAddState = () => {
+        if (newState.trim() && !regionStates.includes(newState.trim())) {
+            setRegionStates([...regionStates, newState.trim()])
+            setNewState('')
+        }
+    }
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            handleAddState()
+        }
+    }
+
+    const handleSubmitRegion = (e: React.FormEvent) => {
+        e.preventDefault()
+        console.log('Region submitted:', { name: regionName, states: regionStates })
+        setIsRegionModalOpen(false)
+    }
+
     return (
         <div className="p-4 lg:p-6 w-full overflow-x-hidden">
             {/* Page Header */}
@@ -83,7 +119,10 @@ export default function PricingRegionsPage() {
                 {/* Regions Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-sm font-bold text-gray-900">REGIONS</h2>
-                    <button className="text-[#4043FF] text-sm font-medium hover:text-[#3333CC] transition-colors">
+                    <button
+                        onClick={() => setIsRegionModalOpen(true)}
+                        className="text-[#4043FF] text-sm font-medium hover:text-[#3333CC] transition-colors"
+                    >
                         ADD
                     </button>
                 </div>
@@ -221,6 +260,96 @@ export default function PricingRegionsPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Pricing Zone Form Modal */}
+            {isRegionModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/30"
+                        onClick={() => setIsRegionModalOpen(false)}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="bg-[#4043FF] px-4 py-3 flex items-center justify-between">
+                            <h2 className="text-white font-semibold text-sm lg:text-base">Pricing Zone Form</h2>
+                            <button
+                                onClick={() => setIsRegionModalOpen(false)}
+                                className="text-white hover:text-white/80 transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <form onSubmit={handleSubmitRegion} className="p-4 lg:p-6">
+                            {/* Name Field */}
+                            <div className="mb-4">
+                                <label className="block text-xs text-gray-500 mb-1">Name</label>
+                                <input
+                                    type="text"
+                                    value={regionName}
+                                    onChange={(e) => setRegionName(e.target.value)}
+                                    placeholder="Enter region name"
+                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent outline-none"
+                                />
+                            </div>
+
+                            {/* State Tags */}
+                            <div className="mb-4">
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {regionStates.map((state, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded-full border border-gray-200"
+                                        >
+                                            {state}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveState(state)}
+                                                className="ml-1 text-gray-500 hover:text-gray-700"
+                                            >
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+
+                                {/* Add State Input */}
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full border border-gray-200 text-xs text-gray-500">
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            value={newState}
+                                            onChange={(e) => setNewState(e.target.value)}
+                                            onKeyPress={handleKeyPress}
+                                            placeholder="Add state here"
+                                            className="bg-transparent border-0 outline-none text-xs text-gray-700 placeholder:text-gray-400 w-20"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-[#4043FF] text-white font-semibold rounded-full hover:bg-[#3333CC] transition-colors text-sm"
+                            >
+                                SUBMIT
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
