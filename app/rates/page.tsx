@@ -5,8 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
 import { toast } from '@/components/ui/use-toast'
+import { AuthGuard } from '@/components/auth-guard'
+import { useAuth } from '@/hooks/use-auth'
+import { checkPricingAuth } from '@/lib/api/pricing-api'
+import type { PricingResult } from '@/lib/api/types'
 
 export default function CheckRatesPage() {
+  const { token } = useAuth()
   const router = useRouter()
   const [pickupLocation, setPickupLocation] = useState('')
   const [destination, setDestination] = useState('')
@@ -14,7 +19,7 @@ export default function CheckRatesPage() {
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
-  const [rates, setRates] = useState<any[]>([])
+  const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
   const [showRates, setShowRates] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
@@ -58,7 +63,7 @@ export default function CheckRatesPage() {
     return integer
   }
 
-  const handleCheckRates = () => {
+  const handleCheckRates = async () => {
     if (!pickupLocation.trim() || !destination.trim()) {
       toast({
         title: 'Missing information',
@@ -77,65 +82,25 @@ export default function CheckRatesPage() {
     }
 
     setIsLoading(true)
-    
-    // Convert weight to kg if needed
+
     const weightInKg = weightUnit === 'lb' ? weightValue * 0.453592 : weightValue
-    
-    // Calculate rates based on weight (frontend calculation)
-    // Base prices in NGN
-    const baseRegularPrice = 12000
-    const baseCargoPrice = 18000
-    const baseExpressPrice = 24000
-    
-    // Adjust price based on weight (add 1000 NGN per kg above 1kg)
-    const weightMultiplier = Math.max(1, Math.ceil(weightInKg))
-    const weightAdjustment = (weightMultiplier - 1) * 1000
-    
-    const ratesData = [
-      {
-        id: 'regular',
-        type: 'REGULAR',
-        lower_eta: 3,
-        upper_eta: 4,
-        price: baseRegularPrice + weightAdjustment,
-        currency: selectedCurrency,
-      },
-      {
-        id: 'cargo',
-        type: 'CARGO',
-        lower_eta: 3,
-        upper_eta: 5,
-        price: baseCargoPrice + weightAdjustment,
-        currency: selectedCurrency,
-      },
-      {
-        id: 'express',
-        type: 'EXPRESS',
-        lower_eta: 1,
-        upper_eta: 2,
-        price: baseExpressPrice + weightAdjustment,
-        currency: selectedCurrency,
-      },
-    ]
 
-    // Convert to USD if selected currency is USD (approximate conversion: 1 USD = 1500 NGN)
-    const convertedRates = ratesData.map((rate) => {
-      if (selectedCurrency === 'USD') {
-        return {
-          ...rate,
-          price: Math.round(rate.price / 1500),
-          currency: 'USD',
-        }
-      }
-      return rate
-    })
-
-    setRates(convertedRates)
-    setShowRates(true)
-    setIsLoading(false)
+    try {
+      const res = await checkPricingAuth(token, pickupLocation.trim(), destination.trim(), weightInKg)
+      setPricingResult(res.data)
+      setShowRates(true)
+    } catch {
+      toast({
+        title: 'Could not fetch rates',
+        description: 'Please try again later.',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#F8F9FC] flex" style={{ fontFamily: "'Urbanist', sans-serif" }}>
       <DesktopSidebar />
       {mobileMenuOpen && <MobileSidebar onClose={() => setMobileMenuOpen(false)} />}
@@ -287,7 +252,7 @@ export default function CheckRatesPage() {
             </button>
 
             {/* Rates Display */}
-            {showRates && rates.length > 0 && (
+            {showRates && pricingResult && (
               <div className="mt-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-6" style={{ fontFamily: "'Urbanist', sans-serif" }}>
                   Rates
@@ -325,70 +290,54 @@ export default function CheckRatesPage() {
                   </div>
                 </div>
 
-                {/* Rates List */}
-                <div className="space-y-3">
-                  {rates.map((rate) => {
-                    const rateType = rate.type?.toLowerCase() || 'regular'
-                    const rateLabel = rateType.charAt(0).toUpperCase() + rateType.slice(1)
-                    const etaText = `${rate.lower_eta}-${rate.upper_eta} days`
-                    const displayPrice = rate.currency === 'USD' ? `$${rate.price}` : `₦${rate.price.toLocaleString()}`
-
-                    // Icon based on rate type
-                    const getIcon = () => {
-                      if (rateType === 'express') {
-                        return (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                        )
-                      } else if (rateType === 'cargo') {
-                        return (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 17h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2m-4 0H6a2 2 0 00-2 2v2a2 2 0 002 2h6m0 0h2" />
-                            <circle cx="6" cy="17" r="2" stroke="currentColor" fill="none" />
-                            <circle cx="18" cy="17" r="2" stroke="currentColor" fill="none" />
-                          </svg>
-                        )
-                      } else {
-                        return (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                          </svg>
-                        )
-                      }
+                {/* Pricing Result Card */}
+                {(() => {
+                  const pricingType = (pricingResult.pricing_type ?? '').toLowerCase()
+                  const displayPrice = pricingResult.total_price.toLocaleString()
+                  const getIcon = () => {
+                    if (pricingType.includes('express')) {
+                      return (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      )
+                    } else if (pricingType.includes('cargo')) {
+                      return (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                      )
                     }
-
                     return (
-                      <div
-                        key={rate.id || rateType}
-                        className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                      >
-                        {/* Icon */}
-                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#E0E0FF] text-[#4043FF] flex items-center justify-center">
-                          {getIcon()}
-                        </div>
-
-                        {/* Rate Info */}
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900 mb-1" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                            {rateLabel}
-                          </p>
-                          <p className="text-xs text-gray-500" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                            {etaText}
-                          </p>
-                        </div>
-
-                        {/* Price */}
-                        <div className="flex-shrink-0">
-                          <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                            {displayPrice}
-                          </p>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    )
+                  }
+                  return (
+                    <div className="space-y-3">
+                      <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#E8E9FF] text-[#4043FF] flex items-center justify-center">
+                              {getIcon()}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                                {pricingResult.pricing_type}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                              ₦{displayPrice}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })()}
               </div>
             )}
           </div>
@@ -397,12 +346,9 @@ export default function CheckRatesPage() {
         <MobileBottomNav />
       </div>
     </div>
+    </AuthGuard>
   )
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                   Layout                                   */
-/* -------------------------------------------------------------------------- */
 
 function DashboardIcon(props: SVGProps<SVGSVGElement>) {
   return (

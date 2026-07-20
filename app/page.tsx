@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -13,8 +13,39 @@ import {
 import { TestimonialsSection } from '@/components/testimonials-section'
 import { ContactSection } from '@/components/contact-section'
 import { Footer } from '@/components/footer'
+import { checkPricing } from '@/lib/api/pricing-api'
+import type { PricingResult } from '@/lib/api/types'
+import { toast } from '@/components/ui/use-toast'
 
 export default function HomePage() {
+  const [pickupAddress, setPickupAddress] = useState('')
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [weight, setWeight] = useState('')
+  const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
+  const [isCheckingRates, setIsCheckingRates] = useState(false)
+
+  const handleCheckRates = async () => {
+    if (!pickupAddress.trim() || !deliveryAddress.trim() || !weight.trim()) {
+      toast({ title: 'Missing information', description: 'Please fill in all fields.' })
+      return
+    }
+
+    const weightValue = parseFloat(weight) || 0
+    if (weightValue <= 0) {
+      toast({ title: 'Invalid weight', description: 'Please enter a valid weight.' })
+      return
+    }
+
+    setIsCheckingRates(true)
+    try {
+      const res = await checkPricing(pickupAddress.trim(), deliveryAddress.trim(), weightValue)
+      setPricingResult(res.data)
+    } catch {
+      toast({ title: 'Could not fetch rates', description: 'Please try again later.' })
+    } finally {
+      setIsCheckingRates(false)
+    }
+  }
   useEffect(() => {
     const mobileMenuButton = document.querySelector('button[class*="md:hidden"]');
     const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
@@ -347,6 +378,8 @@ export default function HomePage() {
                       placeholder="Pick up address"
                       className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium font-[Urbanist]"
                       style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                      value={pickupAddress}
+                      onChange={(e) => setPickupAddress(e.target.value)}
                     />
                     <div className="w-6 h-6 bg-[#4043FF] rounded-full flex items-center justify-center flex-shrink-0">
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -369,6 +402,8 @@ export default function HomePage() {
                       placeholder="Delivery address"
                       className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium font-[Urbanist]"
                       style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                      value={deliveryAddress}
+                      onChange={(e) => setDeliveryAddress(e.target.value)}
                     />
                     <div className="w-6 h-6 bg-[#4043FF] rounded-full flex items-center justify-center flex-shrink-0">
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -392,6 +427,8 @@ export default function HomePage() {
                       placeholder="2.2"
                       className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium font-[Urbanist]"
                       style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
                     />
                     <span className="text-gray-500 font-medium font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>kg</span>
                   </div>
@@ -434,9 +471,24 @@ export default function HomePage() {
                 </div>
                 
                 {/* Check Button */}
-                <Button className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 text-base font-semibold rounded-full w-full h-12 mt-6" onClick={() => alert('Check rates functionality coming soon!')}>
-                  Check
+                <Button
+                  className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 text-base font-semibold rounded-full w-full h-12 mt-6"
+                  onClick={handleCheckRates}
+                  disabled={isCheckingRates}
+                >
+                  {isCheckingRates ? 'Checking...' : 'Check'}
                 </Button>
+
+                {pricingResult && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm text-gray-500 mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                      {pricingResult.pricing_type}
+                    </p>
+                    <p className="text-xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                      ₦{pricingResult.total_price.toLocaleString()}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
