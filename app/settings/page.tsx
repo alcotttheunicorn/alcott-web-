@@ -1,16 +1,29 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { AuthGuard } from '@/components/auth-guard'
+import { useAuth } from '@/hooks/use-auth'
+import { getProfile } from '@/lib/api/profile-api'
+import type { ProfileData } from '@/lib/api/types'
 
 export default function SettingsPage() {
+  const { token, logout } = useAuth()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [darkMode, setDarkMode] = useState(false)
+  const [profile, setProfile] = useState<ProfileData | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    if (!token) return
+    getProfile(token)
+      .then((res) => setProfile(res.data))
+      .catch(() => {})
+  }, [token])
 
   const handleSearchFocus = () => {
     router.push('/search')
@@ -104,11 +117,13 @@ export default function SettingsPage() {
         </svg>
       ),
       hasArrow: true,
-      isDestructive: true
+      isDestructive: true,
+      onClick: logout
     }
   ]
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#F8F9FA] flex w-full overflow-x-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-64 bg-[#4043FF] text-white flex-col">
@@ -298,7 +313,7 @@ export default function SettingsPage() {
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Olusegun Matanmi</p>
+                  <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{profile ? `${profile.first_name} ${profile.last_name}` : ''}</p>
                 </div>
                 <svg className="w-4 h-4 text-gray-400 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -335,14 +350,14 @@ export default function SettingsPage() {
                 </svg>
               </button>
             </div>
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 font-[Urbanist] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Olusegun Matanmi</h2>
-            <p className="text-sm lg:text-base text-gray-600 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>info@alcott.com.ng</p>
+            <h2 className="text-lg lg:text-xl font-bold text-gray-900 font-[Urbanist] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{profile ? `${profile.first_name} ${profile.last_name}` : ''}</h2>
+            <p className="text-sm lg:text-base text-gray-600 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{profile?.email ?? ''}</p>
           </div>
 
           {/* Settings List */}
           <div className="space-y-6 lg:space-y-8 px-0 lg:px-40 max-w-2xl mx-auto">
             {settingsItems.map((item, index) => (
-              <div key={index} className="flex items-center justify-between py-1">
+              <div key={index} className="flex items-center justify-between py-1" onClick={item.onClick} role={item.onClick ? 'button' : undefined} style={item.onClick ? { cursor: 'pointer' } : undefined}>
                 <div className="flex items-center space-x-4">
                   <div className="text-gray-600">
                     {item.icon}
@@ -413,5 +428,6 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   )
 }

@@ -4,6 +4,10 @@ import { useState, useRef, useEffect, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
+import { AuthGuard } from '@/components/auth-guard'
+import { useAuth } from '@/hooks/use-auth'
+import { getShipments } from '@/lib/api/shipment-api'
+import type { ShipmentData } from '@/lib/api/types'
 
 type OrderStatus = 'all' | 'pending' | 'onprocess' | 'delivered'
 
@@ -14,9 +18,29 @@ interface Order {
   statusText: string
   statusLabel: string
   statusColor: string
+  raw: ShipmentData
+}
+
+function mapShipmentToOrder(s: ShipmentData): Order {
+  const statusMap: Record<string, { status: OrderStatus; text: string; label: string; color: string }> = {
+    PENDING: { status: 'pending', text: 'Awaiting pickup', label: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
+    ONGOING: { status: 'onprocess', text: 'On transit', label: 'On Process', color: 'bg-[#4043FF] text-white' },
+    DELIVERED: { status: 'delivered', text: 'Package received', label: 'Completed', color: 'bg-green-100 text-green-700' },
+  }
+  const mapped = statusMap[s.status] ?? { status: 'pending', text: s.status, label: s.status, color: 'bg-gray-100 text-gray-600' }
+  return {
+    id: s.id,
+    trackingNumber: s.tracking_id,
+    status: mapped.status,
+    statusText: mapped.text,
+    statusLabel: mapped.label,
+    statusColor: mapped.color,
+    raw: s,
+  }
 }
 
 export default function OrdersPage() {
+  const { token } = useAuth()
   const router = useRouter()
   const [activeStatus, setActiveStatus] = useState<OrderStatus>('all')
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
@@ -24,42 +48,22 @@ export default function OrdersPage() {
   const [searchValue, setSearchValue] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
-  const orders: Order[] = [
-    {
-      id: '1',
-      trackingNumber: 'SK72863628',
-      status: 'onprocess',
-      statusText: 'On transit area',
-      statusLabel: 'On Process',
-      statusColor: 'bg-[#4043FF] text-white',
-    },
-    {
-      id: '2',
-      trackingNumber: 'SK83x7729',
-      status: 'delivered',
-      statusText: 'Package received',
-      statusLabel: 'Completed',
-      statusColor: 'bg-[#4043FF] text-white',
-    },
-    {
-      id: '3',
-      trackingNumber: 'SK92746287',
-      status: 'delivered',
-      statusText: 'Package received',
-      statusLabel: 'Completed',
-      statusColor: 'bg-[#4043FF] text-white',
-    },
-    {
-      id: '4',
-      trackingNumber: 'SK72639263',
-      status: 'delivered',
-      statusText: 'Package received',
-      statusLabel: 'Completed',
-      statusColor: 'bg-[#4043FF] text-white',
-    },
-  ]
+  useEffect(() => {
+    if (!token) return
+    setLoading(true)
+    const statusParam = activeStatus === 'all' ? undefined : activeStatus === 'onprocess' ? 'ONGOING' : activeStatus.toUpperCase()
+    getShipments(token, { status: statusParam, limit: 20 })
+      .then((res) => {
+        const items = Array.isArray(res.data) ? res.data : []
+        setOrders(items.map(mapShipmentToOrder))
+      })
+      .catch(() => setOrders([]))
+      .finally(() => setLoading(false))
+  }, [token, activeStatus])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,12 +92,8 @@ export default function OrdersPage() {
     setRecentSearches([])
   }
 
-  const filteredOrders = orders.filter((order) => {
-    if (activeStatus === 'all') return true
-    return order.status === activeStatus
-  })
-
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#F8F9FC] flex" style={{ fontFamily: "'Urbanist', sans-serif" }}>
       <DesktopSidebar />
       {mobileMenuOpen && <MobileSidebar onClose={() => setMobileMenuOpen(false)} />}
@@ -179,7 +179,15 @@ export default function OrdersPage() {
 
             {/* Orders List */}
             <div className="space-y-4">
-              {filteredOrders.map((order, index) => (
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]"></div>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No orders found</p>
+                </div>
+              ) : orders.map((order, index) => (
                 <div
                   key={order.id}
                   className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -233,12 +241,9 @@ export default function OrdersPage() {
         <MobileBottomNav />
       </div>
     </div>
+    </AuthGuard>
   )
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                   Layout                                   */
-/* -------------------------------------------------------------------------- */
 
 function DashboardIcon(props: SVGProps<SVGSVGElement>) {
   return (
