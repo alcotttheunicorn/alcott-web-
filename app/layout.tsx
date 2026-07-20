@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { Analytics } from '@vercel/analytics/next'
+import { Toaster } from '@/components/ui/toaster'
 import './globals.css'
 
 // Import Urbanist font from Google Fonts with fallback
@@ -36,6 +37,7 @@ export default function RootLayout({
       </head>
       <body className={urbanist.className}>
         {children}
+        <Toaster />
         <Analytics />
       </body>
     </html>
