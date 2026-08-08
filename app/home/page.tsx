@@ -468,7 +468,7 @@ export default function HomePage() {
                 return (
                   <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 lg:p-4 flex items-start justify-between hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${color} flex-shrink-0`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${color} shrink-0`}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -476,7 +476,7 @@ export default function HomePage() {
                         <p className="text-xs lg:text-sm text-gray-600 font-[Urbanist] line-clamp-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.description ?? ''}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-500 mt-1 font-[Urbanist] flex-shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.created_at ?? ''}</span>
+                    <span className="text-xs text-gray-500 mt-1 font-[Urbanist] shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.created_at ?? ''}</span>
                   </div>
                 )
               }) : (
@@ -488,7 +488,7 @@ export default function HomePage() {
                 ].map((item, i) => (
                   <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 lg:p-4 flex items-start justify-between hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.color} flex-shrink-0`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.color} shrink-0`}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -496,7 +496,7 @@ export default function HomePage() {
                         <p className="text-xs lg:text-sm text-gray-600 font-[Urbanist] line-clamp-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.desc}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-500 mt-1 font-[Urbanist] flex-shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.time}</span>
+                    <span className="text-xs text-gray-500 mt-1 font-[Urbanist] shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.time}</span>
                   </div>
                 ))
               )}

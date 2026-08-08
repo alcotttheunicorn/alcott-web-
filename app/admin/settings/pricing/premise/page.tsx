@@ -30,7 +30,7 @@ export default function PricingPremisePage() {
             <form onSubmit={handleSubmit} className="max-w-2xl pl-4 lg:pl-8 pr-4 lg:pr-8 space-y-6 lg:space-y-8">
                 {/* Base Range Cost */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                    <label className="text-sm text-gray-700 font-medium w-32 flex-shrink-0">Base Range Cost</label>
+                    <label className="text-sm text-gray-700 font-medium w-32 shrink-0">Base Range Cost</label>
                     <div className="flex items-center gap-3 flex-1">
                         <input
                             type="text"
@@ -44,7 +44,7 @@ export default function PricingPremisePage() {
 
                 {/* Cost Per KM */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                    <label className="text-sm text-gray-700 font-medium w-32 flex-shrink-0">Cost Per KM</label>
+                    <label className="text-sm text-gray-700 font-medium w-32 shrink-0">Cost Per KM</label>
                     <div className="flex items-center gap-3 flex-1">
                         <input
                             type="text"
@@ -58,7 +58,7 @@ export default function PricingPremisePage() {
 
                 {/* Cost Per Minute */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                    <label className="text-sm text-gray-700 font-medium w-32 flex-shrink-0">Cost Per Minute</label>
+                    <label className="text-sm text-gray-700 font-medium w-32 shrink-0">Cost Per Minute</label>
                     <div className="flex items-center gap-3 flex-1">
                         <input
                             type="text"
@@ -72,7 +72,7 @@ export default function PricingPremisePage() {
 
                 {/* Cost Per KG */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8">
-                    <label className="text-sm text-gray-700 font-medium w-32 flex-shrink-0">Cost Per KG</label>
+                    <label className="text-sm text-gray-700 font-medium w-32 shrink-0">Cost Per KG</label>
                     <div className="flex items-center gap-3 flex-1">
                         <input
                             type="text"

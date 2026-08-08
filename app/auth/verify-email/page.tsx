@@ -89,7 +89,7 @@ export default function VerifyEmailPage() {
                   ? 'bg-blue-50 border-2 border-[#4043FF] shadow-lg shadow-blue-100' 
                   : 'bg-gray-100 border-2 border-transparent hover:bg-gray-50'
               }`}>
-                <svg className={`w-5 h-5 mr-3 flex-shrink-0 transition-colors duration-300 ${
+                <svg className={`w-5 h-5 mr-3 shrink-0 transition-colors duration-300 ${
                   emailFocused ? 'text-[#4043FF]' : 'text-gray-500'
                 }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
@@ -120,7 +120,7 @@ export default function VerifyEmailPage() {
                   <div className={`flex items-center transition-colors duration-300 ${
                     otpFocused ? 'text-[#4043FF]' : 'text-gray-500'
                   }`}>
-                    <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c.5304 0 1.0391.2107 1.4142.5858C13.7893 11.9609 14 12.4696 14 13v4c0 .5304-.2107 1.0391-.5858 1.4142C13.0391 18.7893 12.5304 19 12 19H8c-.5304 0-1.0391-.2107-1.4142-.5858C6.2107 18.0391 6 17.5304 6 17v-4c0-.5304.2107-1.0391.5858-1.4142C6.9609 11.2107 7.4696 11 8 11h4zM10 11V9a2 2 0 114 0v2m-6 4h8" />
                     </svg>
                     <span className="text-sm font-bold font-['Urbanist']">Enter 6-digit code</span>

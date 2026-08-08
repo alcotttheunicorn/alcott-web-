@@ -142,7 +142,7 @@ export default function CheckRatesPage() {
               <div className="relative">
                 <div className="flex items-center gap-3">
                   {/* Radio button icon */}
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-6 h-6 rounded-full border-2 border-[#4043FF] flex items-center justify-center">
                       <div className="w-3 h-3 rounded-full bg-[#4043FF]" />
                     </div>
@@ -159,7 +159,7 @@ export default function CheckRatesPage() {
                     />
                   </div>
                   {/* Target icon */}
-                  <button className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600">
+                  <button className="shrink-0 p-2 text-gray-400 hover:text-gray-600">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -177,7 +177,7 @@ export default function CheckRatesPage() {
               <div className="relative">
                 <div className="flex items-center gap-3">
                   {/* Map pin icon */}
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <svg className="w-6 h-6 text-[#4043FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -195,7 +195,7 @@ export default function CheckRatesPage() {
                     />
                   </div>
                   {/* Target icon */}
-                  <button className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600">
+                  <button className="shrink-0 p-2 text-gray-400 hover:text-gray-600">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -210,7 +210,7 @@ export default function CheckRatesPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Dimension</h2>
               <div className="flex items-center gap-3">
                 {/* Scale icon */}
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                   </svg>
@@ -274,7 +274,7 @@ export default function CheckRatesPage() {
                       setPickupLocation(destination)
                       setDestination(temp)
                     }}
-                    className="flex-shrink-0 p-2 text-[#4043FF] hover:bg-white rounded-lg transition-colors"
+                    className="shrink-0 p-2 text-[#4043FF] hover:bg-white rounded-lg transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
