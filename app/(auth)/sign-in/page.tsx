@@ -59,7 +59,7 @@ export default function SignInPage() {
           title: 'Verify your email',
           description: 'Please verify your email before signing in.',
         })
-        router.push('/auth/verify-email')
+        router.push('/verify-email')
         return
       }
 
@@ -259,7 +259,7 @@ export default function SignInPage() {
 
             {/* Forgot Password Link */}
             <div className="text-center mb-8">
-              <Link href="/auth/forgot-password" className="text-sm text-[#4043FF] hover:text-[#3333CC] font-bold font-['Urbanist']">
+              <Link href="/forgot-password" className="text-sm text-[#4043FF] hover:text-[#3333CC] font-bold font-['Urbanist']">
                 Forgot the password?
               </Link>
             </div>
@@ -290,7 +290,7 @@ export default function SignInPage() {
             {/* Sign Up Link */}
             <div className="text-center text-sm text-gray-500 font-bold font-['Urbanist']">
               Don't have an account?{' '}
-              <Link href="/auth/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
+              <Link href="/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
                 Sign up
               </Link>
             </div>

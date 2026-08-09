@@ -43,12 +43,7 @@ export default function OTPVerificationPage() {
     if (otpCode.length === 4) {
       // Verify OTP and proceed to create new password
       console.log('OTP:', otpCode)
-      window.location.href = '/auth/forgot-password/new-password'
-    }
-  }
-
-  const handleResendCode = () => {
-    if (resendTimer === 0) {
+        window.location.href = '/forgot-password/new-password'
       // Resend code logic
       console.log('Resending code...')
       setResendTimer(65)
@@ -61,7 +56,7 @@ export default function OTPVerificationPage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center px-6 py-4 border-b border-gray-100">
-        <Link href="/auth/forgot-password" className="mr-4">
+        <Link href="/forgot-password" className="mr-4">
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>

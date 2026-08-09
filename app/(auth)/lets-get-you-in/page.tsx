@@ -82,7 +82,7 @@ export default function SignInPage() {
             <Button 
               type="button"
               className="w-full h-16 bg-[#4043FF] hover:bg-[#3333CC] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-lg font-['Urbanist']"
-              onClick={() => window.location.href = '/auth/sign-in'}
+              onClick={() => window.location.href = '/sign-in'}
             >
               Sign in with password
             </Button>
@@ -91,7 +91,7 @@ export default function SignInPage() {
             {/* Sign Up Link */}
             <div className="text-center text-sm text-gray-500 font-bold font-['Urbanist']">
               Don't have an account?{' '}
-              <Link href="/auth/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] font-['Urbanist']">
+              <Link href="/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] font-['Urbanist']">
                 Sign up
               </Link>
             </div>
