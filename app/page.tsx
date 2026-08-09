@@ -130,10 +130,10 @@ export default function HomePage() {
         
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="outline" className="bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white px-6 py-2 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/auth/lets-get-you-in'}>
+            <Button variant="outline" className="bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white px-6 py-2 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/lets-get-you-in'}>
               Sign In
             </Button>
-            <Button className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-6 py-2 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/auth/lets-get-you-in'}>
+            <Button className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-6 py-2 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/register'}>
               Register
             </Button>
           </div>
@@ -179,10 +179,10 @@ export default function HomePage() {
 
             {/* Action Buttons */}
             <div className="space-y-4 mb-8">
-              <Button variant="outline" className="w-full bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white py-3 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/auth/lets-get-you-in'}>
+              <Button variant="outline" className="w-full bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white py-3 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/lets-get-you-in'}>
                 Sign In
               </Button>
-              <Button className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/auth/lets-get-you-in'}>
+              <Button className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => window.location.href = '/lets-get-you-in'}>
                 Register
               </Button>
               <Button className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }} onClick={() => alert('Request a delivery functionality coming soon!')}>
