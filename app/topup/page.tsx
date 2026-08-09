@@ -1,20 +1,50 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { SuccessModal } from '@/components/ui/success-modal'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { AuthGuard } from '@/components/auth-guard'
+import { useAuth } from '@/hooks/use-auth'
+import { initializeFund, verifyFund } from '@/lib/api/wallet-api'
+import { toast } from '@/components/ui/use-toast'
 
 export default function TopUpPage() {
+  return (
+    <Suspense>
+      <TopUpContent />
+    </Suspense>
+  )
+}
+
+function TopUpContent() {
+  const { token } = useAuth()
+  const searchParams = useSearchParams()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [currentStep, setCurrentStep] = useState(1) // 1: Amount, 2: Payment Method, 3: Success
+  const [currentStep, setCurrentStep] = useState(1)
   const [selectedAmount, setSelectedAmount] = useState('247,000')
   const [customAmount, setCustomAmount] = useState('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const ref = searchParams.get('reference')
+    if (ref && token) {
+      setIsProcessing(true)
+      verifyFund(token, ref)
+        .then(() => {
+          setShowSuccessModal(true)
+        })
+        .catch(() => {
+          toast({ title: 'Verification failed', description: 'Payment could not be verified. Please check your wallet.' })
+        })
+        .finally(() => setIsProcessing(false))
+    }
+  }, [searchParams, token])
 
   const predefinedAmounts = [
     '10k', '20k', '50k',
@@ -37,9 +67,37 @@ export default function TopUpPage() {
     setCurrentStep(2)
   }
 
-  const handleContinueFromPayment = () => {
-    setCurrentStep(3)
-    setShowSuccessModal(true)
+  const parseAmount = (amountStr: string): number => {
+    let clean = amountStr.replace(/[₦,\s]/g, '')
+    if (clean.endsWith('k')) {
+      clean = clean.replace('k', '')
+      return parseFloat(clean) * 1000
+    }
+    if (clean.endsWith('m')) {
+      clean = clean.replace('m', '')
+      return parseFloat(clean) * 1000000
+    }
+    return parseFloat(clean) || 0
+  }
+
+  const handleContinueFromPayment = async () => {
+    const amount = parseAmount(customAmount || selectedAmount)
+    if (!amount || amount <= 0) {
+      toast({ title: 'Invalid amount', description: 'Please enter a valid top-up amount.' })
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      const res = await initializeFund(token, amount)
+      const authorizationUrl = res.data?.authorization_url
+      if (authorizationUrl) {
+        window.location.href = authorizationUrl
+      }
+    } catch {
+      toast({ title: 'Top-up failed', description: 'Could not initialize payment. Please try again.' })
+      setIsProcessing(false)
+    }
   }
 
   const handleSuccessClose = () => {
@@ -57,6 +115,7 @@ export default function TopUpPage() {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#F8F9FA] flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-64 bg-[#4043FF] text-white flex-col">
@@ -443,5 +502,6 @@ export default function TopUpPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   )
 }

@@ -4,122 +4,58 @@ import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { AuthGuard } from '@/components/auth-guard'
+import { useAuth } from '@/hooks/use-auth'
+import { getTransactions } from '@/lib/api/wallet-api'
+import type { Transaction } from '@/lib/api/types'
 
 export default function TransactionHistoryPage() {
+  const { token } = useAuth()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [transactions, setTransactions] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const router = useRouter()
 
-  // Base transaction templates to generate endless data
-  const transactionTemplates = [
-    {
-      title: 'New Order Made!',
-      description: 'You have created a new shipping order',
-      type: 'order'
-    },
-    {
-      title: 'Top Up Successful',
-      description: 'You successfully top up your e-wallet for ₦600,000',
-      type: 'topup'
-    },
-    {
-      title: 'Payment Successful',
-      description: 'Shipping payment of ₦40,000 successfully made',
-      type: 'payment'
-    },
-    {
-      title: 'Top Up Successful',
-      description: 'You successfully top up your e-wallet for ₦65,000',
-      type: 'topup'
-    },
-    {
-      title: 'Payment Successful',
-      description: 'Shipping payment of ₦45,000 successfully made',
-      type: 'payment'
-    },
-    {
-      title: 'New Order Made!',
-      description: 'You have created a new shipping order',
-      type: 'order'
-    },
-    {
-      title: 'E-Wallet Connected!',
-      description: 'You have connected the e-wallet with Saska',
-      type: 'wallet'
-    },
-    {
-      title: 'Top Up Successful',
-      description: 'You successfully top up your e-wallet for ₦65,000',
-      type: 'topup'
-    },
-    {
-      title: 'E-Wallet Connected!',
-      description: 'You have connected the e-wallet with Saska',
-      type: 'wallet'
-    }
-  ]
-
-  const timeOptions = ['2 hours ago', '4 hours ago', '1 day ago', '2 days ago', '4 days ago', '5 days ago', '12 days ago']
-
-  // Generate transactions with endless data
-  const generateTransactions = useCallback((startIndex: number, count: number) => {
-    const newTransactions = []
-    for (let i = 0; i < count; i++) {
-      const templateIndex = (startIndex + i) % transactionTemplates.length
-      const template = transactionTemplates[templateIndex]
-      const timeIndex = (startIndex + i) % timeOptions.length
-      
-      newTransactions.push({
-        id: startIndex + i + 1,
-        title: template.title,
-        description: template.description,
-        time: timeOptions[timeIndex],
-        type: template.type
-      })
-    }
-    return newTransactions
-  }, [transactionTemplates, timeOptions])
-
-  // Load initial transactions
-  useEffect(() => {
-    const initialTransactions = generateTransactions(0, 20)
-    setTransactions(initialTransactions)
-  }, [generateTransactions])
-
-  // Load more transactions
-  const loadMoreTransactions = useCallback(() => {
-    if (loading || !hasMore) return
-    
+  const fetchTransactions = useCallback(async (pageNum: number, append: boolean) => {
+    if (!token) return
     setLoading(true)
-    
-    // Simulate API delay
-    setTimeout(() => {
-      const newTransactions = generateTransactions(transactions.length, 20)
-      setTransactions(prev => [...prev, ...newTransactions])
+    try {
+      const res = await getTransactions(token, pageNum, 20)
+      const items = res.data?.transactions ?? []
+      setTransactions(prev => append ? [...prev, ...items] : items)
+      if (pageNum >= res.totalPages) setHasMore(false)
+    } catch {
+      if (!append) setTransactions([])
+      setHasMore(false)
+    } finally {
       setLoading(false)
-      
-      // Stop loading after 200 transactions for demo purposes
-      if (transactions.length >= 180) {
-        setHasMore(false)
-      }
-    }, 500)
-  }, [loading, hasMore, transactions.length, generateTransactions])
+    }
+  }, [token])
 
-  // Infinite scroll handler
+  useEffect(() => {
+    fetchTransactions(1, false)
+  }, [fetchTransactions])
+
+  const loadMore = useCallback(() => {
+    if (loading || !hasMore) return
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchTransactions(nextPage, true)
+  }, [loading, hasMore, page, fetchTransactions])
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loading) {
         return
       }
-      loadMoreTransactions()
+      loadMore()
     }
-
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [loadMoreTransactions, loading])
+  }, [loadMore, loading])
 
   const getTransactionColor = (type: string) => {
     switch (type) {
@@ -137,6 +73,7 @@ export default function TransactionHistoryPage() {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#F8F9FA] flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-64 bg-[#4043FF] text-white flex-col">
@@ -355,9 +292,9 @@ export default function TransactionHistoryPage() {
             {/* Transaction List */}
             <div className="space-y-0">
               {transactions.map((transaction, index) => (
-                <div key={transaction.id} className="bg-white border-b border-gray-100 p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                <div key={transaction.id ?? index} className="bg-white border-b border-gray-100 p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getTransactionColor(transaction.type)} flex-shrink-0`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getTransactionColor(transaction.type ?? '')} shrink-0`}>
                       <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         {transaction.type === 'order' && (
                           <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
@@ -371,20 +308,23 @@ export default function TransactionHistoryPage() {
                         {transaction.type === 'wallet' && (
                           <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
                         )}
+                        {!transaction.type && (
+                          <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        )}
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-base font-semibold text-gray-900 font-[Urbanist] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                        {transaction.title}
+                        {transaction.title ?? 'Transaction'}
                       </p>
                       <p className="text-sm text-gray-500 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                        {transaction.description}
+                        {transaction.description ?? ''}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className="text-sm text-[#4043FF] font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', color: '#4043FF' }}>
-                      {transaction.time}
+                      {transaction.created_at ?? ''}
                     </span>
                     <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
                   </div>
@@ -443,5 +383,6 @@ export default function TransactionHistoryPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   )
 }

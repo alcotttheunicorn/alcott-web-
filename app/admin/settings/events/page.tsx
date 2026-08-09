@@ -88,7 +88,7 @@ export default function EventsPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+                        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
                             {/* Edit Button */}
                             <button className="p-2 hover:bg-gray-100 rounded transition-colors">
                                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

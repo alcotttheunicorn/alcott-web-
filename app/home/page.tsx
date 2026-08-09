@@ -4,8 +4,15 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { AuthGuard } from '@/components/auth-guard'
+import { useAuth } from '@/hooks/use-auth'
+import { getBalance } from '@/lib/api/wallet-api'
+import { getTransactions } from '@/lib/api/wallet-api'
+import { getProfile } from '@/lib/api/profile-api'
+import type { ProfileData, Transaction } from '@/lib/api/types'
 
 export default function HomePage() {
+  const { token } = useAuth()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
@@ -19,8 +26,21 @@ export default function HomePage() {
     '06/07/2024',
     '07/07/2024'
   ])
+  const [balance, setBalance] = useState<number | null>(null)
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
+  const [profile, setProfile] = useState<ProfileData | null>(null)
   const searchRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    if (!token) return
+    getBalance(token).then((res) => setBalance(res.data.balance)).catch(() => {})
+    getTransactions(token, 1, 4).then((res) => {
+      const txns = res.data?.transactions ?? []
+      setRecentTransactions(txns)
+    }).catch(() => {})
+    getProfile(token).then((res) => setProfile(res.data)).catch(() => {})
+  }, [token])
 
   // Handle clicking outside search dropdown
   useEffect(() => {
@@ -91,6 +111,7 @@ export default function HomePage() {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#F8F9FA] flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex w-64 bg-[#4043FF] text-white flex-col">
@@ -338,7 +359,7 @@ export default function HomePage() {
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Olusegun Matanmi</p>
+                  <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{profile ? `${profile.first_name} ${profile.last_name}` : ''}</p>
                 </div>
                 <svg className="w-4 h-4 text-gray-400 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -362,7 +383,7 @@ export default function HomePage() {
                 <div>
                   <p className="text-white/90 text-xs sm:text-sm font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Your balance</p>
                   <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    941,800.00NGN
+                    {balance !== null ? `${balance.toLocaleString()}.00NGN` : '---'}
                   </h3>
                   <button
                     onClick={handleTopUp}
@@ -384,7 +405,7 @@ export default function HomePage() {
                       <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.81-.34-3.68L23 12z" />
                     </svg>
                   </p>
-                  <p className="text-white text-lg lg:text-xl font-bold font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Olusegun Matanmi</p>
+                  <p className="text-white text-lg lg:text-xl font-bold font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{profile ? `${profile.first_name} ${profile.last_name}` : ''}</p>
                 </div>
               </div>
             </div>
@@ -436,25 +457,49 @@ export default function HomePage() {
               </button>
             </div>
             <div className="space-y-3 lg:space-y-4">
-              {[
-                { title: 'New Order Made!', desc: 'You have created a new shipping order', time: '2 hours ago', color: 'bg-blue-100 text-blue-600' },
-                { title: 'Top Up Successful', desc: 'You successfully top up your e-wallet for ₦600,000', time: '4 hours ago', color: 'bg-green-100 text-green-600' },
-                { title: 'Payment Successful', desc: 'Shipping payment of ₦40,000 successfully made', time: '1 day ago', color: 'bg-purple-100 text-purple-600' },
-                { title: 'E-Wallet Connected!', desc: 'You have connected the e-wallet with Saska', time: '2 days ago', color: 'bg-orange-100 text-orange-600' }
-              ].map((item, i) => (
-                <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 lg:p-4 flex items-start justify-between hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.color} flex-shrink-0`}>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              {recentTransactions.length > 0 ? recentTransactions.map((item, i) => {
+                const colorMap: Record<string, string> = {
+                  order: 'bg-blue-100 text-blue-600',
+                  topup: 'bg-green-100 text-green-600',
+                  payment: 'bg-purple-100 text-purple-600',
+                  wallet: 'bg-orange-100 text-orange-600',
+                }
+                const color = colorMap[item.type ?? ''] ?? 'bg-gray-100 text-gray-600'
+                return (
+                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 lg:p-4 flex items-start justify-between hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${color} shrink-0`}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs lg:text-sm font-bold text-gray-900 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.title ?? 'Transaction'}</p>
+                        <p className="text-xs lg:text-sm text-gray-600 font-[Urbanist] line-clamp-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.description ?? ''}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs lg:text-sm font-bold text-gray-900 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.title}</p>
-                      <p className="text-xs lg:text-sm text-gray-600 font-[Urbanist] line-clamp-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.desc}</p>
-                    </div>
+                    <span className="text-xs text-gray-500 mt-1 font-[Urbanist] shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.created_at ?? ''}</span>
                   </div>
-                  <span className="text-xs text-gray-500 mt-1 font-[Urbanist] flex-shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.time}</span>
-                </div>
-              ))}
+                )
+              }) : (
+                [
+                  { title: 'New Order Made!', desc: 'You have created a new shipping order', time: '2 hours ago', color: 'bg-blue-100 text-blue-600' },
+                  { title: 'Top Up Successful', desc: 'You successfully top up your e-wallet for ₦600,000', time: '4 hours ago', color: 'bg-green-100 text-green-600' },
+                  { title: 'Payment Successful', desc: 'Shipping payment of ₦40,000 successfully made', time: '1 day ago', color: 'bg-purple-100 text-purple-600' },
+                  { title: 'E-Wallet Connected!', desc: 'You have connected the e-wallet with Saska', time: '2 days ago', color: 'bg-orange-100 text-orange-600' }
+                ].map((item, i) => (
+                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 lg:p-4 flex items-start justify-between hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.color} shrink-0`}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs lg:text-sm font-bold text-gray-900 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.title}</p>
+                        <p className="text-xs lg:text-sm text-gray-600 font-[Urbanist] line-clamp-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.desc}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-500 mt-1 font-[Urbanist] shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.time}</span>
+                  </div>
+                ))
+              )}
             </div>
           </section>
         </main>
@@ -492,5 +537,6 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   )
 }

@@ -9,17 +9,17 @@ const testimonials = [
     avatar: "/testimonial-1.png"
   },
   {
-    name: "Ganiu Ayanteju",
-    title: "Founder at G’miec Intl.",
-    company: "Brain.co",
-    quote: "Alcott is very fast and reliable. We started using the company during the covid-19 pandemic lock down and to my surprise, they were still able to deliver in 3-5 working days as promised which really helped my business",
+    name: "Eddie Osarenkhoe",
+    title: "M.D ",
+    company: "Serock Energy Services Limited.",
+    quote: "Alcott exceeded our expectations. They seamlessly picked up our oil and gas drilling equipment from aberdeen, handled all customs procedures, and delivered it to Lagos - all within just 5 days. Their efficiency and professionalism have truly set a new standard in logistics.",
     avatar: "/testimonial-2.png"
   },
   {
-    name: "Ruth Abada",
-    title: "Founder at Ruth Hair and Scents",
-    company: "Google",
-    quote: "Very reliable and efficient delivery service, Our customers always come back to patronize us just because of the smooth deliveries. I would always recommend them anytime, anyday",
+    name: "Joseph Ojike",
+    title: "C.E.O ",
+    company: "Forwarding Orthopaedics",
+    quote: "Our shipment of medical implants from Italy and France are always delivered on time, typically within 7 days. Alcott's reliable serviceand attention to detailgive us the confidence to focuson our core mission of delivering quality healthcare.",
     avatar: "/testimonial-3.png"
   }
 ]

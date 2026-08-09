@@ -5,7 +5,9 @@ import type { ChangeEvent, ComponentType, RefObject, SVGProps } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { createShipment, type CreateShipmentRequest } from '@/lib/api/shipment-api'
+import { createShipment, getCategories, type CreateShipmentRequest } from '@/lib/api/shipment-api'
+import { getBalance } from '@/lib/api/wallet-api'
+import { useAuth } from '@/hooks/use-auth'
 import { toast } from '@/components/ui/use-toast'
 import { Stepper } from '@/components/shipment/Stepper'
 import { FormSection } from '@/components/shipment/FormSection'
@@ -17,7 +19,6 @@ import type {
   ShipmentContact,
   ShipmentOption,
   ShipmentOptions,
-  ShipmentPaymentMethods,
   ShipmentPaymentSelection,
   ShipmentStepKey,
   ShipmentSteps,
@@ -41,11 +42,6 @@ const shippingOptions: ShipmentOptions = [
   { id: 'regular', label: 'Regular', eta: '3-4 days', price: 12000, rateId: 'shipping-rate-regular', type: 'REGULAR', currency: 'NGN' },
   { id: 'cargo', label: 'Cargo', eta: '3-5 days', price: 18000, rateId: 'shipping-rate-cargo', type: 'CARGO', currency: 'NGN' },
   { id: 'express', label: 'Express', eta: '1-2 days', price: 24000, rateId: 'shipping-rate-express', type: 'EXPRESS', currency: 'NGN' },
-]
-
-const paymentMethods: ShipmentPaymentMethods = [
-  { id: 'wallet', label: 'My Wallet', details: 'Balance: ₦941,800.00' },
-  { id: 'card', label: '•••• 4679', details: 'Visa - Expires 12/27' },
 ]
 
 const weightUnitOptions: ShipmentWeightUnit[] = ['kg', 'lb']
@@ -77,6 +73,9 @@ const initialPayment: ShipmentPaymentSelection = {
 
 export default function NewShipmentPage() {
   const router = useRouter()
+  const { token } = useAuth()
+  const [categories, setCategories] = useState<string[]>([])
+  const [walletBalance, setWalletBalance] = useState<number | null>(null)
 
   const sanitizePhoneInput = (value: string) => {
     const stripped = value.replace(/[^0-9+]/g, '')
@@ -143,6 +142,16 @@ export default function NewShipmentPage() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
+  useEffect(() => {
+    if (!token) return
+    getCategories(token).then((res) => {
+      if (Array.isArray(res.data)) setCategories(res.data)
+    }).catch(() => {})
+    getBalance(token).then((res) => {
+      if (res.data?.balance != null) setWalletBalance(res.data.balance)
+    }).catch(() => {})
+  }, [token])
 
   const handleSearchFocus = () => {
     setIsSearchFocused(true)
@@ -223,11 +232,9 @@ export default function NewShipmentPage() {
     const widthInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.width) * 2.54 : toNumber(pkg.width)
     const heightInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.height) * 2.54 : toNumber(pkg.height)
 
-    const shippingRateId = shippingSelection.rateId ?? shippingSelection.id
-    const paymentMethodLabel =
-      paymentMethods.find((method) => method.id === payment.method)?.label ?? 'Alcott Wallet'
-
     const payload: CreateShipmentRequest = {
+      payment_method: payment.method.toUpperCase() as 'WALLET' | 'CARD',
+      price: shippingSelection.price,
       sender_name: sender.name.trim(),
       sender_phone_number: ensureIntlPhone(sender.phone, '+234'),
       sender_email: sender.email.trim(),
@@ -243,9 +250,6 @@ export default function NewShipmentPage() {
       package_length: parseFloat(lengthInCm.toFixed(2)),
       package_width: parseFloat(widthInCm.toFixed(2)),
       package_height: parseFloat(heightInCm.toFixed(2)),
-      shipping_rate_id: shippingRateId,
-      status: 'PENDING',
-      payment_method: paymentMethodLabel,
     }
 
     try {
@@ -340,10 +344,11 @@ export default function NewShipmentPage() {
                   weightUnits={weightUnitOptions}
                   dimensionUnits={dimensionUnitOptions}
                   sanitizeDecimal={sanitizeDecimalInput}
+                  categories={categories}
                 />
               )}
               {currentStep === 'payment' && (
-                <PaymentForm data={payment} onChange={setPayment} onContinue={moveToNext} canContinue={canMoveForward} />
+                <PaymentForm data={payment} onChange={setPayment} onContinue={moveToNext} canContinue={canMoveForward} walletBalance={walletBalance} />
               )}
               {currentStep === 'finish' && (
                 <ReviewSummary
@@ -620,6 +625,7 @@ function PackageForm({
   weightUnits,
   dimensionUnits,
   sanitizeDecimal,
+  categories,
 }: {
   data: ShipmentPackage
   onChange: (value: ShipmentPackage) => void
@@ -629,8 +635,10 @@ function PackageForm({
   weightUnits: ShipmentWeightUnit[]
   dimensionUnits: ShipmentDimensionUnit[]
   sanitizeDecimal: (value: string) => string
+  categories: string[]
 }) {
   const [showOptions, setShowOptions] = useState(false)
+  const [showCategoryOptions, setShowCategoryOptions] = useState(false)
 
   const handleWeightUnitChange = (unit: ShipmentWeightUnit) => {
     onChange({ ...data, weightUnit: unit })
@@ -642,7 +650,40 @@ function PackageForm({
 
   return (
     <FormSection title="Package Details" subtitle="Describe the package and choose shipping.">
-      <InputRow label="Package Category" placeholder="Category" value={data.category} onChange={(value) => onChange({ ...data, category: value })} />
+      <div className="relative">
+        <label className="text-sm font-semibold text-gray-700">Package Category</label>
+        <button
+          type="button"
+          onClick={() => setShowCategoryOptions((prev) => !prev)}
+          className="mt-2 w-full h-11 px-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between text-sm text-gray-700 hover:bg-gray-100"
+        >
+          <span className={data.category ? 'text-gray-900' : 'text-gray-500'}>
+            {data.category || 'Select category'}
+          </span>
+          <CaretDownIcon className="w-4 h-4" />
+        </button>
+        {showCategoryOptions && (
+          <div className="absolute z-10 mt-2 w-full rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden max-h-60 overflow-y-auto">
+            {categories.length === 0 && (
+              <p className="px-4 py-3 text-sm text-gray-400">No categories available</p>
+            )}
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => {
+                  onChange({ ...data, category: cat })
+                  setShowCategoryOptions(false)
+                }}
+                className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
+                  data.category === cat ? 'bg-gray-50 font-semibold' : ''
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <TextareaRow label="Package Description" placeholder="Description" value={data.description} onChange={(value) => onChange({ ...data, description: value })} />
       <InputRow
         label="Weight"
@@ -740,36 +781,55 @@ function PaymentForm({
   onChange,
   onContinue,
   canContinue,
+  walletBalance,
 }: {
   data: ShipmentPaymentSelection
   onChange: (value: ShipmentPaymentSelection) => void
   onContinue: () => void
   canContinue: boolean
+  walletBalance: number | null
 }) {
+  const balanceDisplay = walletBalance != null ? `Balance: ₦${walletBalance.toLocaleString()}` : 'Balance: ₦—'
+
   return (
     <FormSection title="Payment Method" subtitle="Select how you want to pay for this shipment.">
       <div className="space-y-3">
-        {paymentMethods.map((method) => (
-          <label
-            key={method.id}
-            className={`flex items-center justify-between border rounded-xl px-4 py-3 transition-colors ${
-              data.method === method.id ? 'border-[#4043FF] bg-[#4043FF]/5' : 'border-gray-200 hover:border-[#4043FF]/40'
-            }`}
-          >
-            <div>
-              <p className="text-sm font-semibold text-gray-900">{method.label}</p>
-              <p className="text-xs text-gray-500">{method.details}</p>
-            </div>
-            <input
-              type="radio"
-              name="payment"
-              value={method.id}
-              checked={data.method === method.id}
-              onChange={() => onChange({ method: method.id })}
-              className="w-4 h-4 accent-[#4043FF]"
-            />
-          </label>
-        ))}
+        <label
+          className={`flex items-center justify-between border rounded-xl px-4 py-3 transition-colors ${
+            data.method === 'wallet' ? 'border-[#4043FF] bg-[#4043FF]/5' : 'border-gray-200 hover:border-[#4043FF]/40'
+          }`}
+        >
+          <div>
+            <p className="text-sm font-semibold text-gray-900">My Wallet</p>
+            <p className="text-xs text-gray-500">{balanceDisplay}</p>
+          </div>
+          <input
+            type="radio"
+            name="payment"
+            value="wallet"
+            checked={data.method === 'wallet'}
+            onChange={() => onChange({ method: 'wallet' })}
+            className="w-4 h-4 accent-[#4043FF]"
+          />
+        </label>
+        <label
+          className={`flex items-center justify-between border rounded-xl px-4 py-3 transition-colors ${
+            data.method === 'card' ? 'border-[#4043FF] bg-[#4043FF]/5' : 'border-gray-200 hover:border-[#4043FF]/40'
+          }`}
+        >
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Pay with Card</p>
+            <p className="text-xs text-gray-500">Paystack checkout</p>
+          </div>
+          <input
+            type="radio"
+            name="payment"
+            value="card"
+            checked={data.method === 'card'}
+            onChange={() => onChange({ method: 'card' })}
+            className="w-4 h-4 accent-[#4043FF]"
+          />
+        </label>
       </div>
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
     </FormSection>
@@ -815,7 +875,7 @@ function ReviewSummary({
           ['Shipping', `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}`],
         ]} />
         <SummaryCard title="Payment" items={[[
-          'Method', paymentMethods.find((m) => m.id === payment.method)?.label || ''
+          'Method', payment.method === 'wallet' ? 'My Wallet' : 'Pay with Card'
         ]]} />
       </div>
 

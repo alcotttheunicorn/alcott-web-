@@ -232,7 +232,7 @@ export default function HelpCenterPage() {
                             {faq.question}
                           </span>
                           <svg
-                            className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${
+                            className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${
                               isExpanded ? 'rotate-180' : ''
                             }`}
                             fill="none"

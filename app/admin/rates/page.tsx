@@ -253,7 +253,7 @@ export default function RatesCheckPage() {
                         </div>
 
                         {/* Right side - Price and weight */}
-                        <div className="text-left sm:text-right flex-shrink-0">
+                        <div className="text-left sm:text-right shrink-0">
                             <p className="text-base lg:text-lg font-bold text-gray-900">
                                 {entry.currency} {entry.price.toLocaleString()}.00
                             </p>

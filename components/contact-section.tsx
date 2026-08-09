@@ -38,15 +38,15 @@ export function ContactSection() {
         <div className="hidden md:grid md:grid-cols-2 gap-12 max-w-2xl mx-auto">
           {/* Years in Business */}
           <div className="text-center">
-            <div className="text-5xl lg:text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>3+</div>
+            <div className="text-5xl lg:text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>6+</div>
             <div className="text-lg font-bold text-white mb-1 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Years in Business</div>
             <div className="text-sm text-white opacity-80 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Creating the successful path</div>
           </div>
 
           {/* Case Studies */}
           <div className="text-center">
-            <div className="text-5xl lg:text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>5000+</div>
-            <div className="text-lg font-bold text-white mb-1 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Case Studies Delivered</div>
+            <div className="text-5xl lg:text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>15000+</div>
+            <div className="text-lg font-bold text-white mb-1 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Packages Delivered</div>
             <div className="text-sm text-white opacity-80 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>In last 6 years</div>
           </div>
         </div>

@@ -14,9 +14,8 @@ export function Footer() {
                 <img src="/alcott-small.png" alt="alcott-small-logo"/>
               </div>
               <p className="text-gray-600 leading-relaxed max-w-md font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                Alcott, an end-to-end logistics tech API
-                 platform that connects businesses to haulage and warehousing assets all in one ecosystem.
-              </p>
+                Alcott is an end-to-end logistics technology platform that enables individuals and businesses to ship, track and manage deliveries worldwide - anytime, anywhere, from a single digital platform.
+              </p>  
             </div>
 
             {/* Column 2: Company Links */}
@@ -55,8 +54,8 @@ export function Footer() {
               <h3 className="text-lg font-bold text-gray-900 mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Contact Information</h3>
               <div className="space-y-4 text-gray-600 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                 <div>+234 906 000 7571</div>
-                <div>hello@alcott.com.ng</div>
-                <div>1 Engineering Close.<br />Victoria Island 106104.<br />Lagos State</div>
+                <div>info@alcott.com.ng</div>
+                <div>Suite 13, Waiting Hall,<br />Mobolaji Johnson Train Station, Alagomeji, Yaba,<br />Lagos State.</div>
               </div>
             </div>
           </div>
