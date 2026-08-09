@@ -34,7 +34,7 @@ export function useAuth() {
     window.sessionStorage.removeItem('authUser')
     setToken('')
     setUser(null)
-    window.location.href = '/auth/lets-get-you-in'
+    window.location.href = '/lets-get-you-in'
   }, [])
 
   return {

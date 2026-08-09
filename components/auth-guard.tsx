@@ -11,7 +11,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       ?? window.sessionStorage.getItem('authToken')
 
     if (!token) {
-      router.replace('/auth/lets-get-you-in')
+      router.replace('/lets-get-you-in')
     }
   }, [router])
 

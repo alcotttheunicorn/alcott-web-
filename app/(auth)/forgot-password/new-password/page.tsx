@@ -27,7 +27,7 @@ export default function CreateNewPasswordPage() {
         // Password reset successful
         console.log('Password reset successful')
         // Navigate to success page or sign in
-        window.location.href = '/auth/sign-in'
+        window.location.href = '/sign-in'
       } else {
         alert('Passwords do not match')
       }
@@ -38,7 +38,7 @@ export default function CreateNewPasswordPage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center px-6 py-4 border-b border-gray-100">
-        <Link href="/auth/forgot-password/verify" className="mr-4">
+        <Link href="/forgot-password/verify" className="mr-4">
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>

@@ -86,7 +86,7 @@ export default function RegisterPage() {
                     description: message,
                   })
                   // Route to verify email screen
-                  setTimeout(() => router.push('/auth/verify-email'), 800)
+                  setTimeout(() => router.push('/verify-email'), 800)
                 } catch (err: any) {
                   const apiErrorMessage =
                     err?.response?.data?.message ||
@@ -254,7 +254,7 @@ export default function RegisterPage() {
             {/* Sign In Link */}
             <div className="text-center text-sm text-gray-500 font-bold font-['Urbanist']">
               Already have an account?{' '}
-              <Link href="/auth/sign-in" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
+              <Link href="/sign-in" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
                 Sign in
               </Link>
             </div>

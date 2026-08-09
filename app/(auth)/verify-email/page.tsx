@@ -68,7 +68,7 @@ export default function VerifyEmailPage() {
                   localStorage.removeItem('pendingSignupEmail')
                 }
                 // Redirect to sign in so user can log in after verify
-                setTimeout(() => router.push('/auth/sign-in'), 1200)
+                setTimeout(() => router.push('/sign-in'), 1200)
               } catch (err: any) {
                 const apiErrorMessage =
                   err?.response?.data?.message ||
@@ -221,7 +221,7 @@ export default function VerifyEmailPage() {
             </div>
             <p>
               Need to change your email?{' '}
-              <Link href="/auth/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
+              <Link href="/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
                 Start over
               </Link>
             </p>

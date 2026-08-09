@@ -95,6 +95,15 @@ export default function NewShipmentPage() {
     return integer
   }
 
+  const ensureIntlPhone = (value: string, defaultPrefix: string) => {
+    const trimmed = value.replace(/[^0-9+]/g, '')
+    if (!trimmed) return ''
+    if (trimmed.startsWith('00')) return `+${trimmed.slice(2)}`
+    if (trimmed.startsWith('+')) return trimmed
+    if (trimmed.startsWith('0')) return `${defaultPrefix}${trimmed.slice(1)}`
+    return `${defaultPrefix}${trimmed}`
+  }
+
   const {
     currentStep,
     activeIndex,
@@ -194,7 +203,7 @@ export default function NewShipmentPage() {
         title: 'Authentication required',
         description: 'Please sign in again to create a shipment.',
       })
-      router.push('/auth/sign-in')
+      router.push('/sign-in')
       return
     }
 
@@ -205,21 +214,8 @@ export default function NewShipmentPage() {
         title: 'Authentication required',
         description: 'Please sign in again to create a shipment.',
       })
-      router.push('/auth/sign-in')
+      router.push('/sign-in')
       return
-    }
-
-    const ensureIntlPhone = (value: string, defaultPrefix: string) => {
-      const trimmed = value.trim()
-      if (!trimmed) return ''
-      if (trimmed.startsWith('00')) {
-        return `+${trimmed.slice(2)}`
-      }
-      if (trimmed.startsWith('+')) return trimmed
-      if (trimmed.startsWith('0')) {
-        return `${defaultPrefix}${trimmed.slice(1)}`
-      }
-      return `${defaultPrefix}${trimmed}`
     }
 
     const toNumber = (value: string) => {
@@ -742,7 +738,7 @@ function PackageForm({
           onClick={() => setShowOptions((prev) => !prev)}
           className="mt-2 w-full h-11 px-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between text-sm text-gray-700 hover:bg-gray-100"
         >
-          <span className="flex items-center gap-1.5 whitespace-normal break-words text-left">
+          <span className="flex items-center gap-1.5 whitespace-normal wrap-break-word text-left">
             <MenuIcon className="w-4 h-4" />
             {shippingSelection ? `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}` : 'Shipping'}
           </span>
@@ -761,7 +757,7 @@ function PackageForm({
                   data.shippingOption === option.id ? 'bg-gray-50' : ''
                 }`}
               >
-                <div className="whitespace-normal break-words">
+                <div className="whitespace-normal wrap-break-word">
                   <p className="text-sm font-semibold text-gray-900">{option.label}</p>
                   <p className="text-xs text-gray-500">{option.eta}</p>
                 </div>

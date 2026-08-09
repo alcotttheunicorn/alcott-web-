@@ -82,7 +82,7 @@ export default function ProfileSetupPage() {
       const message = 'You need to sign in before setting up your profile.'
       setErrorMessage(message)
       toast({ title: 'Not signed in', description: message })
-      router.push('/auth/sign-in')
+      router.push('/sign-in')
       return
     }
 
@@ -131,7 +131,7 @@ export default function ProfileSetupPage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center px-6 py-4 border-b border-gray-100">
-        <Link href="/auth/register" className="mr-4">
+        <Link href="/register" className="mr-4">
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
