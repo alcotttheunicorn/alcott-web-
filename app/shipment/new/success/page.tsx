@@ -1,10 +1,78 @@
 'use client'
 
+import { Suspense, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useAuth } from '@/hooks/use-auth'
+import { verifyPayment } from '@/lib/api/shipment-api'
+import type { ShipmentData } from '@/lib/api/types'
 
-export default function ShipmentSuccessPage() {
+function loadLastCreatedShipment(): ShipmentData | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.sessionStorage.getItem('lastCreatedShipment')
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function SuccessContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { token } = useAuth()
+  const [shipment, setShipment] = useState<ShipmentData | null>(null)
+  const [status, setStatus] = useState<'checking' | 'ready' | 'failed'>('checking')
+
+  useEffect(() => {
+    const reference = searchParams.get('reference')
+    const stored = loadLastCreatedShipment()
+
+    // Wallet payments: no Paystack reference in the URL, shipment is already confirmed.
+    if (!reference) {
+      setShipment(stored)
+      setStatus('ready')
+      return
+    }
+
+    // Card payments: Paystack redirected back here — confirm the payment actually went through.
+    if (!token) return
+    verifyPayment(token, reference)
+      .then(() => {
+        setShipment(stored)
+        setStatus('ready')
+      })
+      .catch(() => setStatus('failed'))
+  }, [searchParams, token])
+
+  if (status === 'checking') {
+    return (
+      <div className="min-h-screen bg-[#F8F9FC] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+      </div>
+    )
+  }
+
+  if (status === 'failed') {
+    return (
+      <div className="min-h-screen bg-[#F8F9FC] flex flex-col items-center justify-center px-6 py-16 text-center font-['Urbanist']">
+        <div className="max-w-lg w-full bg-white border border-gray-200 rounded-3xl shadow-lg p-10 space-y-6">
+          <h1 className="text-2xl font-bold text-gray-900">Payment couldn't be verified</h1>
+          <p className="text-sm text-gray-600">
+            We couldn't confirm your payment. If you were charged, check your orders in a few minutes or contact support.
+          </p>
+          <Button
+            onClick={() => router.push('/orders')}
+            className="h-12 rounded-full bg-[#4043FF] hover:bg-[#3333CC] text-white font-semibold"
+          >
+            Go to Orders
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const trackingId = shipment?.tracking_id
 
   return (
     <div className="min-h-screen bg-[#F8F9FC] flex flex-col items-center justify-center px-6 py-16 text-center font-['Urbanist']">
@@ -21,16 +89,20 @@ export default function ShipmentSuccessPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-gray-900">Order Successful!</h1>
           <p className="text-sm text-gray-600">
-            Your tracking number is <span className="font-semibold text-[#4043FF]">156436770922</span>. A courier will reach out to pick up your package shortly.
+            {trackingId ? (
+              <>Your tracking number is <span className="font-semibold text-[#4043FF]">{trackingId}</span>. A courier will reach out to pick up your package shortly.</>
+            ) : (
+              'A courier will reach out to pick up your package shortly.'
+            )}
           </p>
         </div>
 
         <div className="flex flex-col gap-3">
           <Button
-            onClick={() => router.push('/receipt/156436770922')}
+            onClick={() => router.push(shipment?.id ? `/orders/${shipment.id}` : '/orders')}
             className="h-12 rounded-full bg-[#4043FF] hover:bg-[#3333CC] text-white font-semibold"
           >
-            View E-Receipt
+            View Order
           </Button>
           <Button
             variant="outline"
@@ -45,4 +117,14 @@ export default function ShipmentSuccessPage() {
   )
 }
 
-
+export default function ShipmentSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F8F9FC] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
+  )
+}
