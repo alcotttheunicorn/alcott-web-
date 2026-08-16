@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { createShipment, getCategories, type CreateShipmentRequest } from '@/lib/api/shipment-api'
 import { getBalance } from '@/lib/api/wallet-api'
 import { useAuth } from '@/hooks/use-auth'
+import { useProfile } from '@/hooks/use-profile'
 import { toast } from '@/components/ui/use-toast'
 import { Stepper } from '@/components/shipment/Stepper'
 import { FormSection } from '@/components/shipment/FormSection'
@@ -251,13 +252,22 @@ export default function NewShipmentPage() {
     try {
       setIsSubmitting(true)
       const response = await createShipment(payload, formattedToken)
+      if (response?.data?.shipment) {
+        window.sessionStorage.setItem('lastCreatedShipment', JSON.stringify(response.data.shipment))
+      }
+
+      // Card payments come back with a Paystack checkout link — send the user
+      // there first; Paystack redirects back to /shipment/new/success?reference=...
+      // Wallet payments have no payment_url since the balance is deducted server-side.
+      if (response?.data?.payment_url) {
+        window.location.href = response.data.payment_url
+        return
+      }
+
       toast({
         title: 'Shipment created',
         description: 'Your shipment has been created successfully.',
       })
-      if (response?.data && typeof response.data === 'object') {
-        window.sessionStorage.setItem('lastCreatedShipment', JSON.stringify(response.data))
-      }
       router.push('/shipment/new/success')
     } catch (error) {
       console.error('Failed to create shipment', error)
@@ -442,6 +452,7 @@ function Header({
   onRecentClick: (search: string) => void
   onClearRecent: () => void
 }) {
+  const { displayName } = useProfile()
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
       <div className="flex items-center justify-between">
@@ -512,7 +523,7 @@ function Header({
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gray-300" />
-            <div className="hidden md:block text-sm font-semibold text-gray-900">Olusegun Matanmi</div>
+            <div className="hidden md:block text-sm font-semibold text-gray-900">{displayName ?? 'Guest'}</div>
             <svg className="hidden md:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>

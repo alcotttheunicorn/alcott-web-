@@ -1,90 +1,39 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useAuth } from '@/hooks/use-auth'
+import { getAdminShipments } from '@/lib/api/admin-api'
+import type { ShipmentData } from '@/lib/api/types'
 
-type OrderStatus = 'all' | 'initiated' | 'pending' | 'on_process' | 'delivered' | 'canceled'
+type OrderStatus = 'all' | 'pending' | 'on_process' | 'delivered' | 'canceled'
 
-interface Order {
-    id: string
-    orderId: string | null
-    createdAt: string
-    createdBy: string
-    status: Exclude<OrderStatus, 'all'>
+const statusToApiValue: Record<Exclude<OrderStatus, 'all'>, string> = {
+    pending: 'PENDING',
+    on_process: 'ONGOING',
+    delivered: 'DELIVERED',
+    canceled: 'CANCELED'
 }
 
-// Mock data
-const mockOrders: Order[] = [
-    {
-        id: '1',
-        orderId: null,
-        createdAt: '12:47 pm, 04-09-25',
-        createdBy: 'Ikechukwu Dave',
-        status: 'pending',
-    },
-    {
-        id: '2',
-        orderId: '1679-345898-2367',
-        createdAt: '12:00 pm, 14-09-25',
-        createdBy: 'Ikechukwu Dave',
-        status: 'canceled',
-    },
-    {
-        id: '3',
-        orderId: '1622-244898-2365',
-        createdAt: '12:47 pm, 04-09-25',
-        createdBy: 'Ikechukwu Dave',
-        status: 'on_process',
-    },
-    {
-        id: '4',
-        orderId: '1244-244898-2595',
-        createdAt: '12:47 pm, 04-09-25',
-        createdBy: 'Ikechukwu Dave',
-        status: 'initiated',
-    },
-    {
-        id: '5',
-        orderId: '1644-299456-2075',
-        createdAt: '12:47 pm, 04-09-25',
-        createdBy: 'Ikechukwu Dave',
-        status: 'delivered',
-    },
-]
+function mapShipmentStatus(status: string): Exclude<OrderStatus, 'all'> {
+    if (status === 'ONGOING') return 'on_process'
+    if (status === 'DELIVERED') return 'delivered'
+    if (status === 'CANCELED') return 'canceled'
+    return 'pending'
+}
 
 const statusTabs: { key: OrderStatus; label: string }[] = [
     { key: 'all', label: 'ALL' },
-    { key: 'initiated', label: 'INITIATED' },
     { key: 'pending', label: 'PENDING' },
     { key: 'on_process', label: 'ON PROCESS' },
     { key: 'delivered', label: 'DELIVERED' },
-    { key: 'canceled', label: 'CANCELED' },
+    { key: 'canceled', label: 'CANCELED'}
 ]
 
-function OrderStatusIcon({ status, hasOrderId }: { status: Order['status']; hasOrderId: boolean }) {
-    // Gray clipboard - no order ID yet
-    if (!hasOrderId) {
-        return (
-            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            </div>
-        )
-    }
-
+function OrderStatusIcon({ status }: { status: Exclude<OrderStatus, 'all'> }) {
     switch (status) {
-        case 'canceled':
-            // Red X - cancelled order
-            return (
-                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                    <svg className="w-4 h-4 lg:w-5 lg:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </div>
-            )
         case 'on_process':
-            // Green truck - created order (in transit)
             return (
                 <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                     <svg className="w-4 h-4 lg:w-5 lg:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,17 +41,7 @@ function OrderStatusIcon({ status, hasOrderId }: { status: Order['status']; hasO
                     </svg>
                 </div>
             )
-        case 'initiated':
-            // Purple box - created but not shipped
-            return (
-                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                    <svg className="w-4 h-4 lg:w-5 lg:h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                </div>
-            )
         case 'delivered':
-            // Green checkmark for delivered
             return (
                 <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                     <svg className="w-4 h-4 lg:w-5 lg:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,8 +49,15 @@ function OrderStatusIcon({ status, hasOrderId }: { status: Order['status']; hasO
                     </svg>
                 </div>
             )
+        case 'canceled':
+            return (
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            )    
         default:
-            // Default gray clipboard
             return (
                 <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                     <svg className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,13 +68,32 @@ function OrderStatusIcon({ status, hasOrderId }: { status: Order['status']; hasO
     }
 }
 
-export default function AdminOrdersPage() {
+function AdminOrdersContent() {
+    const { token } = useAuth()
+    const searchParams = useSearchParams()
+    const userIdFilter = searchParams.get('user_id')
     const [activeTab, setActiveTab] = useState<OrderStatus>('all')
+    const [orders, setOrders] = useState<ShipmentData[]>([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
 
-    const filteredOrders = mockOrders.filter((order) => {
-        if (activeTab === 'all') return true
-        return order.status === activeTab
-    })
+    useEffect(() => {
+        if (!token) return
+        setLoading(true)
+        setError('')
+        const status = activeTab === 'all' ? undefined : statusToApiValue[activeTab]
+        getAdminShipments(token, { status, user_id: userIdFilter ?? undefined, limit: 50 })
+            .then((res) => setOrders(Array.isArray(res.data) ? res.data : []))
+            .catch((err) => {
+                setOrders([])
+                setError(
+                    err?.response?.status === 403
+                        ? "You don't have admin access to view shipments."
+                        : 'Could not load orders.'
+                )
+            })
+            .finally(() => setLoading(false))
+    }, [token, activeTab, userIdFilter])
 
     return (
         <div className="p-4 lg:p-6">
@@ -140,6 +105,12 @@ export default function AdminOrdersPage() {
                     </svg>
                 </Link>
                 <h1 className="text-lg lg:text-xl font-bold text-gray-900">ORDERS</h1>
+                {userIdFilter && (
+                    <span className="ml-auto flex items-center gap-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
+                        Filtered by user: {userIdFilter}
+                        <Link href="/admin/orders" className="text-[#4043FF] hover:underline">Clear</Link>
+                    </span>
+                )}
             </div>
 
             {/* Status Tabs */}
@@ -160,24 +131,38 @@ export default function AdminOrdersPage() {
 
             {/* Orders List */}
             <div className="space-y-3 lg:space-y-4">
-                {filteredOrders.map((order) => (
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+                    </div>
+                ) : error ? (
+                    <div className="bg-white border border-gray-200 rounded-lg p-8 lg:p-12 text-center">
+                        <p className="text-gray-500">{error}</p>
+                    </div>
+                ) : orders.length === 0 ? (
+                    <div className="bg-white border border-gray-200 rounded-lg p-8 lg:p-12 text-center">
+                        <p className="text-gray-500">No orders found for this filter.</p>
+                    </div>
+                ) : orders.map((order) => (
                     <div
                         key={order.id}
                         className="bg-white border border-gray-200 rounded-lg p-3 lg:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:shadow-md transition-shadow"
                     >
                         {/* Left: Icon and Order Info */}
                         <div className="flex items-center gap-3 lg:gap-4">
-                            <OrderStatusIcon status={order.status} hasOrderId={!!order.orderId} />
+                            <OrderStatusIcon status={mapShipmentStatus(order.status)} />
                             <div>
                                 <h3 className="font-bold text-gray-900 text-sm">
-                                    {order.orderId || 'No order id yet'}
+                                    {order.tracking_id || 'No tracking id yet'}
                                 </h3>
                                 <p className="text-xs text-gray-500">
-                                    Created: {order.createdAt}
+                                    {order.receiver_name ? `To: ${order.receiver_name}` : ''}
                                 </p>
-                                <p className="text-xs text-gray-500">
-                                    By: {order.createdBy}
-                                </p>
+                                {order.created_at && (
+                                    <p className="text-xs text-gray-500">
+                                        Created: {new Date(order.created_at).toLocaleString()}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -190,13 +175,19 @@ export default function AdminOrdersPage() {
                         </Link>
                     </div>
                 ))}
-
-                {filteredOrders.length === 0 && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-8 lg:p-12 text-center">
-                        <p className="text-gray-500">No orders found for this filter.</p>
-                    </div>
-                )}
             </div>
         </div>
+    )
+}
+
+export default function AdminOrdersPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+            </div>
+        }>
+            <AdminOrdersContent />
+        </Suspense>
     )
 }

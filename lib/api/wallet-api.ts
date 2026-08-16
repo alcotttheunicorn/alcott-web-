@@ -1,5 +1,5 @@
 import apiClient from '@/lib/api-client'
-import type { ApiResponse, PaginatedResponse, WalletBalance, WalletFundInit, Transaction } from './types'
+import type { ApiResponse, MessageResponse, PaginatedResponse, WalletBalance, WalletFundInit, Transaction } from './types'
 
 function authHeader(token: string) {
   const t = token.trim()
@@ -20,7 +20,7 @@ export async function initializeFund(token: string, amount: number): Promise<Api
   return data
 }
 
-export async function verifyFund(token: string, reference: string): Promise<ApiResponse<{ message: string }>> {
+export async function verifyFund(token: string, reference: string): Promise<MessageResponse> {
   const { data } = await apiClient.post('/wallet/fund/verify', { reference }, {
     headers: { Authorization: authHeader(token) },
   })

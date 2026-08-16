@@ -1,24 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/use-auth'
+import { getAdminUsers, type AdminUser } from '@/lib/api/admin-api'
 
-interface NewUser {
-    id: string
-    name: string
-    joinedText: string
-    email: string
-    phone: string
+const PAGE_SIZE = 10
+
+function displayName(user: AdminUser) {
+    const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
+    return name || user.email
 }
 
-interface UserListItem {
-    id: string
-    name: string
-    email: string
-    phone: string
-}
-
-const mockNewUsers: NewUser[] = [
+// Still hardcoded — there's no endpoint for "new users this month" specifically.
+// Left in place rather than deleted since it was already part of the shipped UI;
+// needs a real /admin/users?created_after= filter or equivalent before it can be wired.
+const mockNewUsers = [
     { id: '1', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
     { id: '2', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
     { id: '3', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
@@ -26,17 +23,49 @@ const mockNewUsers: NewUser[] = [
     { id: '5', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
 ]
 
-const mockUsersList: UserListItem[] = [
-    { id: '1', name: 'John Doesky', email: 'Jodesky2@Gmail.Com', phone: '+234 705 568 3456' },
-    { id: '2', name: 'John Doesky', email: 'Jodesky2@Gmail.Com', phone: '+234 705 568 3456' },
-    { id: '3', name: 'John Doesky', email: 'Jodesky2@Gmail.Com', phone: '+234 705 568 3456' },
-    { id: '4', name: 'John Doesky', email: 'Jodesky2@Gmail.Com', phone: '+234 705 568 3456' },
-]
-
 export default function UsersPage() {
+    const { token } = useAuth()
     const [searchValue, setSearchValue] = useState('')
     const [selectedReportYear, setSelectedReportYear] = useState('last_year')
     const [currentPage, setCurrentPage] = useState(1)
+    const [users, setUsers] = useState<AdminUser[]>([])
+    const [totalPages, setTotalPages] = useState(1)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
+
+    useEffect(() => {
+        if (!token) return
+        setLoading(true)
+        setError('')
+        getAdminUsers(token, { page: currentPage, limit: PAGE_SIZE })
+            .then((res) => {
+                const list = Array.isArray(res.data) ? res.data : []
+                setUsers(list)
+                setTotalPages(res.totalPages || 1)
+                if (!selectedUser && list.length > 0) setSelectedUser(list[0])
+            })
+            .catch((err) => {
+                setUsers([])
+                setError(
+                    err?.response?.status === 403
+                        ? "You don't have admin access to view users."
+                        : 'Could not load users.'
+                )
+            })
+            .finally(() => setLoading(false))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, currentPage])
+
+    // The /admin/users endpoint only documents page/limit params — no name/email
+    // search filter. This filters within the current page only; it will not
+    // search users outside of what's already been fetched.
+    const visibleUsers = searchValue.trim()
+        ? users.filter((u) =>
+            displayName(u).toLowerCase().includes(searchValue.trim().toLowerCase()) ||
+            u.email?.toLowerCase().includes(searchValue.trim().toLowerCase())
+        )
+        : users
 
     return (
         <div className="p-6">
@@ -53,10 +82,9 @@ export default function UsersPage() {
             <div className="flex gap-6">
                 {/* Left Column */}
                 <div className="w-[360px] space-y-4">
-                    {/* User Details Card */}
+                    {/* User Details Card — shows whichever user is selected from the table below */}
                     <div className="rounded-xl overflow-hidden">
-                        {/* Top section - light purple gradient */}
-                        <div className="bg-gradient-to-b from-[#E8E9FF] to-[#D4D6FF] p-4">
+                        <div className="bg-linear-to-b from-[#E8E9FF] to-[#D4D6FF] p-4">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-gray-900 font-bold text-lg">User Details</h2>
                                 <div className="relative">
@@ -65,7 +93,7 @@ export default function UsersPage() {
                                     </svg>
                                     <input
                                         type="text"
-                                        placeholder="Enter User Name"
+                                        placeholder="Filter loaded users"
                                         value={searchValue}
                                         onChange={(e) => setSearchValue(e.target.value)}
                                         className="pl-9 pr-3 py-1.5 bg-white border border-gray-200 rounded-full text-sm text-gray-900 placeholder:text-gray-400 w-44"
@@ -75,26 +103,34 @@ export default function UsersPage() {
 
                             <div className="flex items-start gap-4">
                                 <div className="w-20 h-20 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shadow-sm">
-                                    <span className="text-3xl font-bold text-[#1a1a2e]">J</span>
+                                    <span className="text-3xl font-bold text-[#1a1a2e]">
+                                        {selectedUser ? displayName(selectedUser).charAt(0).toUpperCase() : '—'}
+                                    </span>
                                 </div>
                                 <div className="text-gray-700 text-sm space-y-1.5">
-                                    <p><span className="font-semibold text-gray-900">Name:</span> John Doe</p>
-                                    <p><span className="font-semibold text-gray-900">Email:</span> johndoe33@gmail.com</p>
-                                    <p><span className="font-semibold text-gray-900">Tel. No:</span> +234 705 483 1845</p>
-                                    <p><span className="font-semibold text-gray-900">Join Date:</span> October-24-2024</p>
+                                    <p><span className="font-semibold text-gray-900">Name:</span> {selectedUser ? displayName(selectedUser) : '—'}</p>
+                                    <p><span className="font-semibold text-gray-900">Email:</span> {selectedUser?.email ?? '—'}</p>
+                                    <p><span className="font-semibold text-gray-900">Tel. No:</span> {selectedUser?.phone_number ?? '—'}</p>
+                                    <p><span className="font-semibold text-gray-900">Join Date:</span> {selectedUser?.created_at ? new Date(selectedUser.created_at).toLocaleDateString() : '—'}</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Bottom section - slightly darker */}
                         <div className="bg-[#C8CAEE] px-4 py-3 flex items-center justify-between">
-                            <span className="text-gray-800 text-sm font-medium">Last Order Date: 20-09-25</span>
-                            <button className="bg-[#4043FF] text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-[#3333CC] transition-colors">
-                                View Order
-                            </button>
+                            {/* No "last order date" field exists on the admin user object — omitted rather than faked */}
+                            <span className="text-gray-800 text-sm font-medium">
+                                {selectedUser ? `User ID: ${selectedUser.id}` : 'Select a user below'}
+                            </span>
+                            <Link
+                                href={selectedUser ? `/admin/orders?user_id=${selectedUser.id}` : '#'}
+                                className={`bg-[#4043FF] text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-[#3333CC] transition-colors ${!selectedUser ? 'pointer-events-none opacity-50' : ''}`}
+                            >
+                                View Orders
+                            </Link>
                         </div>
                     </div>
-                    {/* New Users This Month */}
+
+                    {/* New Users This Month — still mock, see note on mockNewUsers above */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
@@ -103,7 +139,7 @@ export default function UsersPage() {
                                 </svg>
                                 <span className="text-sm font-bold text-gray-900">NEW USERS THIS MONTH</span>
                             </div>
-                            <span className="text-sm font-bold text-gray-900">5</span>
+                            <span className="text-sm font-bold text-gray-900">{mockNewUsers.length}</span>
                         </div>
 
                         <div className="space-y-3">
@@ -128,6 +164,14 @@ export default function UsersPage() {
                             ))}
                         </div>
                     </div>
+
+                    {/*
+                      "New Users This Month" list above, and everything in the Right Column
+                      below (Total User, Monthly User, User Chart, User Reports, Active Users,
+                      CSV export) are still hardcoded. There's no /admin analytics or CSV-export
+                      endpoint documented anywhere in the API docs shared so far — needs backend
+                      support before any of this can be wired to real numbers.
+                    */}
                 </div>
 
                 {/* Right Column */}
@@ -301,34 +345,70 @@ export default function UsersPage() {
             {/* Users List Table */}
             <div className="mt-6 bg-white border border-gray-200 rounded-xl p-4">
                 <h3 className="text-lg font-bold text-gray-900 text-center mb-4">Users List</h3>
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b border-gray-200">
-                            <th className="text-left text-sm font-bold text-gray-900 pb-3 pl-4">Name</th>
-                            <th className="text-center text-sm font-bold text-gray-900 pb-3">Email</th>
-                            <th className="text-right text-sm font-bold text-gray-900 pb-3 pr-4">Tel. No</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {mockUsersList.map((user) => (
-                            <tr key={user.id} className="border-b border-gray-100">
-                                <td className="text-left text-sm text-gray-700 py-3 pl-4">{user.name}</td>
-                                <td className="text-center text-sm text-gray-700 py-3">{user.email}</td>
-                                <td className="text-right text-sm text-gray-700 py-3 pr-4">{user.phone}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
 
-                {/* Pagination */}
-                <div className="flex items-center justify-end gap-2 mt-4">
-                    <button className="text-[#4043FF] text-sm font-semibold hover:underline">&lt; Previous</button>
-                    <button className={`w-6 h-6 rounded text-sm font-semibold ${currentPage === 1 ? 'bg-[#4043FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>1</button>
-                    <button className={`w-6 h-6 rounded text-sm font-semibold ${currentPage === 2 ? 'bg-[#4043FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>2</button>
-                    <button className={`w-6 h-6 rounded text-sm font-semibold ${currentPage === 3 ? 'bg-[#4043FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>3</button>
-                    <button className={`w-6 h-6 rounded text-sm font-semibold ${currentPage === 4 ? 'bg-[#4043FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>4</button>
-                    <button className="text-[#4043FF] text-sm font-semibold hover:underline">Next &gt;</button>
-                </div>
+                {loading ? (
+                    <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+                    </div>
+                ) : error ? (
+                    <p className="text-center text-gray-500 py-8">{error}</p>
+                ) : (
+                    <>
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-gray-200">
+                                    <th className="text-left text-sm font-bold text-gray-900 pb-3 pl-4">Name</th>
+                                    <th className="text-center text-sm font-bold text-gray-900 pb-3">Email</th>
+                                    <th className="text-right text-sm font-bold text-gray-900 pb-3 pr-4">Tel. No</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {visibleUsers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={3} className="text-center text-gray-500 py-8">No users found.</td>
+                                    </tr>
+                                ) : visibleUsers.map((user) => (
+                                    <tr
+                                        key={user.id}
+                                        onClick={() => setSelectedUser(user)}
+                                        className={`border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${selectedUser?.id === user.id ? 'bg-[#E8E9FF]/40' : ''}`}
+                                    >
+                                        <td className="text-left text-sm text-gray-700 py-3 pl-4">{displayName(user)}</td>
+                                        <td className="text-center text-sm text-gray-700 py-3">{user.email}</td>
+                                        <td className="text-right text-sm text-gray-700 py-3 pr-4">{user.phone_number ?? '—'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {/* Pagination — real, driven by totalPages from the API */}
+                        <div className="flex items-center justify-end gap-2 mt-4">
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="text-[#4043FF] text-sm font-semibold hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed"
+                            >
+                                &lt; Previous
+                            </button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-6 h-6 rounded text-sm font-semibold ${currentPage === page ? 'bg-[#4043FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="text-[#4043FF] text-sm font-semibold hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed"
+                            >
+                                Next &gt;
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     )

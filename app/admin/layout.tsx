@@ -1,8 +1,10 @@
 'use client'
 
+import { useProfile } from '@/hooks/use-profile'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+
 
 const sidebarLinks = [
     { href: '/admin/orders', label: 'Orders', icon: 'orders' },
@@ -97,6 +99,7 @@ function SidebarIcon({ type }: { type: string }) {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
+    const { displayName } = useProfile()
     const [settingsOpen, setSettingsOpen] = useState(false)
     const [pricingOpen, setPricingOpen] = useState(false)
     const [searchValue, setSearchValue] = useState('')
@@ -390,7 +393,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden">
                                 <img src="/avatar-placeholder.png" alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                             </div>
-                            <span className="hidden md:block text-sm font-semibold text-gray-900">Olusegun Matanmi</span>
+                            <span className="hidden md:block text-sm font-semibold text-gray-900">{displayName ?? 'Guest'}</span>
                             <svg className="hidden md:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>

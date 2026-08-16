@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
-import apiClient from '@/lib/api-client'
+import { resendVerification, verifyEmail } from '@/lib/api/auth-api'
 import { toast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 import {
@@ -28,25 +28,19 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const pending = localStorage.getItem('pendingSignupEmail')
+      const pending = window.localStorage.getItem('pendingSignupEmail')
       if (pending) setEmail(pending)
     }
   }, [])
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Top Logo */}
       <div className="absolute top-6 left-6 lg:top-8 lg:left-8 z-10">
-        <img
-          src="/alcott-small.png"
-          alt="Alcott Logo"
-          className="h-8 lg:h-10 w-auto"
-        />
+        <img src="/alcott-small.png" alt="Alcott Logo" className="h-8 lg:h-10 w-auto" />
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          {/* Header */}
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900 font-['Urbanist']">Verify your email</h1>
             <p className="mt-2 text-gray-600 font-['Urbanist'] font-bold">Enter the code we sent to your email to continue.</p>
@@ -59,15 +53,17 @@ export default function VerifyEmailPage() {
               setErrorMessage(null)
               setSuccessMessage(null)
               setIsLoading(true)
+
               try {
-                const res = await apiClient.post('/auth/verify-email', { email, otp })
-                const message = res?.data?.message || 'Email verified successfully.'
+                const res = await verifyEmail(email, otp)
+                const message = res?.message || 'Email verified successfully.'
                 setSuccessMessage(message)
                 toast({ title: 'Verification successful', description: message })
+
                 if (typeof window !== 'undefined') {
-                  localStorage.removeItem('pendingSignupEmail')
+                  window.localStorage.removeItem('pendingSignupEmail')
                 }
-                // Redirect to sign in so user can log in after verify
+
                 setTimeout(() => router.push('/sign-in'), 1200)
               } catch (err: any) {
                 const apiErrorMessage =
@@ -82,11 +78,10 @@ export default function VerifyEmailPage() {
               }
             }}
           >
-            {/* Email */}
             <div className="relative">
               <div className={`flex items-center rounded-xl px-4 py-4 transition-all duration-300 ease-in-out ${
-                emailFocused 
-                  ? 'bg-blue-50 border-2 border-[#4043FF] shadow-lg shadow-blue-100' 
+                emailFocused
+                  ? 'bg-blue-50 border-2 border-[#4043FF] shadow-lg shadow-blue-100'
                   : 'bg-gray-100 border-2 border-transparent hover:bg-gray-50'
               }`}>
                 <svg className={`w-5 h-5 mr-3 shrink-0 transition-colors duration-300 ${
@@ -107,7 +102,6 @@ export default function VerifyEmailPage() {
               </div>
             </div>
 
-            {/* OTP */}
             <div className="relative">
               <div
                 className={`flex flex-col rounded-xl px-4 py-5 transition-all duration-300 ease-in-out ${
@@ -152,7 +146,6 @@ export default function VerifyEmailPage() {
               </div>
             </div>
 
-            {/* Feedback */}
             {errorMessage && (
               <p className="text-sm text-red-600 text-center font-['Urbanist'] font-bold">{errorMessage}</p>
             )}
@@ -160,7 +153,6 @@ export default function VerifyEmailPage() {
               <p className="text-sm text-green-600 text-center font-['Urbanist'] font-bold">{successMessage}</p>
             )}
 
-            {/* Submit */}
             <Button
               type="submit"
               disabled={isLoading}
@@ -170,9 +162,8 @@ export default function VerifyEmailPage() {
             </Button>
           </form>
 
-          {/* Footer */}
           <div className="mt-6 text-center text-sm text-gray-500 font-bold font-['Urbanist'] space-y-4">
-            <p>Didn't receive the code? <span className="text-[#4043FF]">Check spam</span> or resend below.</p>
+            <p>Didn&apos;t receive the code? <span className="text-[#4043FF]">Check spam</span> or resend below.</p>
             <div className="flex flex-col items-center space-y-2">
               <Button
                 type="button"
@@ -190,8 +181,8 @@ export default function VerifyEmailPage() {
                   setResendMessage(null)
 
                   try {
-                    const res = await apiClient.post('/auth/resend-verification', { email })
-                    const message = res?.data?.message || 'Verification email sent successfully.'
+                    const res = await resendVerification(email)
+                    const message = res?.message || 'Verification email sent successfully.'
                     setResendMessage(message)
                     toast({ title: 'Verification email sent', description: message })
                   } catch (err: any) {

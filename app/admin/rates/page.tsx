@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/use-auth'
 
 interface RateEntry {
     id: string
@@ -16,7 +17,6 @@ interface RateEntry {
     weight: string
 }
 
-// Mock data matching the screenshot
 const mockRateEntries: RateEntry[] = [
     {
         id: '1',
@@ -72,10 +72,29 @@ function getFirstDayOfMonth(year: number, month: number) {
 }
 
 export default function RatesCheckPage() {
+    const { token } = useAuth()
     const [currentYear, setCurrentYear] = useState(2025)
     const [currentMonthIndex, setCurrentMonthIndex] = useState(8) // September = 8
     const [selectedDay, setSelectedDay] = useState(29)
     const [calendarOpen, setCalendarOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [rateEntries, setRateEntries] = useState<RateEntry[]>(mockRateEntries)
+
+    useEffect(() => {
+        if (!token) return
+        setLoading(true)
+        setError('')
+        
+        // TODO: Once backend endpoint is available, replace with:
+        // getAdminRateChecks(token, { year: currentYear, month: currentMonthIndex + 1 })
+        //   .then((res) => setRateEntries(res.data))
+        //   .catch((err) => setError('Could not load rate checks.'))
+        //   .finally(() => setLoading(false))
+        
+        // For now, use mock data
+        setLoading(false)
+    }, [token, currentYear, currentMonthIndex])
 
     const currentMonth = `${MONTHS[currentMonthIndex].toUpperCase()} ${currentYear}`
     const calendarMonth = `${MONTHS[currentMonthIndex]} ${currentYear}`
@@ -233,35 +252,45 @@ export default function RatesCheckPage() {
             </div>
 
             {/* Rate Entries List */}
-            <div className="space-y-6 lg:space-y-8">
-                {mockRateEntries.map((entry) => (
-                    <div key={entry.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                        {/* Left side - Entry details */}
-                        <div className="space-y-1 flex-1 min-w-0">
-                            <p className="text-base lg:text-lg font-bold text-gray-900">
-                                {entry.time}  {entry.date}
-                            </p>
-                            <p className="text-xs lg:text-sm text-gray-600 break-words">
-                                <span className="font-semibold">From:</span> {entry.from}
-                            </p>
-                            <p className="text-xs lg:text-sm text-gray-600 break-words">
-                                <span className="font-semibold">To:</span> {entry.to}
-                            </p>
-                            <p className="text-xs lg:text-sm text-gray-600 break-words">
-                                <span className="font-semibold">By:</span> {entry.email}, {entry.phone}
-                            </p>
-                        </div>
+            {error ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                    <p className="text-sm text-red-600">{error}</p>
+                </div>
+            ) : loading ? (
+                <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+                </div>
+            ) : (
+                <div className="space-y-6 lg:space-y-8">
+                    {rateEntries.map((entry) => (
+                        <div key={entry.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                            {/* Left side - Entry details */}
+                            <div className="space-y-1 flex-1 min-w-0">
+                                <p className="text-base lg:text-lg font-bold text-gray-900">
+                                    {entry.time}  {entry.date}
+                                </p>
+                                <p className="text-xs lg:text-sm text-gray-600 wrap-break-word">
+                                    <span className="font-semibold">From:</span> {entry.from}
+                                </p>
+                                <p className="text-xs lg:text-sm text-gray-600 wrap-break-word">
+                                    <span className="font-semibold">To:</span> {entry.to}
+                                </p>
+                                <p className="text-xs lg:text-sm text-gray-600 wrap-break-word">
+                                    <span className="font-semibold">By:</span> {entry.email}, {entry.phone}
+                                </p>
+                            </div>
 
-                        {/* Right side - Price and weight */}
-                        <div className="text-left sm:text-right shrink-0">
-                            <p className="text-base lg:text-lg font-bold text-gray-900">
-                                {entry.currency} {entry.price.toLocaleString()}.00
-                            </p>
-                            <p className="text-xs lg:text-sm font-semibold text-gray-700">{entry.weight}</p>
+                            {/* Right side - Price and weight */}
+                            <div className="text-left sm:text-right shrink-0">
+                                <p className="text-base lg:text-lg font-bold text-gray-900">
+                                    {entry.currency} {entry.price.toLocaleString()}.00
+                                </p>
+                                <p className="text-xs lg:text-sm font-semibold text-gray-700">{entry.weight}</p>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Click outside to close calendar */}
             {calendarOpen && (

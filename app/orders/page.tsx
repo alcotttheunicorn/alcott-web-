@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
+import { useProfile } from '@/hooks/use-profile'
 import { getShipments } from '@/lib/api/shipment-api'
 import type { ShipmentData } from '@/lib/api/types'
 
@@ -190,7 +191,8 @@ export default function OrdersPage() {
               ) : orders.map((order, index) => (
                 <div
                   key={order.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  onClick={() => router.push(`/orders/${order.id}`)}
+                  className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                 >
                   <div className="flex items-center justify-between gap-4">
                     {/* Left: Icon and Order Info */}
@@ -227,7 +229,14 @@ export default function OrdersPage() {
                   {/* Track Button for First Order */}
                   {index === 0 && (
                     <div className="mt-4">
-                      <button className="w-full bg-[#4043FF] text-white py-3 rounded-lg font-semibold hover:bg-[#3333CC] transition-colors" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/orders/${order.id}`)
+                        }}
+                        className="w-full bg-[#4043FF] text-white py-3 rounded-lg font-semibold hover:bg-[#3333CC] transition-colors"
+                        style={{ fontFamily: "'Urbanist', sans-serif" }}
+                      >
                         Track
                       </button>
                     </div>
@@ -382,6 +391,7 @@ function Header({
   onRecentClick: (search: string) => void
   onClearRecent: () => void
 }) {
+  const { displayName } = useProfile()
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
       <div className="flex items-center justify-between">
@@ -455,7 +465,7 @@ function Header({
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gray-300" />
             <div className="hidden md:block text-sm font-semibold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-              Olusegun Matanmi
+              {displayName ?? 'Guest'}
             </div>
             <svg className="hidden md:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -500,4 +510,3 @@ function MobileBottomNav() {
     </div>
   )
 }
-

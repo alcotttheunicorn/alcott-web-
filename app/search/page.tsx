@@ -3,56 +3,84 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/use-auth'
+import { getShipmentByTrackingId } from '@/lib/api/shipment-api'
+import type { ShipmentData } from '@/lib/api/types'
+import { useProfile } from '@/hooks/use-profile'
 
 export const dynamic = 'force-dynamic'
+
+const RECENT_SEARCHES_KEY = 'alcott.recentTrackingSearches'
+const MAX_RECENT_SEARCHES = 7
+
+function loadRecentSearches(): string[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(RECENT_SEARCHES_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function saveRecentSearch(query: string) {
+  if (typeof window === 'undefined') return
+  const existing = loadRecentSearches().filter((s) => s.toLowerCase() !== query.toLowerCase())
+  const updated = [query, ...existing].slice(0, MAX_RECENT_SEARCHES)
+  window.localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+  return updated
+}
 
 function SearchContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { token } = useAuth()
+  const { displayName } = useProfile()
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<ShipmentData[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [recentSearches] = useState([
-    'SK2827328',
-    'SK7282823', 
-    'SK9273282',
-    'SK3697928',
-    'SK9283629',
-    'SK8729484',
-    'SK7382460'
-  ])
+  const [searchError, setSearchError] = useState('')
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+
+  useEffect(() => {
+    setRecentSearches(loadRecentSearches())
+  }, [])
 
   useEffect(() => {
     const query = searchParams.get('q')
-    if (query) {
+    if (query && token) {
       setSearchQuery(query)
       performSearch(query)
     }
-  }, [searchParams])
+  }, [searchParams, token])
 
   const performSearch = async (query: string) => {
-    if (!query.trim()) return
-    
+    const trackingId = query.trim()
+    if (!trackingId || !token) return
+
     setIsLoading(true)
-    // Simulate search API call
-    setTimeout(() => {
-      // Mock search results based on query
-      const mockResults = [
-        {
-          id: 'SK26273729',
-          status: 'On Process',
-          description: 'On the way in delivery',
-          type: 'package'
-        }
-      ]
-      
-      if (query.toLowerCase().includes('sk')) {
-        setSearchResults(mockResults)
-      } else {
-        setSearchResults([])
-      }
+    setSearchError('')
+    try {
+      const res = await getShipmentByTrackingId(token, trackingId)
+      setSearchResults(res.data ? [res.data] : [])
+      setRecentSearches(saveRecentSearch(trackingId) ?? recentSearches)
+    } catch (err: any) {
+      setSearchResults([])
+      setSearchError(
+        err?.response?.status === 404
+          ? 'No shipment found for that tracking ID.'
+          : 'Something went wrong while searching. Please try again.'
+      )
+    } finally {
       setIsLoading(false)
-    }, 500)
+    }
+  }
+
+  const handleClearRecent = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(RECENT_SEARCHES_KEY)
+    }
+    setRecentSearches([])
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -163,7 +191,7 @@ function SearchContent() {
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
               <div className="hidden md:block">
-                <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Olusegun Matanmi</p>
+                <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{displayName ?? 'Guest'}</p>
               </div>
             </div>
           </div>
@@ -194,10 +222,10 @@ function SearchContent() {
                           </div>
                           <div>
                             <h3 className="text-lg font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                              {result.id}
+                              {result.tracking_id}
                             </h3>
                             <p className="text-sm text-gray-600 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                              {result.description}
+                              {result.receiver_city ? `To ${result.receiver_city}` : 'Shipment details'}
                             </p>
                           </div>
                         </div>
@@ -216,10 +244,10 @@ function SearchContent() {
                     </svg>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    No results found
+                    {searchError || 'No results found'}
                   </h3>
                   <p className="text-gray-600 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    Try searching for a tracking ID or order number
+                    Try searching for the exact tracking ID, e.g. ABC123XYZ456DEF
                   </p>
                 </div>
               )}
@@ -230,9 +258,15 @@ function SearchContent() {
                 <h2 className="text-lg font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                   Recent
                 </h2>
-                <button className="text-sm text-[#4043FF] font-bold hover:text-[#3333CC] font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                  Clear All
-                </button>
+                {recentSearches.length > 0 && (
+                  <button
+                    onClick={handleClearRecent}
+                    className="text-sm text-[#4043FF] font-bold hover:text-[#3333CC] font-[Urbanist]"
+                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                  >
+                    Clear All
+                  </button>
+                )}
               </div>
               
               <div className="space-y-2">

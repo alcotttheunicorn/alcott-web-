@@ -1,11 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { resetPassword } from '@/lib/api/auth-api'
+import { toast } from '@/components/ui/use-toast'
 
 export default function CreateNewPasswordPage() {
+  const router = useRouter()
   const [passwords, setPasswords] = useState({
     newPassword: '',
     confirmPassword: ''
@@ -13,6 +17,17 @@ export default function CreateNewPasswordPage() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setEmail(window.localStorage.getItem('pendingResetEmail') || '')
+      setOtp(window.localStorage.getItem('pendingResetOtp') || '')
+    }
+  }, [])
 
   const handleInputChange = (field: string, value: string) => {
     setPasswords(prev => ({
@@ -21,22 +36,61 @@ export default function CreateNewPasswordPage() {
     }))
   }
 
-  const handleContinue = () => {
-    if (passwords.newPassword && passwords.confirmPassword) {
-      if (passwords.newPassword === passwords.confirmPassword) {
-        // Password reset successful
-        console.log('Password reset successful')
-        // Navigate to success page or sign in
-        window.location.href = '/sign-in'
-      } else {
-        alert('Passwords do not match')
+  const handleContinue = async () => {
+    if (!email || !otp) {
+      const message = 'Reset session is missing. Please start the forgot-password flow again.'
+      setErrorMessage(message)
+      toast({ title: 'Reset session missing', description: message })
+      return
+    }
+
+    if (!passwords.newPassword || !passwords.confirmPassword) {
+      const message = 'Please enter and confirm your new password.'
+      setErrorMessage(message)
+      toast({ title: 'Missing password', description: message })
+      return
+    }
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      const message = 'Passwords do not match.'
+      setErrorMessage(message)
+      toast({ title: 'Passwords do not match', description: message })
+      return
+    }
+
+    setIsLoading(true)
+    setErrorMessage(null)
+
+    try {
+      const response = await resetPassword(email, otp, passwords.newPassword)
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('pendingResetEmail')
+        window.localStorage.removeItem('pendingResetPhone')
+        window.localStorage.removeItem('pendingResetOtp')
       }
+
+      toast({
+        title: 'Password updated',
+        description: response?.message || 'Your password has been changed successfully.',
+      })
+
+      router.push('/sign-in')
+    } catch (err: any) {
+      const apiErrorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Password reset failed. Please try again.'
+      setErrorMessage(apiErrorMessage)
+      toast({ title: 'Reset failed', description: apiErrorMessage })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
       <div className="flex items-center px-6 py-4 border-b border-gray-100">
         <Link href="/forgot-password/verify" className="mr-4">
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,39 +102,29 @@ export default function CreateNewPasswordPage() {
         </h1>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Left Side - Illustration */}
         <div className="lg:w-1/2 bg-white flex items-center justify-center p-8 lg:p-12">
           <div className="max-w-lg">
-            <img
-              src="/create_new_password_after_otp.png"
-              alt="Create new password illustration"
-              className="w-full h-auto"
-            />
+            <img src="/create_new_password_after_otp.png" alt="Create new password illustration" className="w-full h-auto" />
           </div>
         </div>
 
-        {/* Right Side - Password Form */}
         <div className="lg:w-1/2 flex items-center justify-center p-8 lg:p-12">
           <div className="w-full max-w-md">
-            {/* Header Text */}
             <div className="mb-8 text-center lg:text-left">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                 Create Your New Password
               </h2>
             </div>
 
-            {/* Password Fields */}
             <div className="space-y-6 mb-8">
-              {/* New Password Field */}
               <div className="relative">
                 <div className="flex items-center bg-gray-50 rounded-xl px-4 py-4 border-2 border-gray-200 focus-within:border-[#4043FF] focus-within:bg-white transition-all duration-300">
                   <svg className="w-5 h-5 text-gray-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   <Input
-                    type={showNewPassword ? "text" : "password"}
+                    type={showNewPassword ? 'text' : 'password'}
                     placeholder="New Password"
                     value={passwords.newPassword}
                     onChange={(e) => handleInputChange('newPassword', e.target.value)}
@@ -106,14 +150,13 @@ export default function CreateNewPasswordPage() {
                 </div>
               </div>
 
-              {/* Confirm Password Field */}
               <div className="relative">
                 <div className="flex items-center bg-gray-50 rounded-xl px-4 py-4 border-2 border-gray-200 focus-within:border-[#4043FF] focus-within:bg-white transition-all duration-300">
                   <svg className="w-5 h-5 text-gray-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   <Input
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Confirm Password"
                     value={passwords.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
@@ -140,7 +183,6 @@ export default function CreateNewPasswordPage() {
               </div>
             </div>
 
-            {/* Remember Me Checkbox */}
             <div className="flex items-center justify-center lg:justify-start mb-8">
               <div className="relative inline-flex items-center">
                 <input
@@ -152,8 +194,8 @@ export default function CreateNewPasswordPage() {
                   className="absolute opacity-0 w-5 h-5 cursor-pointer"
                 />
                 <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all duration-200 cursor-pointer ${
-                  rememberMe 
-                    ? 'bg-[#4043FF] border-[#4043FF]' 
+                  rememberMe
+                    ? 'bg-[#4043FF] border-[#4043FF]'
                     : 'bg-white border-gray-300'
                 }`}>
                   {rememberMe && (
@@ -168,14 +210,17 @@ export default function CreateNewPasswordPage() {
               </label>
             </div>
 
-            {/* Continue Button */}
+            {errorMessage && (
+              <p className="mb-4 text-sm text-red-600 text-center font-[Urbanist] font-bold">{errorMessage}</p>
+            )}
+
             <Button
               onClick={handleContinue}
-              disabled={!passwords.newPassword || !passwords.confirmPassword}
+              disabled={!passwords.newPassword || !passwords.confirmPassword || isLoading}
               className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full font-[Urbanist]"
               style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
             >
-              Continue
+              {isLoading ? 'Updating…' : 'Continue'}
             </Button>
           </div>
         </div>
