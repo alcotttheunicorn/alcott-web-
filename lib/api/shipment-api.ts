@@ -1,6 +1,7 @@
 import apiClient from '@/lib/api-client'
 import type {
   ApiResponse,
+  MessageResponse,
   PaginatedResponse,
   ShipmentData,
   ShipmentCreateResult,
@@ -84,7 +85,7 @@ export async function getCategories(
 export async function verifyPayment(
   token: string,
   reference: string,
-): Promise<ApiResponse<{ message: string }>> {
+): Promise<MessageResponse> {
   const { data } = await apiClient.post('/shipments/verify-payment', { reference }, {
     headers: { Authorization: authHeader(token) },
   })
