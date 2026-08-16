@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
@@ -41,7 +40,8 @@ export default function SettingsPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
-      hasArrow: true
+      hasArrow: true,
+      onClick: () => router.push('/profile-setup')
     },
     {
       label: 'Notification',
@@ -344,7 +344,10 @@ export default function SettingsPage() {
                 </svg>
               </div>
               {/* Edit Profile Button */}
-              <button className="absolute -bottom-1 -right-1 lg:-bottom-2 lg:-right-2 w-7 h-7 lg:w-8 lg:h-8 bg-[#5B5FED] rounded-full flex items-center justify-center">
+              <button
+                onClick={() => router.push('/profile-setup')}
+                className="absolute -bottom-1 -right-1 lg:-bottom-2 lg:-right-2 w-7 h-7 lg:w-8 lg:h-8 bg-[#5B5FED] rounded-full flex items-center justify-center"
+              >
                 <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>

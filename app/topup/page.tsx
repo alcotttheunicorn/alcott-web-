@@ -9,6 +9,7 @@ import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
 import { initializeFund, verifyFund } from '@/lib/api/wallet-api'
 import { toast } from '@/components/ui/use-toast'
+import { useProfile } from '@/hooks/use-profile'
 
 export default function TopUpPage() {
   return (
@@ -20,6 +21,7 @@ export default function TopUpPage() {
 
 function TopUpContent() {
   const { token } = useAuth()
+  const { displayName } = useProfile()
   const searchParams = useSearchParams()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -324,7 +326,7 @@ function TopUpContent() {
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Olusegun Matanmi</p>
+                  <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{displayName ?? 'Guest'}</p>
                 </div>
                 <svg className="w-4 h-4 text-gray-400 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

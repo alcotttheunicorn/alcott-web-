@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, type ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
+import { useProfile } from '@/hooks/use-profile'
 
 type FAQCategory = 'general' | 'account' | 'shipping' | 'cost'
 
@@ -507,6 +508,7 @@ function Header({
   onRecentClick: (search: string) => void
   onClearRecent: () => void
 }) {
+  const { displayName } = useProfile()
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
       <div className="flex items-center justify-between">
@@ -580,7 +582,7 @@ function Header({
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gray-300" />
             <div className="hidden md:block text-sm font-semibold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-              Olusegun Matanmi
+              {displayName ?? 'Guest'}
             </div>
             <svg className="hidden md:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -625,4 +627,3 @@ function MobileBottomNav() {
     </div>
   )
 }
-
