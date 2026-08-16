@@ -42,3 +42,22 @@ export async function resendVerification(email: string): Promise<ApiResponse<{ m
   const { data } = await apiClient.post('/auth/resend-verification', { email })
   return data
 }
+
+export function getStoredAuthToken() {
+  if (typeof window === 'undefined') return ''
+  return window.localStorage.getItem('authToken') ?? window.sessionStorage.getItem('authToken') ?? ''
+}
+
+export function getStoredAuthUser() {
+  if (typeof window === 'undefined') return null
+
+  const raw = window.localStorage.getItem('authUser') ?? window.sessionStorage.getItem('authUser')
+  if (!raw) return null
+
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
