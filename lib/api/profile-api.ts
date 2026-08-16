@@ -1,5 +1,5 @@
 import apiClient from '@/lib/api-client'
-import type { ApiResponse, ProfileData } from './types'
+import type { ApiResponse, MessageResponse, ProfileData } from './types'
 
 function authHeader(token: string) {
   const t = token.trim()
@@ -33,7 +33,7 @@ export async function updateProfile(token: string, formData: FormData): Promise<
   return data
 }
 
-export async function resendPhoneOtp(token: string): Promise<ApiResponse<{ message: string }>> {
+export async function resendPhoneOtp(token: string): Promise<MessageResponse> {
   const { data } = await apiClient.post('/profile/resend-phone-otp', null, {
     headers: { Authorization: authHeader(token) },
   })

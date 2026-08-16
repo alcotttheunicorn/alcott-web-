@@ -7,8 +7,16 @@ import { ImagePicker } from '@/components/ui/image-picker'
 import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
-import apiClient from '@/lib/api-client'
+import { getProfile, setupProfile, updateProfile } from '@/lib/api/profile-api'
+import type { ProfileData } from '@/lib/api/types'
 import { toast } from '@/components/ui/use-toast'
+
+function toDateInputValue(dob?: string) {
+  if (!dob) return ''
+  const parsed = new Date(dob)
+  if (Number.isNaN(parsed.getTime())) return ''
+  return parsed.toISOString().slice(0, 10)
+}
 
 export default function ProfileSetupPage() {
   const [formData, setFormData] = useState({
@@ -21,10 +29,13 @@ export default function ProfileSetupPage() {
     address: '',
     profileImage: null as File | null
   })
+  const [existingProfile, setExistingProfile] = useState<ProfileData | null>(null)
+  const [checkingExisting, setCheckingExisting] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const router = useRouter()
+  const isEditMode = !!existingProfile
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -41,22 +52,53 @@ export default function ProfileSetupPage() {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('authUser') || sessionStorage.getItem('authUser')
-      if (storedUser) {
-        try {
-          const parsed = JSON.parse(storedUser)
-          setFormData(prev => ({
-            ...prev,
-            email: parsed.email || prev.email,
-            firstName: prev.firstName || parsed.first_name || '',
-            lastName: prev.last_name || prev.lastName || ''
-          }))
-        } catch (error) {
-          console.error('Failed to parse stored user', error)
-        }
+    if (typeof window === 'undefined') return
+
+    const storedUser = localStorage.getItem('authUser') || sessionStorage.getItem('authUser')
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser)
+        setFormData(prev => ({
+          ...prev,
+          email: parsed.email || prev.email,
+          firstName: prev.firstName || parsed.first_name || '',
+          lastName: prev.lastName || parsed.last_name || ''
+        }))
+      } catch (error) {
+        console.error('Failed to parse stored user', error)
       }
     }
+
+    // Determine create-vs-edit by checking whether a profile already exists.
+    // If it does, prefill the whole form from the real backend record — the
+    // localStorage authUser cache above only ever has first/last name/email
+    // from signup, not the rest (dob, gender, address, phone, avatar).
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+    if (!token) {
+      setCheckingExisting(false)
+      return
+    }
+
+    getProfile(token)
+      .then((res) => {
+        const profile = res.data
+        if (!profile) return
+        setExistingProfile(profile)
+        setFormData(prev => ({
+          ...prev,
+          firstName: profile.first_name || prev.firstName,
+          lastName: profile.last_name || prev.lastName,
+          email: profile.email || prev.email,
+          phoneNumber: profile.phone_number || prev.phoneNumber,
+          gender: profile.gender || prev.gender,
+          address: profile.address || prev.address,
+          dateOfBirth: toDateInputValue(profile.dob) || prev.dateOfBirth,
+        }))
+      })
+      .catch(() => {
+        // 404/no profile yet just means we're in "create" mode — not an error to surface.
+      })
+      .finally(() => setCheckingExisting(false))
   }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -100,44 +142,49 @@ export default function ProfileSetupPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await apiClient.post('/profile', payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      const response = isEditMode
+        ? await updateProfile(token, payload)
+        : await setupProfile(token, payload)
 
-      const message = response?.data?.message || 'Profile created successfully.'
+      const message = response?.message || (isEditMode ? 'Profile updated successfully.' : 'Profile created successfully.')
       setSuccessMessage(message)
-      toast({ title: 'Profile complete', description: message })
+      toast({ title: isEditMode ? 'Profile updated' : 'Profile complete', description: message })
 
       setTimeout(() => {
-        router.push('/profile-setup/success')
+        router.push(isEditMode ? '/settings' : '/profile-setup/success')
       }, 800)
     } catch (err: any) {
       const apiErrorMessage =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         err?.message ||
-        'Unable to complete profile setup. Please try again.'
+        `Unable to ${isEditMode ? 'update' : 'complete'} profile. Please try again.`
       setErrorMessage(apiErrorMessage)
-      toast({ title: 'Profile setup failed', description: apiErrorMessage })
+      toast({ title: isEditMode ? 'Profile update failed' : 'Profile setup failed', description: apiErrorMessage })
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (checkingExisting) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center px-6 py-4 border-b border-gray-100">
-        <Link href="/register" className="mr-4">
+        <Link href={isEditMode ? '/settings' : '/register'} className="mr-4">
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
         <h1 className="text-xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-          Fill Your Profile
+          {isEditMode ? 'Edit Your Profile' : 'Fill Your Profile'}
         </h1>
       </div>
 
@@ -273,7 +320,7 @@ export default function ProfileSetupPage() {
                 className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-[Urbanist] max-w-sm disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
               >
-                {isSubmitting ? 'Saving profile…' : 'Complete profile'}
+                {isSubmitting ? 'Saving profile…' : isEditMode ? 'Save changes' : 'Complete profile'}
               </Button>
             </div>
           </form>
@@ -283,6 +330,7 @@ export default function ProfileSetupPage() {
         <div className="hidden lg:flex w-2/5 items-center justify-center p-6">
           <ImagePicker 
             onImageSelect={handleImageSelect}
+            defaultImage={existingProfile?.profile_pic_link || undefined}
             className=""
           />
         </div>
