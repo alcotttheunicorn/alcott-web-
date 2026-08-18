@@ -1,110 +1,135 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/use-auth'
+import { getZonePricing, upsertZonePricing } from '@/lib/api/pricing-api'
+import type { ZonePricing } from '@/lib/api/types'
 
-const zones = [
-    {
-        id: 1,
-        name: 'Zone 6',
-        baseCountry: 'NG',
-        destinationCountries: ['NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG'],
-        importPrices: [
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-        ],
-    },
-    {
-        id: 2,
-        name: 'Zone 2',
-        baseCountry: 'NG',
-        destinationCountries: ['NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG'],
-        importPrices: [
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-        ],
-    },
-    {
-        id: 3,
-        name: 'Zone 6',
-        baseCountry: 'NG',
-        destinationCountries: ['NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG'],
-        importPrices: [
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-        ],
-    },
-    {
-        id: 4,
-        name: 'Zone 6',
-        baseCountry: 'NG',
-        destinationCountries: ['NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG'],
-        importPrices: [
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-        ],
-    },
-    {
-        id: 5,
-        name: 'Zone 6',
-        baseCountry: 'NG',
-        destinationCountries: ['NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG'],
-        importPrices: [
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-        ],
-    },
-    {
-        id: 6,
-        name: 'Zone 6',
-        baseCountry: 'NG',
-        destinationCountries: ['NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG', 'NG'],
-        importPrices: [
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-            { weightRange: '0 - 2 (KG)', price: 'NGN 134,349.00' },
-        ],
-    },
-]
+interface Slab {
+    id: number
+    from_weight: string
+    to_weight: string
+    price: string
+}
+
+function emptySlab(): Slab {
+    return { id: Date.now() + Math.random(), from_weight: '0', to_weight: '0', price: '0' }
+}
+
+function slabsToPayload(slabs: Slab[]) {
+    return slabs.map((s) => ({
+        from_weight: Number(s.from_weight),
+        to_weight: Number(s.to_weight),
+        price: Number(s.price),
+    }))
+}
+
+function payloadToSlabs(raw: Record<string, unknown>[] | undefined): Slab[] {
+    if (!raw || raw.length === 0) return [emptySlab()]
+    return raw.map((s) => ({
+        id: Date.now() + Math.random(),
+        from_weight: String(s.from_weight ?? '0'),
+        to_weight: String(s.to_weight ?? '0'),
+        price: String(s.price ?? '0'),
+    }))
+}
 
 export default function PricingZonesPage() {
+    const { token } = useAuth()
+    const [zones, setZones] = useState<ZonePricing[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [zoneName, setZoneName] = useState('')
-    const [sourceCountry, setSourceCountry] = useState('Nigeria')
-    const [destinations, setDestinations] = useState('')
+    const [editingZoneCode, setEditingZoneCode] = useState<number | null>(null)
+    const [zoneCode, setZoneCode] = useState('')
+    const [baseCountry, setBaseCountry] = useState('NG')
+    const [destinations, setDestinations] = useState('') // comma-separated country codes
     const [activeTab, setActiveTab] = useState<'import' | 'export'>('import')
-    const [priceEntries, setPriceEntries] = useState([
-        { id: 1, fromWeight: '0', toWeight: '0', price: '0' }
-    ])
+    const [importSlabs, setImportSlabs] = useState<Slab[]>([emptySlab()])
+    const [exportSlabs, setExportSlabs] = useState<Slab[]>([emptySlab()])
+    const [saving, setSaving] = useState(false)
+    const [formError, setFormError] = useState('')
+
+    const loadZones = () => {
+        if (!token) return
+        setLoading(true)
+        setError('')
+        getZonePricing(token)
+            .then((res) => setZones(Array.isArray(res.data) ? res.data : []))
+            .catch((err) => {
+                setZones([])
+                setError(err?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load zones.')
+            })
+            .finally(() => setLoading(false))
+    }
+
+    useEffect(loadZones, [token])
+
+    const openCreateModal = () => {
+        setEditingZoneCode(null)
+        setZoneCode('')
+        setBaseCountry('NG')
+        setDestinations('')
+        setImportSlabs([emptySlab()])
+        setExportSlabs([emptySlab()])
+        setActiveTab('import')
+        setFormError('')
+        setIsModalOpen(true)
+    }
+
+    const openEditModal = (zone: ZonePricing) => {
+        setEditingZoneCode(zone.zone_code ?? null)
+        setZoneCode(zone.zone_code != null ? String(zone.zone_code) : '')
+        setBaseCountry(zone.base_country_code ?? 'NG')
+        setDestinations((zone.destination_country_codes ?? []).join(', '))
+        setImportSlabs(payloadToSlabs(zone.import_slabs))
+        setExportSlabs(payloadToSlabs(zone.export_slabs))
+        setActiveTab('import')
+        setFormError('')
+        setIsModalOpen(true)
+    }
+
+    const currentSlabs = activeTab === 'import' ? importSlabs : exportSlabs
+    const setCurrentSlabs = activeTab === 'import' ? setImportSlabs : setExportSlabs
 
     const handleAddPriceEntry = () => {
-        setPriceEntries([...priceEntries, {
-            id: Date.now(),
-            fromWeight: '0',
-            toWeight: '0',
-            price: '0'
-        }])
+        setCurrentSlabs([...currentSlabs, emptySlab()])
     }
 
     const handleRemovePriceEntry = (id: number) => {
-        setPriceEntries(priceEntries.filter(entry => entry.id !== id))
+        setCurrentSlabs(currentSlabs.filter((entry) => entry.id !== id))
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log('Zone submitted:', { zoneName, sourceCountry, destinations, activeTab, priceEntries })
-        setIsModalOpen(false)
+        if (!token) return
+        if (!zoneCode.trim()) {
+            setFormError('Zone code is required.')
+            return
+        }
+
+        setSaving(true)
+        setFormError('')
+        try {
+            await upsertZonePricing(token, {
+                zone_code: Number(zoneCode),
+                base_country_code: baseCountry,
+                destination_country_codes: destinations.split(',').map((s) => s.trim()).filter(Boolean),
+                import_slabs: slabsToPayload(importSlabs),
+                export_slabs: slabsToPayload(exportSlabs),
+            })
+            setIsModalOpen(false)
+            loadZones()
+        } catch (err: any) {
+            setFormError(
+                err?.response?.data?.message ||
+                (err?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not save zone.')
+            )
+        } finally {
+            setSaving(false)
+        }
     }
 
     return (
@@ -121,7 +146,7 @@ export default function PricingZonesPage() {
                 </div>
 
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={openCreateModal}
                     className="flex items-center gap-2 text-[#4043FF] hover:text-[#3333CC] transition-colors"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,62 +156,86 @@ export default function PricingZonesPage() {
                 </button>
             </div>
 
-            {/* Zones Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-                {zones.map((zone) => (
-                    <div
-                        key={zone.id}
-                        className="border border-gray-200 rounded-lg p-4 bg-white"
-                    >
-                        {/* Zone Header */}
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-semibold text-gray-900">{zone.name}</h3>
-                            <button className="px-3 py-1 text-xs font-medium text-[#4043FF] border border-[#4043FF] rounded hover:bg-[#4043FF] hover:text-white transition-colors">
-                                EDIT
-                            </button>
-                        </div>
+            {loading ? (
+                <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+                </div>
+            ) : error ? (
+                <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-500">{error}</div>
+            ) : zones.length === 0 ? (
+                <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-500">
+                    No pricing zones configured yet. Click "ADD ZONE" to create one.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                    {zones.map((zone, i) => (
+                        <div
+                            key={zone.zone_code ?? i}
+                            className="border border-gray-200 rounded-lg p-4 bg-white"
+                        >
+                            {/* Zone Header */}
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-semibold text-gray-900">
+                                    Zone {zone.zone_code ?? '—'}
+                                </h3>
+                                <button
+                                    onClick={() => openEditModal(zone)}
+                                    className="px-3 py-1 text-xs font-medium text-[#4043FF] border border-[#4043FF] rounded hover:bg-[#4043FF] hover:text-white transition-colors"
+                                >
+                                    EDIT
+                                </button>
+                            </div>
 
-                        {/* Base Country */}
-                        <div className="mb-4">
-                            <p className="text-xs text-gray-500 mb-2">Base Country</p>
-                            <span className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200">
-                                {zone.baseCountry}
-                            </span>
-                        </div>
+                            {/* Base Country */}
+                            <div className="mb-4">
+                                <p className="text-xs text-gray-500 mb-2">Base Country</p>
+                                <span className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200">
+                                    {zone.base_country_code ?? '—'}
+                                </span>
+                            </div>
 
-                        {/* Destination Countries */}
-                        <div className="mb-4">
-                            <p className="text-xs text-gray-500 mb-2">Destination Countries</p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {zone.destinationCountries.map((country, index) => (
-                                    <span
-                                        key={index}
-                                        className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200"
-                                    >
-                                        {country}
-                                    </span>
-                                ))}
+                            {/* Destination Countries */}
+                            <div className="mb-4">
+                                <p className="text-xs text-gray-500 mb-2">Destination Countries</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {(zone.destination_country_codes ?? []).length === 0 ? (
+                                        <span className="text-xs text-gray-400">None set</span>
+                                    ) : zone.destination_country_codes!.map((country, index) => (
+                                        <span
+                                            key={index}
+                                            className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200"
+                                        >
+                                            {country}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Import Prices */}
+                            <div>
+                                <p className="text-xs text-gray-500 mb-2">Import Slabs</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {(zone.import_slabs ?? []).length === 0 ? (
+                                        <span className="text-xs text-gray-400">None set</span>
+                                    ) : zone.import_slabs!.map((slab, index) => (
+                                        <div
+                                            key={index}
+                                            className="p-2 bg-gray-50 rounded border border-gray-200"
+                                        >
+                                            <p className="text-xs text-gray-600 mb-0.5">
+                                                {String(slab.from_weight ?? '?')} - {String(slab.to_weight ?? '?')} (KG)
+                                            </p>
+                                            <p className="text-xs font-medium text-gray-900">
+                                                NGN {Number(slab.price ?? 0).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-
-                        {/* Import Prices */}
-                        <div>
-                            <p className="text-xs text-gray-500 mb-2">Import Prices</p>
-                            <div className="grid grid-cols-2 gap-2">
-                                {zone.importPrices.map((priceItem, index) => (
-                                    <div
-                                        key={index}
-                                        className="p-2 bg-gray-50 rounded border border-gray-200"
-                                    >
-                                        <p className="text-xs text-gray-600 mb-0.5">{priceItem.weightRange}</p>
-                                        <p className="text-xs font-medium text-gray-900">{priceItem.price}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Pricing Zone Form Modal */}
             {isModalOpen && (
@@ -201,7 +250,9 @@ export default function PricingZonesPage() {
                     <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
                         {/* Modal Header */}
                         <div className="bg-[#4043FF] px-4 py-3 flex items-center justify-between sticky top-0">
-                            <h2 className="text-white font-semibold text-sm lg:text-base">Pricing Zone Form</h2>
+                            <h2 className="text-white font-semibold text-sm lg:text-base">
+                                {editingZoneCode != null ? 'Edit Pricing Zone' : 'New Pricing Zone'}
+                            </h2>
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="text-white hover:text-white/80 transition-colors"
@@ -214,52 +265,50 @@ export default function PricingZonesPage() {
 
                         {/* Modal Body */}
                         <form onSubmit={handleSubmit} className="p-4 lg:p-6">
-                            {/* Name Field */}
+                            {formError && <p className="mb-3 text-sm text-red-600 font-medium">{formError}</p>}
+
+                            {/* Zone Code */}
                             <div className="mb-4">
-                                <label className="block text-xs text-gray-500 mb-1">Name</label>
+                                <label className="block text-xs text-gray-500 mb-1">Zone Code</label>
+                                <input
+                                    type="number"
+                                    value={zoneCode}
+                                    onChange={(e) => setZoneCode(e.target.value)}
+                                    placeholder="e.g. 6"
+                                    disabled={editingZoneCode != null}
+                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent outline-none disabled:bg-gray-100"
+                                />
+                            </div>
+
+                            {/* Base Country Code */}
+                            <div className="mb-4">
+                                <label className="block text-xs text-gray-500 mb-1">Base Country Code</label>
                                 <input
                                     type="text"
-                                    value={zoneName}
-                                    onChange={(e) => setZoneName(e.target.value)}
-                                    placeholder="Name"
+                                    value={baseCountry}
+                                    onChange={(e) => setBaseCountry(e.target.value.toUpperCase())}
+                                    placeholder="NG"
+                                    maxLength={2}
                                     className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent outline-none"
                                 />
                             </div>
 
-                            {/* Source Country Dropdown */}
+                            {/* Destination Country Codes */}
                             <div className="mb-4">
-                                <label className="block text-xs text-gray-500 mb-1">Source Country</label>
-                                <select
-                                    value={sourceCountry}
-                                    onChange={(e) => setSourceCountry(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent outline-none appearance-none bg-white"
-                                >
-                                    <option value="Nigeria">Nigeria</option>
-                                    <option value="Ghana">Ghana</option>
-                                    <option value="Kenya">Kenya</option>
-                                    <option value="South Africa">South Africa</option>
-                                </select>
-                            </div>
-
-                            {/* Destinations Dropdown */}
-                            <div className="mb-4">
-                                <select
+                                <label className="block text-xs text-gray-500 mb-1">Destination Country Codes (comma-separated)</label>
+                                <input
+                                    type="text"
                                     value={destinations}
                                     onChange={(e) => setDestinations(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent outline-none appearance-none bg-white"
-                                >
-                                    <option value="">Destinations</option>
-                                    <option value="All">All Countries</option>
-                                    <option value="Africa">Africa</option>
-                                    <option value="Europe">Europe</option>
-                                    <option value="Americas">Americas</option>
-                                </select>
+                                    placeholder="GH, KE, ZA"
+                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent outline-none"
+                                />
                             </div>
 
                             {/* Prices Section */}
                             <div className="mb-4">
                                 <div className="flex items-center gap-4 mb-4">
-                                    <span className="text-sm font-medium text-gray-900">Pri...</span>
+                                    <span className="text-sm font-medium text-gray-900">Price Slabs</span>
                                     <button
                                         type="button"
                                         onClick={handleAddPriceEntry}
@@ -269,7 +318,6 @@ export default function PricingZonesPage() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                         </svg>
                                     </button>
-                                    <span className="text-xs text-gray-500">CLONE FROM</span>
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('import')}
@@ -286,7 +334,7 @@ export default function PricingZonesPage() {
                                     </button>
                                 </div>
 
-                                {/* Price Entries Table */}
+                               
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead>
@@ -298,15 +346,15 @@ export default function PricingZonesPage() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {priceEntries.map((entry) => (
+                                            {currentSlabs.map((entry) => (
                                                 <tr key={entry.id} className="border-t border-gray-100">
                                                     <td className="py-2 pr-2">
                                                         <input
                                                             type="text"
-                                                            value={entry.fromWeight}
+                                                            value={entry.from_weight}
                                                             onChange={(e) => {
-                                                                setPriceEntries(priceEntries.map(p =>
-                                                                    p.id === entry.id ? { ...p, fromWeight: e.target.value } : p
+                                                                setCurrentSlabs(currentSlabs.map(p =>
+                                                                    p.id === entry.id ? { ...p, from_weight: e.target.value } : p
                                                                 ))
                                                             }}
                                                             className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center"
@@ -315,10 +363,10 @@ export default function PricingZonesPage() {
                                                     <td className="py-2 pr-2">
                                                         <input
                                                             type="text"
-                                                            value={entry.toWeight}
+                                                            value={entry.to_weight}
                                                             onChange={(e) => {
-                                                                setPriceEntries(priceEntries.map(p =>
-                                                                    p.id === entry.id ? { ...p, toWeight: e.target.value } : p
+                                                                setCurrentSlabs(currentSlabs.map(p =>
+                                                                    p.id === entry.id ? { ...p, to_weight: e.target.value } : p
                                                                 ))
                                                             }}
                                                             className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center"
@@ -329,7 +377,7 @@ export default function PricingZonesPage() {
                                                             type="text"
                                                             value={entry.price}
                                                             onChange={(e) => {
-                                                                setPriceEntries(priceEntries.map(p =>
+                                                                setCurrentSlabs(currentSlabs.map(p =>
                                                                     p.id === entry.id ? { ...p, price: e.target.value } : p
                                                                 ))
                                                             }}
@@ -357,9 +405,10 @@ export default function PricingZonesPage() {
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                className="w-full py-3 bg-[#4043FF] text-white font-semibold rounded-full hover:bg-[#3333CC] transition-colors text-sm"
+                                disabled={saving}
+                                className="w-full py-3 bg-[#4043FF] text-white font-semibold rounded-full hover:bg-[#3333CC] transition-colors text-sm disabled:opacity-60"
                             >
-                                SUBMIT
+                                {saving ? 'SAVING...' : 'SUBMIT'}
                             </button>
                         </form>
                     </div>

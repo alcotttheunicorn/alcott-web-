@@ -88,12 +88,25 @@ export default function CheckRatesPage() {
 
     try {
       const res = await checkPricingAuth(token, pickupLocation.trim(), destination.trim(), weightInKg)
+      const hasPremiseShape = typeof res.data?.price?.amount === 'number'
+      const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
+
+      if (!hasPremiseShape && !hasZoneShape) {
+        console.error('Unexpected /pricing/check/authenticated response shape:', res)
+        toast({
+          title: 'Unexpected pricing response',
+          description: "The server didn't return pricing in the expected format. Check the console for details.",
+        })
+        return
+      }
+
       setPricingResult(res.data)
       setShowRates(true)
-    } catch {
+    } catch (err: any) {
+      console.error('checkPricingAuth failed:', err?.response?.data ?? err)
       toast({
         title: 'Could not fetch rates',
-        description: 'Please try again later.',
+        description: err?.response?.data?.message || 'Please try again later.',
       })
     } finally {
       setIsLoading(false)
@@ -294,7 +307,7 @@ export default function CheckRatesPage() {
                 {/* Pricing Result Card */}
                 {(() => {
                   const pricingType = (pricingResult.pricing_type ?? '').toLowerCase()
-                  const displayPrice = pricingResult.total_price.toLocaleString()
+                  const isZoneShape = 'export_price' in pricingResult
                   const getIcon = () => {
                     if (pricingType.includes('express')) {
                       return (
@@ -302,7 +315,7 @@ export default function CheckRatesPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       )
-                    } else if (pricingType.includes('cargo')) {
+                    } else if (pricingType.includes('cargo') || isZoneShape) {
                       return (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -315,6 +328,13 @@ export default function CheckRatesPage() {
                       </svg>
                     )
                   }
+
+                  const formatMoney = (money: { amount: number; currency: string } | undefined) => {
+                    if (!money) return '—'
+                    const symbol = money.currency === 'NGN' ? '₦' : `${money.currency} `
+                    return `${symbol}${money.amount.toLocaleString()}`
+                  }
+
                   return (
                     <div className="space-y-3">
                       <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
@@ -327,14 +347,87 @@ export default function CheckRatesPage() {
                               <p className="font-semibold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>
                                 {pricingResult.pricing_type}
                               </p>
+                              {!isZoneShape && (pricingResult.distance_km != null || pricingResult.duration_minutes != null) && (
+                                <p className="text-xs text-gray-500" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                                  {pricingResult.distance_km != null && `${pricingResult.distance_km.toFixed(1)} km`}
+                                  {pricingResult.distance_km != null && pricingResult.duration_minutes != null && ' · '}
+                                  {pricingResult.duration_minutes != null && `${Math.round(pricingResult.duration_minutes)} min`}
+                                </p>
+                              )}
+                              {isZoneShape && pricingResult.zone_code != null && (
+                                <p className="text-xs text-gray-500" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                                  Zone {pricingResult.zone_code}
+                                </p>
+                              )}
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                              ₦{displayPrice}
-                            </p>
-                          </div>
+
+                          {!isZoneShape && (
+                            <div className="text-right">
+                              <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                                {formatMoney(pricingResult.price)}
+                              </p>
+                            </div>
+                          )}
                         </div>
+
+                        {/* Domestic/PREMISE breakdown */}
+                        {!isZoneShape && pricingResult.breakdown && (
+                          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-y-2 gap-x-4">
+                            {pricingResult.breakdown.base_range_cost != null && (
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>Base cost</span>
+                                <span className="text-gray-900">{formatMoney({ amount: Number(pricingResult.breakdown.base_range_cost), currency: pricingResult.price?.currency ?? 'NGN' })}</span>
+                              </div>
+                            )}
+                            {pricingResult.breakdown.distance_cost != null && (
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>Distance</span>
+                                <span className="text-gray-900">{formatMoney({ amount: Number(pricingResult.breakdown.distance_cost), currency: pricingResult.price?.currency ?? 'NGN' })}</span>
+                              </div>
+                            )}
+                            {pricingResult.breakdown.duration_cost != null && (
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>Duration</span>
+                                <span className="text-gray-900">{formatMoney({ amount: Number(pricingResult.breakdown.duration_cost), currency: pricingResult.price?.currency ?? 'NGN' })}</span>
+                              </div>
+                            )}
+                            {pricingResult.breakdown.weight_cost != null && (
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>Weight ({pricingResult.weight}kg)</span>
+                                <span className="text-gray-900">{formatMoney({ amount: Number(pricingResult.breakdown.weight_cost), currency: pricingResult.price?.currency ?? 'NGN' })}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Cross-border/INTERNATIONAL_ZONE: separate export/import prices, no single total */}
+                        {isZoneShape && (
+                          <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-600" style={{ fontFamily: "'Urbanist', sans-serif" }}>Export</span>
+                              <span className="text-sm font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                                {formatMoney(pricingResult.export_price)}
+                              </span>
+                            </div>
+                            {pricingResult.export_price?.min_weight != null && (
+                              <p className="text-xs text-gray-400">
+                                {pricingResult.export_price.min_weight}–{pricingResult.export_price.max_weight}kg range
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                              <span className="text-sm text-gray-600" style={{ fontFamily: "'Urbanist', sans-serif" }}>Import</span>
+                              <span className="text-sm font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                                {formatMoney(pricingResult.import_price)}
+                              </span>
+                            </div>
+                            {pricingResult.import_price?.min_weight != null && (
+                              <p className="text-xs text-gray-400">
+                                {pricingResult.import_price.min_weight}–{pricingResult.import_price.max_weight}kg range
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
