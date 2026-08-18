@@ -12,9 +12,7 @@ function displayName(user: AdminUser) {
     return name || user.email
 }
 
-// Still hardcoded — there's no endpoint for "new users this month" specifically.
-// Left in place rather than deleted since it was already part of the shipped UI;
-// needs a real /admin/users?created_after= filter or equivalent before it can be wired.
+
 const mockNewUsers = [
     { id: '1', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
     { id: '2', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
@@ -24,18 +22,27 @@ const mockNewUsers = [
 ]
 
 export default function UsersPage() {
-    const { token } = useAuth()
+    const { token, isLoading: authLoading } = useAuth()
     const [searchValue, setSearchValue] = useState('')
     const [selectedReportYear, setSelectedReportYear] = useState('last_year')
     const [currentPage, setCurrentPage] = useState(1)
     const [users, setUsers] = useState<AdminUser[]>([])
     const [totalPages, setTotalPages] = useState(1)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
 
     useEffect(() => {
-        if (!token) return
+      
+        if (authLoading) return
+
+        if (!token) {
+            
+            setError('You need to be signed in as an admin to view users.')
+            setLoading(false)
+            return
+        }
+
         setLoading(true)
         setError('')
         getAdminUsers(token, { page: currentPage, limit: PAGE_SIZE })
@@ -47,15 +54,18 @@ export default function UsersPage() {
             })
             .catch((err) => {
                 setUsers([])
+                console.error('getAdminUsers failed:', err?.response?.data ?? err)
                 setError(
                     err?.response?.status === 403
                         ? "You don't have admin access to view users."
-                        : 'Could not load users.'
+                        : err?.response?.status === 401
+                            ? 'Your session has expired — please sign in again.'
+                            : 'Could not load users.'
                 )
             })
             .finally(() => setLoading(false))
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, currentPage])
+    }, [token, authLoading, currentPage])
 
     // The /admin/users endpoint only documents page/limit params — no name/email
     // search filter. This filters within the current page only; it will not
@@ -84,7 +94,7 @@ export default function UsersPage() {
                 <div className="w-[360px] space-y-4">
                     {/* User Details Card — shows whichever user is selected from the table below */}
                     <div className="rounded-xl overflow-hidden">
-                        <div className="bg-linear-to-b from-[#E8E9FF] to-[#D4D6FF] p-4">
+                        <div className="bg-gradient-to-b from-[#E8E9FF] to-[#D4D6FF] p-4">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-gray-900 font-bold text-lg">User Details</h2>
                                 <div className="relative">
