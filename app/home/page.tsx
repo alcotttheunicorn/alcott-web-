@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
@@ -29,8 +28,16 @@ export default function HomePage() {
   const [balance, setBalance] = useState<number | null>(null)
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
   const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [greeting, setGreeting] = useState('Hello')
   const searchRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    const hour = new Date().getHours()
+    if (hour < 12) setGreeting('Good Morning')
+    else if (hour < 17) setGreeting('Good Afternoon')
+    else setGreeting('Good Evening')
+  }, [])
 
   useEffect(() => {
     if (!token) return
@@ -400,7 +407,7 @@ export default function HomePage() {
                 {/* Right - Greeting */}
                 <div className="hidden sm:block text-right">
                   <p className="text-white/90 text-xs lg:text-sm font-[Urbanist] flex items-center gap-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    Good Morning
+                    {greeting}
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.81-.34-3.68L23 12z" />
                     </svg>

@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -39,9 +38,23 @@ export default function HomePage() {
     setIsCheckingRates(true)
     try {
       const res = await checkPricing(pickupAddress.trim(), deliveryAddress.trim(), weightValue)
+
+      const hasPremiseShape = typeof res.data?.price?.amount === 'number'
+      const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
+
+      if (!hasPremiseShape && !hasZoneShape) {
+        console.error('Unexpected /pricing/check response shape:', res)
+        toast({
+          title: 'Unexpected pricing response',
+          description: "The server didn't return pricing in the expected format. Check the console for details.",
+        })
+        return
+      }
+
       setPricingResult(res.data)
-    } catch {
-      toast({ title: 'Could not fetch rates', description: 'Please try again later.' })
+    } catch (err: any) {
+      console.error('checkPricing failed:', err?.response?.data ?? err)
+      toast({ title: 'Could not fetch rates', description: err?.response?.data?.message || 'Please try again later.' })
     } finally {
       setIsCheckingRates(false)
     }
@@ -484,9 +497,29 @@ export default function HomePage() {
                     <p className="text-sm text-gray-500 mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                       {pricingResult.pricing_type}
                     </p>
-                    <p className="text-xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                      ₦{pricingResult.total_price.toLocaleString()}
-                    </p>
+                    {'price' in pricingResult && pricingResult.price ? (
+                      <p className="text-xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        {pricingResult.price.currency === 'NGN' ? '₦' : `${pricingResult.price.currency} `}
+                        {pricingResult.price.amount.toLocaleString()}
+                      </p>
+                    ) : pricingResult.export_price ? (
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                          Export: <span className="font-bold text-[#4043FF]">
+                            {pricingResult.export_price.currency === 'NGN' ? '₦' : `${pricingResult.export_price.currency} `}
+                            {pricingResult.export_price.amount.toLocaleString()}
+                          </span>
+                        </p>
+                        {pricingResult.import_price && (
+                          <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                            Import: <span className="font-bold text-[#4043FF]">
+                              {pricingResult.import_price.currency === 'NGN' ? '₦' : `${pricingResult.import_price.currency} `}
+                              {pricingResult.import_price.amount.toLocaleString()}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -844,4 +877,3 @@ export default function HomePage() {
     </div>
   )
 }
-
