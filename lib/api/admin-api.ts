@@ -1,11 +1,6 @@
 import apiClient from '@/lib/api-client'
 import type { PaginatedResponse, ShipmentData, AuthUser } from './types'
 
-function authHeader(token: string) {
-  const t = token.trim()
-  return t.startsWith('Bearer ') ? t : `Bearer ${t}`
-}
-
 export interface AdminUser extends AuthUser {
   phone_number?: string
   is_verified?: boolean
@@ -22,34 +17,22 @@ export interface ActivityLog {
 }
 
 export async function getAdminUsers(
-  token: string,
   params?: { page?: number; limit?: number },
-): Promise<PaginatedResponse<AdminUser[]>> {
-  const { data } = await apiClient.get('/admin/users', {
-    headers: { Authorization: authHeader(token) },
-    params,
-  })
+): Promise<PaginatedResponse<{ users: AdminUser[] }>> {
+  const { data } = await apiClient.get('/admin/users', { params })
   return data
 }
 
 export async function getAdminShipments(
-  token: string,
   params?: { status?: string; user_id?: string; page?: number; limit?: number },
 ): Promise<PaginatedResponse<ShipmentData[]>> {
-  const { data } = await apiClient.get('/admin/shipments', {
-    headers: { Authorization: authHeader(token) },
-    params,
-  })
+  const { data } = await apiClient.get('/admin/shipments', { params })
   return data
 }
 
 export async function getAdminActivityLogs(
-  token: string,
   params?: { user_id?: string; action?: string; page?: number; limit?: number },
 ): Promise<PaginatedResponse<ActivityLog[]>> {
-  const { data } = await apiClient.get('/admin/activity-logs', {
-    headers: { Authorization: authHeader(token) },
-    params,
-  })
+  const { data } = await apiClient.get('/admin/activity-logs', { params })
   return data
 }

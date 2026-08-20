@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 
 export default function PoliciesPage() {
     const policies = [
@@ -23,24 +23,14 @@ export default function PoliciesPage() {
 
     return (
         <div className="p-6 lg:p-8 w-full overflow-x-hidden">
-            {/* Page Header - Clean with no border */}
-            <div className="flex items-center justify-between mb-8 lg:mb-10">
-                <div className="flex items-center gap-2">
-                    <Link href="/admin/users" className="p-1 hover:bg-gray-100 rounded transition-colors">
-                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </Link>
-                    <h1 className="text-sm lg:text-base font-bold text-gray-900 tracking-wide">POLICIES</h1>
-                </div>
-
+            <AdminPageHeader title="POLICIES" backHref="/admin/users">
                 <button className="flex items-center gap-1.5 text-[#4043FF] hover:text-[#3333CC] transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                     <span className="text-sm font-medium">EDIT</span>
                 </button>
-            </div>
+            </AdminPageHeader>
 
             {/* Policy Sections - with proper indentation matching screenshot */}
             <div className="space-y-8 lg:space-y-10 pl-4 lg:pl-8 pr-4 lg:pr-16 max-w-5xl">

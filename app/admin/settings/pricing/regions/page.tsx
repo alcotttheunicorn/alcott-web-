@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { getRegionPricing } from '@/lib/api/pricing-api'
-import type { RegionPricing } from '@/lib/api/types'
+import { ErrorBanner } from '@/components/shared/ErrorBanner'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ZoneGridSkeleton } from '@/components/shared/skeletons'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 
 function formatValue(value: unknown): string {
     if (value == null) return '—'
@@ -21,36 +23,21 @@ const mockZonedPrices = [
 
 export default function PricingRegionsPage() {
     const { token } = useAuth()
-    const [regions, setRegions] = useState<RegionPricing[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
 
-    useEffect(() => {
-        if (!token) return
-        setLoading(true)
-        setError('')
-        getRegionPricing(token)
-            .then((res) => setRegions(Array.isArray(res.data) ? res.data : []))
-            .catch((err) => {
-                setRegions([])
-                setError(err?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load regions.')
-            })
-            .finally(() => setLoading(false))
-    }, [token])
+    const { data: regions = [], isLoading: loading, error: queryError } = useQuery({
+        queryKey: ['pricing-regions', token],
+        queryFn: () => getRegionPricing().then((res) => (Array.isArray(res.data) ? res.data : [])),
+        enabled: !!token,
+    })
+
+    const error = queryError
+        ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load regions.')
+        : ''
 
     return (
         <div className="p-4 lg:p-6 w-full overflow-x-hidden">
-            {/* Page Header */}
-            <div className="flex items-center gap-2 mb-6 lg:mb-8">
-                <Link href="/admin/users" className="p-1 hover:bg-gray-100 rounded transition-colors">
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                </Link>
-                <h1 className="text-sm lg:text-base font-bold text-gray-900 tracking-wide">PRICING REGIONS</h1>
-            </div>
+            <AdminPageHeader title="PRICING REGIONS" backHref="/admin/users" />
 
-            {/* Regions Container */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6 mb-6">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-bold text-gray-900">REGIONS</h2>
@@ -65,14 +52,12 @@ export default function PricingRegionsPage() {
                     Read-only — no write endpoint has been documented for regions yet.
                 </p>
 
-                {loading ? (
-                    <div className="flex justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
-                    </div>
-                ) : error ? (
-                    <p className="text-center text-gray-500 py-8">{error}</p>
+{loading ? (
+    <ZoneGridSkeleton />
+) : error ? (
+                    <ErrorBanner message={error} />
                 ) : regions.length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No regions configured.</p>
+                    <EmptyState message="No regions configured." className="border-0" />
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                         {regions.map((region, i) => (
@@ -91,7 +76,7 @@ export default function PricingRegionsPage() {
                     </div>
                 )}
             </div>
-            
+
             <div className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6 mt-6">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-bold text-gray-900">Zoned Prices</h2>

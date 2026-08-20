@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
+import { QueryProvider } from '@/components/providers/query-provider'
+import { AuthHydrator } from '@/components/providers/auth-hydrator'
 import './globals.css'
 
 // Import Urbanist font from Google Fonts with fallback
@@ -36,7 +38,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={urbanist.className}>
-        {children}
+        <QueryProvider>
+          <AuthHydrator>
+            {children}
+          </AuthHydrator>
+        </QueryProvider>
         <Toaster />
         <Analytics />
       </body>

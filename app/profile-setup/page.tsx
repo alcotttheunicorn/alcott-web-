@@ -1,15 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ImagePicker } from '@/components/ui/image-picker'
 import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/use-auth'
+import { AuthGuard } from '@/components/auth-guard'
 import { getProfile, setupProfile, updateProfile } from '@/lib/api/profile-api'
-import type { ProfileData } from '@/lib/api/types'
 import { toast } from '@/components/ui/use-toast'
+import { ProfileFormSkeleton } from '@/components/shared/skeletons'
 
 function toDateInputValue(dob?: string) {
   if (!dob) return ''
@@ -18,7 +21,9 @@ function toDateInputValue(dob?: string) {
   return parsed.toISOString().slice(0, 10)
 }
 
-export default function ProfileSetupPage() {
+function ProfileSetupContent() {
+  const { token, user, isLoading: authLoading } = useAuth()
+  const queryClient = useQueryClient()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -29,12 +34,18 @@ export default function ProfileSetupPage() {
     address: '',
     profileImage: null as File | null
   })
-  const [existingProfile, setExistingProfile] = useState<ProfileData | null>(null)
-  const [checkingExisting, setCheckingExisting] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [prefilled, setPrefilled] = useState(false)
   const router = useRouter()
+
+  // Determine create-vs-edit by checking whether a profile already exists.
+  // 404 (no profile yet) just means we're in "create" mode, not an error.
+  const { data: existingProfile, isLoading: checkingExisting } = useQuery({
+    queryKey: ['profile', token],
+    queryFn: () => getProfile().then((res) => res.data).catch(() => null),
+    enabled: !authLoading && !!token,
+  })
   const isEditMode = !!existingProfile
 
   const handleInputChange = (field: string, value: string) => {
@@ -51,57 +62,60 @@ export default function ProfileSetupPage() {
     }))
   }
 
+  // Prefill from the signed-up user's name/email immediately (available from
+  // useAuth synchronously), then overwrite with the fuller real profile once
+  // that query resolves (dob, gender, address, phone, avatar — fields the
+  // signup response never had).
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (!user) return
+    setFormData(prev => ({
+      ...prev,
+      email: user.email || prev.email,
+      firstName: prev.firstName || user.first_name || '',
+      lastName: prev.lastName || user.last_name || ''
+    }))
+  }, [user])
 
-    const storedUser = localStorage.getItem('authUser') || sessionStorage.getItem('authUser')
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser)
-        setFormData(prev => ({
-          ...prev,
-          email: parsed.email || prev.email,
-          firstName: prev.firstName || parsed.first_name || '',
-          lastName: prev.lastName || parsed.last_name || ''
-        }))
-      } catch (error) {
-        console.error('Failed to parse stored user', error)
-      }
-    }
+  useEffect(() => {
+    if (!existingProfile || prefilled) return
+    setPrefilled(true)
+    setFormData(prev => ({
+      ...prev,
+      firstName: existingProfile.first_name || prev.firstName,
+      lastName: existingProfile.last_name || prev.lastName,
+      email: existingProfile.email || prev.email,
+      phoneNumber: existingProfile.phone_number || prev.phoneNumber,
+      gender: existingProfile.gender || prev.gender,
+      address: existingProfile.address || prev.address,
+      dateOfBirth: toDateInputValue(existingProfile.dob) || prev.dateOfBirth,
+    }))
+  }, [existingProfile, prefilled])
 
-    // Determine create-vs-edit by checking whether a profile already exists.
-    // If it does, prefill the whole form from the real backend record — the
-    // localStorage authUser cache above only ever has first/last name/email
-    // from signup, not the rest (dob, gender, address, phone, avatar).
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
-    if (!token) {
-      setCheckingExisting(false)
-      return
-    }
+  const submitMutation = useMutation({
+    mutationFn: (payload: FormData) => (isEditMode ? updateProfile(payload) : setupProfile(payload)),
+    onSuccess: (response) => {
+      const message = response?.message || (isEditMode ? 'Profile updated successfully.' : 'Profile created successfully.')
+      setSuccessMessage(message)
+      toast({ title: isEditMode ? 'Profile updated' : 'Profile complete', description: message })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
 
-    getProfile(token)
-      .then((res) => {
-        const profile = res.data
-        if (!profile) return
-        setExistingProfile(profile)
-        setFormData(prev => ({
-          ...prev,
-          firstName: profile.first_name || prev.firstName,
-          lastName: profile.last_name || prev.lastName,
-          email: profile.email || prev.email,
-          phoneNumber: profile.phone_number || prev.phoneNumber,
-          gender: profile.gender || prev.gender,
-          address: profile.address || prev.address,
-          dateOfBirth: toDateInputValue(profile.dob) || prev.dateOfBirth,
-        }))
-      })
-      .catch(() => {
-        // 404/no profile yet just means we're in "create" mode — not an error to surface.
-      })
-      .finally(() => setCheckingExisting(false))
-  }, [])
+      setTimeout(() => {
+        router.push(isEditMode ? '/settings' : '/profile-setup/success')
+      }, 800)
+    },
+    onError: (err: any) => {
+      const apiErrorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        `Unable to ${isEditMode ? 'update' : 'complete'} profile. Please try again.`
+      setErrorMessage(apiErrorMessage)
+      toast({ title: isEditMode ? 'Profile update failed' : 'Profile setup failed', description: apiErrorMessage })
+    },
+  })
+  const isSubmitting = submitMutation.isPending
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setErrorMessage(null)
     setSuccessMessage(null)
@@ -114,11 +128,6 @@ export default function ProfileSetupPage() {
       toast({ title: 'Missing information', description: message })
       return
     }
-
-    const token =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
-        : null
 
     if (!token) {
       const message = 'You need to sign in before setting up your profile.'
@@ -139,37 +148,13 @@ export default function ProfileSetupPage() {
       payload.append('profile_pic', formData.profileImage)
     }
 
-    setIsSubmitting(true)
-
-    try {
-      const response = isEditMode
-        ? await updateProfile(token, payload)
-        : await setupProfile(token, payload)
-
-      const message = response?.message || (isEditMode ? 'Profile updated successfully.' : 'Profile created successfully.')
-      setSuccessMessage(message)
-      toast({ title: isEditMode ? 'Profile updated' : 'Profile complete', description: message })
-
-      setTimeout(() => {
-        router.push(isEditMode ? '/settings' : '/profile-setup/success')
-      }, 800)
-    } catch (err: any) {
-      const apiErrorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        `Unable to ${isEditMode ? 'update' : 'complete'} profile. Please try again.`
-      setErrorMessage(apiErrorMessage)
-      toast({ title: isEditMode ? 'Profile update failed' : 'Profile setup failed', description: apiErrorMessage })
-    } finally {
-      setIsSubmitting(false)
-    }
+    submitMutation.mutate(payload)
   }
 
-  if (checkingExisting) {
+  if (authLoading || checkingExisting) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+        <ProfileFormSkeleton />
       </div>
     )
   }
@@ -336,5 +321,12 @@ export default function ProfileSetupPage() {
         </div>
       </div>
     </div>
+  )
+}
+export default function ProfileSetupPage() {
+  return (
+    <AuthGuard>
+      <ProfileSetupContent />
+    </AuthGuard>
   )
 }
