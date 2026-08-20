@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { AuthGuard } from '@/components/auth-guard'
+import { OrderDetailSkeleton } from '@/components/shared/skeletons'
 import { useAuth } from '@/hooks/use-auth'
 import { getShipmentById } from '@/lib/api/shipment-api'
 
@@ -52,9 +53,7 @@ function OrderDetailContent() {
 
       <main className="max-w-2xl mx-auto p-4 lg:p-6">
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
-          </div>
+          <OrderDetailSkeleton />
         ) : error ? (
           <div className="text-center py-16">
             <p className="text-gray-600 mb-4" style={{ fontFamily: "'Urbanist', sans-serif" }}>{error}</p>

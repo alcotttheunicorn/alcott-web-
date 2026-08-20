@@ -18,7 +18,7 @@ export interface ActivityLog {
 
 export async function getAdminUsers(
   params?: { page?: number; limit?: number },
-): Promise<PaginatedResponse<AdminUser[]>> {
+): Promise<PaginatedResponse<{ users: AdminUser[] }>> {
   const { data } = await apiClient.get('/admin/users', { params })
   return data
 }

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -15,7 +16,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [token, isLoading, router])
 
-  if (isLoading || !token) return null
+  if (isLoading || !token) return <LoadingSpinner />
 
   return <>{children}</>
 }

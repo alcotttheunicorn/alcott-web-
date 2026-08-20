@@ -4,24 +4,20 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from '@/components/ui/use-toast'
-
-// Confirmed via real sign-in responses (both a USER and ADMIN account) that
-// the backend sends role as uppercase: "USER" / "ADMIN". Comparison below is
-// still case-insensitive as a defensive default in case that varies by
-// endpoint or changes later.
-const ADMIN_ROLE = 'ADMIN'
+import { hasAnyRole, ROLES } from '@/lib/rbac'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 export function RoleGuard({
   children,
-  role = ADMIN_ROLE,
+  roles = [ROLES.ADMIN],
 }: {
   children: React.ReactNode
-  role?: string
+  roles?: readonly string[]
 }) {
   const router = useRouter()
   const { token, user, isLoading } = useAuth()
 
-  const hasRole = (user?.role ?? '').toLowerCase() === role.toLowerCase()
+  const hasAccess = hasAnyRole(user?.role, roles)
 
   useEffect(() => {
     if (isLoading) return
@@ -31,17 +27,16 @@ export function RoleGuard({
       return
     }
 
-    if (!hasRole) {
+    if (!hasAccess) {
       toast({
         title: 'Access denied',
         description: "You don't have permission to view this page.",
       })
       router.replace('/home')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, user, isLoading, hasRole, router])
+  }, [token, user, isLoading, hasAccess, router])
 
-  if (isLoading || !token || !hasRole) return null
+  if (isLoading || !token || !hasAccess) return <LoadingSpinner />
 
   return <>{children}</>
 }

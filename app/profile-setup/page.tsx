@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { AuthGuard } from '@/components/auth-guard'
 import { getProfile, setupProfile, updateProfile } from '@/lib/api/profile-api'
 import { toast } from '@/components/ui/use-toast'
+import { ProfileFormSkeleton } from '@/components/shared/skeletons'
 
 function toDateInputValue(dob?: string) {
   if (!dob) return ''
@@ -153,7 +154,7 @@ function ProfileSetupContent() {
   if (authLoading || checkingExisting) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+        <ProfileFormSkeleton />
       </div>
     )
   }

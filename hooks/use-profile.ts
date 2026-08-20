@@ -1,16 +1,18 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { useAuth } from './use-auth'
-import { getProfile } from '@/lib/api/profile-api'
+import { getProfile, setupProfile, updateProfile, resendPhoneOtp } from '@/lib/api/profile-api'
+import { queryKeys } from '@/components/providers/query-provider'
+import type { ProfileData } from '@/lib/api/types'
 
 export function useProfile() {
-  const { token } = useAuth()
+  const { isAuthenticated } = useAuth()
 
   const query = useQuery({
-    queryKey: ['profile', token],
+    queryKey: queryKeys.auth.profile,
     queryFn: () => getProfile().then((res) => res.data),
-    enabled: !!token,
+    enabled: isAuthenticated,
   })
 
   const displayName = query.data
@@ -21,5 +23,35 @@ export function useProfile() {
     profile: query.data ?? null,
     loading: query.isLoading,
     displayName,
+    query,
   }
+}
+
+export function useSetupProfile() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (formData: FormData) => setupProfile(formData),
+    onSuccess: (res) => {
+      queryClient.setQueryData<ProfileData>(queryKeys.auth.profile, res.data)
+    },
+  })
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (formData: FormData) => updateProfile(formData),
+    onSuccess: (res) => {
+      queryClient.setQueryData<ProfileData>(queryKeys.auth.profile, res.data)
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile })
+    },
+  })
+}
+
+export function useResendPhoneOtp() {
+  return useMutation({
+    mutationFn: () => resendPhoneOtp(),
+  })
 }

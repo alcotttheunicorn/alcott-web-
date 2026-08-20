@@ -1,17 +1,13 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { getRegionPricing } from '@/lib/api/pricing-api'
+import { ErrorBanner } from '@/components/shared/ErrorBanner'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ZoneGridSkeleton } from '@/components/shared/skeletons'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 
-// The "Zoned Prices" table and region-pair groupings ("West -> East" etc)
-// below were entirely mock data with no backend field to source them from —
-// GET /pricing/admin/regions returns `data: [{}]` with an undocumented inner
-// shape, and there's no endpoint at all for zone-pairs or a "zoned prices"
-// concept. Rather than invent field names that might not match reality, each
-// region below is rendered generically (its actual key/value pairs, whatever
-// they turn out to be) so this won't silently show wrong or blank labels.
 function formatValue(value: unknown): string {
     if (value == null) return '—'
     if (Array.isArray(value)) return value.map(formatValue).join(', ')
@@ -40,17 +36,8 @@ export default function PricingRegionsPage() {
 
     return (
         <div className="p-4 lg:p-6 w-full overflow-x-hidden">
-            {/* Page Header */}
-            <div className="flex items-center gap-2 mb-6 lg:mb-8">
-                <Link href="/admin/users" className="p-1 hover:bg-gray-100 rounded transition-colors">
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                </Link>
-                <h1 className="text-sm lg:text-base font-bold text-gray-900 tracking-wide">PRICING REGIONS</h1>
-            </div>
+            <AdminPageHeader title="PRICING REGIONS" backHref="/admin/users" />
 
-            {/* Regions Container */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6 mb-6">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-bold text-gray-900">REGIONS</h2>
@@ -65,14 +52,12 @@ export default function PricingRegionsPage() {
                     Read-only — no write endpoint has been documented for regions yet.
                 </p>
 
-                {loading ? (
-                    <div className="flex justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
-                    </div>
-                ) : error ? (
-                    <p className="text-center text-gray-500 py-8">{error}</p>
+{loading ? (
+    <ZoneGridSkeleton />
+) : error ? (
+                    <ErrorBanner message={error} />
                 ) : regions.length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No regions configured.</p>
+                    <EmptyState message="No regions configured." className="border-0" />
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                         {regions.map((region, i) => (
@@ -92,14 +77,6 @@ export default function PricingRegionsPage() {
                 )}
             </div>
 
-            {/*
-              Zoned Prices table below is still 100% mock data. There is no
-              endpoint anywhere in the docs shared so far for "zoned prices" or
-              region-pair groupings ("West -> East" etc from the original mock) —
-              GET /pricing/admin/regions only returns the region list rendered
-              above. Left in (rather than deleted) since it's already part of
-              the shipped UI; needs a real endpoint before it can be wired.
-            */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6 mt-6">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-bold text-gray-900">Zoned Prices</h2>
