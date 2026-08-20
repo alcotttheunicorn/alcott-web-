@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -13,9 +14,13 @@ export default function OTPVerificationPage() {
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [resendTimer, setResendTimer] = useState(65)
-  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  const resendMutation = useMutation({
+    mutationFn: () => (email ? forgotPassword(email) : forgotPassword(undefined, phoneNumber)),
+  })
+  const isLoading = resendMutation.isPending
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -51,34 +56,31 @@ export default function OTPVerificationPage() {
     }
   }
 
-  const handleResendCode = async () => {
+  const handleResendCode = () => {
     if (!email && !phoneNumber) {
       setErrorMessage('No contact details found for this reset request.')
       return
     }
 
-    try {
-      setIsLoading(true)
-      setErrorMessage(null)
-      const response = email
-        ? await forgotPassword(email)
-        : await forgotPassword(undefined, phoneNumber)
+    setErrorMessage(null)
 
-      setResendTimer(65)
-      setOtp(['', '', '', ''])
-      inputRefs.current[0]?.focus()
-      toast({ title: 'Code sent', description: response?.message || 'A new reset code was sent.' })
-    } catch (err: any) {
-      const apiErrorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        'Could not resend the reset code.'
-      setErrorMessage(apiErrorMessage)
-      toast({ title: 'Resend failed', description: apiErrorMessage })
-    } finally {
-      setIsLoading(false)
-    }
+    resendMutation.mutate(undefined, {
+      onSuccess: (response) => {
+        setResendTimer(65)
+        setOtp(['', '', '', ''])
+        inputRefs.current[0]?.focus()
+        toast({ title: 'Code sent', description: response?.message || 'A new reset code was sent.' })
+      },
+      onError: (err: any) => {
+        const apiErrorMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Could not resend the reset code.'
+        setErrorMessage(apiErrorMessage)
+        toast({ title: 'Resend failed', description: apiErrorMessage })
+      },
+    })
   }
 
   const handleContinue = () => {
@@ -134,7 +136,7 @@ export default function OTPVerificationPage() {
                 {otp.map((digit, index) => (
                   <input
                     key={index}
-                   ref={(el) => { inputRefs.current[index] = el }}
+                    ref={(el) => { inputRefs.current[index] = el }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}

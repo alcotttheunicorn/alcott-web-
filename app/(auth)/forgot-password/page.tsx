@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -11,8 +12,13 @@ export default function ForgotPasswordPage() {
   const router = useRouter()
   const [selectedMethod, setSelectedMethod] = useState<'sms' | 'email' | null>(null)
   const [contact, setContact] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const forgotPasswordMutation = useMutation({
+    mutationFn: (method: 'sms' | 'email') =>
+      method === 'email' ? forgotPassword(contact.trim()) : forgotPassword(undefined, contact.trim()),
+  })
+  const isLoading = forgotPasswordMutation.isPending
 
   const handleMethodSelect = (method: 'sms' | 'email') => {
     setSelectedMethod(method)
@@ -22,7 +28,7 @@ export default function ForgotPasswordPage() {
     }
   }
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!selectedMethod || !contact.trim()) {
       const message = selectedMethod === 'email' ? 'Please enter your email address.' : 'Please enter your phone number.'
       setErrorMessage(message)
@@ -30,39 +36,34 @@ export default function ForgotPasswordPage() {
       return
     }
 
-    setIsLoading(true)
     setErrorMessage(null)
 
-    try {
-      const payload =
-        selectedMethod === 'email'
-          ? await forgotPassword(contact.trim())
-          : await forgotPassword(undefined, contact.trim())
-
-      if (typeof window !== 'undefined') {
-        if (selectedMethod === 'email') {
-          window.localStorage.setItem('pendingResetEmail', contact.trim())
-        } else {
-          window.localStorage.setItem('pendingResetPhone', contact.trim())
+    forgotPasswordMutation.mutate(selectedMethod, {
+      onSuccess: (payload) => {
+        if (typeof window !== 'undefined') {
+          if (selectedMethod === 'email') {
+            window.localStorage.setItem('pendingResetEmail', contact.trim())
+          } else {
+            window.localStorage.setItem('pendingResetPhone', contact.trim())
+          }
         }
-      }
 
-      toast({
-        title: 'Reset link sent',
-        description: payload?.message || 'A reset code has been sent to your contact details.',
-      })
-      router.push('/forgot-password/verify')
-    } catch (err: any) {
-      const apiErrorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        'Could not send the reset code. Please try again.'
-      setErrorMessage(apiErrorMessage)
-      toast({ title: 'Reset failed', description: apiErrorMessage })
-    } finally {
-      setIsLoading(false)
-    }
+        toast({
+          title: 'Reset link sent',
+          description: payload?.message || 'A reset code has been sent to your contact details.',
+        })
+        router.push('/forgot-password/verify')
+      },
+      onError: (err: any) => {
+        const apiErrorMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Could not send the reset code. Please try again.'
+        setErrorMessage(apiErrorMessage)
+        toast({ title: 'Reset failed', description: apiErrorMessage })
+      },
+    })
   }
 
   return (
@@ -208,4 +209,3 @@ export default function ForgotPasswordPage() {
     </div>
   )
 }
-

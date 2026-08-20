@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
@@ -16,11 +17,15 @@ export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const signInMutation = useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) => signIn(email, password),
+  })
+  const isLoading = signInMutation.isPending
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
 
@@ -31,47 +36,48 @@ export default function SignInPage() {
       return
     }
 
-    setIsLoading(true)
+    signInMutation.mutate({ email, password }, {
+      onSuccess: (response) => {
+        const user = response?.data?.user
+        const token = response?.data?.token
 
-    try {
-      const response = await signIn(email, password)
-      const user = response?.data?.user
-      const token = response?.data?.token
-
-      if (!user || !token) {
-        throw new Error('Unexpected response from server. Please try again.')
-      }
-
-      if (!user.is_verified) {
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem('pendingSignupEmail', user.email)
+        if (!user || !token) {
+          const message = 'Unexpected response from server. Please try again.'
+          setErrorMessage(message)
+          toast({ title: 'Sign-in failed', description: message })
+          return
         }
-        clearAuthSession()
-        toast({ title: 'Verify your email', description: 'Please verify your email before signing in.' })
-        router.push('/verify-email')
-        return
-      }
 
-      saveAuthSession(user, token, rememberMe)
+        if (!user.is_verified) {
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('pendingSignupEmail', user.email)
+          }
+          clearAuthSession()
+          toast({ title: 'Verify your email', description: 'Please verify your email before signing in.' })
+          router.push('/verify-email')
+          return
+        }
 
-      toast({
-        title: 'Welcome back!',
-        description: `Hello ${user.first_name || ''}!`,
-      })
+        saveAuthSession(user, token, rememberMe)
 
-      router.push('/home')
-    } catch (err: any) {
-      const apiErrorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        'Sign-in failed. Please try again.'
+        toast({
+          title: 'Welcome back!',
+          description: `Hello ${user.first_name || ''}!`,
+        })
 
-      setErrorMessage(apiErrorMessage)
-      toast({ title: 'Sign-in failed', description: apiErrorMessage })
-    } finally {
-      setIsLoading(false)
-    }
+        router.push('/home')
+      },
+      onError: (err: any) => {
+        const apiErrorMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Sign-in failed. Please try again.'
+
+        setErrorMessage(apiErrorMessage)
+        toast({ title: 'Sign-in failed', description: apiErrorMessage })
+      },
+    })
   }
 
   return (

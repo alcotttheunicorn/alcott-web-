@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
@@ -17,14 +18,81 @@ export default function VerifyEmailPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [emailFocused, setEmailFocused] = useState(false)
   const [otpFocused, setOtpFocused] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [isResending, setIsResending] = useState(false)
   const [resendMessage, setResendMessage] = useState<string | null>(null)
   const [resendError, setResendError] = useState<string | null>(null)
+
+  const verifyEmailMutation = useMutation({
+    mutationFn: () => verifyEmail(email, otp),
+  })
+  const isLoading = verifyEmailMutation.isPending
+
+  const resendMutation = useMutation({
+    mutationFn: () => resendVerification(email),
+  })
+  const isResending = resendMutation.isPending
+
+  const handleVerify = (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    verifyEmailMutation.mutate(undefined, {
+      onSuccess: (res) => {
+        const message = res?.message || 'Email verified successfully.'
+        setSuccessMessage(message)
+        toast({ title: 'Verification successful', description: message })
+
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('pendingSignupEmail')
+        }
+
+        setTimeout(() => router.push('/sign-in'), 1200)
+      },
+      onError: (err: any) => {
+        const apiErrorMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Verification failed. Please check your code and try again.'
+        setErrorMessage(apiErrorMessage)
+        toast({ title: 'Verification failed', description: apiErrorMessage })
+      },
+    })
+  }
+
+  const handleResend = () => {
+    if (!email) {
+      const msg = 'Enter your email before requesting a new code.'
+      setResendError(msg)
+      toast({ title: 'Missing email', description: msg })
+      return
+    }
+
+    setResendError(null)
+    setResendMessage(null)
+
+    resendMutation.mutate(undefined, {
+      onSuccess: (res) => {
+        const message = res?.message || 'Verification email sent successfully.'
+        setResendMessage(message)
+        toast({ title: 'Verification email sent', description: message })
+      },
+      onError: (err: any) => {
+        const apiErrorMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Could not resend verification email. Please try again later.'
+
+        setResendError(apiErrorMessage)
+        toast({ title: 'Resend failed', description: apiErrorMessage })
+      },
+    })
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -48,35 +116,7 @@ export default function VerifyEmailPage() {
 
           <form
             className="space-y-6"
-            onSubmit={async (e) => {
-              e.preventDefault()
-              setErrorMessage(null)
-              setSuccessMessage(null)
-              setIsLoading(true)
-
-              try {
-                const res = await verifyEmail(email, otp)
-                const message = res?.message || 'Email verified successfully.'
-                setSuccessMessage(message)
-                toast({ title: 'Verification successful', description: message })
-
-                if (typeof window !== 'undefined') {
-                  window.localStorage.removeItem('pendingSignupEmail')
-                }
-
-                setTimeout(() => router.push('/sign-in'), 1200)
-              } catch (err: any) {
-                const apiErrorMessage =
-                  err?.response?.data?.message ||
-                  err?.response?.data?.error ||
-                  err?.message ||
-                  'Verification failed. Please check your code and try again.'
-                setErrorMessage(apiErrorMessage)
-                toast({ title: 'Verification failed', description: apiErrorMessage })
-              } finally {
-                setIsLoading(false)
-              }
-            }}
+            onSubmit={handleVerify}
           >
             <div className="relative">
               <div className={`flex items-center rounded-xl px-4 py-4 transition-all duration-300 ease-in-out ${
@@ -168,36 +208,7 @@ export default function VerifyEmailPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={async () => {
-                  if (!email) {
-                    const msg = 'Enter your email before requesting a new code.'
-                    setResendError(msg)
-                    toast({ title: 'Missing email', description: msg })
-                    return
-                  }
-
-                  setIsResending(true)
-                  setResendError(null)
-                  setResendMessage(null)
-
-                  try {
-                    const res = await resendVerification(email)
-                    const message = res?.message || 'Verification email sent successfully.'
-                    setResendMessage(message)
-                    toast({ title: 'Verification email sent', description: message })
-                  } catch (err: any) {
-                    const apiErrorMessage =
-                      err?.response?.data?.message ||
-                      err?.response?.data?.error ||
-                      err?.message ||
-                      'Could not resend verification email. Please try again later.'
-
-                    setResendError(apiErrorMessage)
-                    toast({ title: 'Resend failed', description: apiErrorMessage })
-                  } finally {
-                    setIsResending(false)
-                  }
-                }}
+                onClick={handleResend}
                 disabled={isResending || !email}
                 className="rounded-full border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white font-['Urbanist']"
               >
@@ -222,5 +233,3 @@ export default function VerifyEmailPage() {
     </div>
   )
 }
-
-

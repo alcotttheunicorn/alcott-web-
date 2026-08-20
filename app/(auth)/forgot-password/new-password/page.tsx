@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
@@ -19,8 +20,12 @@ export default function CreateNewPasswordPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => resetPassword(email, otp, passwords.newPassword),
+  })
+  const isLoading = resetPasswordMutation.isPending
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -36,7 +41,7 @@ export default function CreateNewPasswordPage() {
     }))
   }
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!email || !otp) {
       const message = 'Reset session is missing. Please start the forgot-password flow again.'
       setErrorMessage(message)
@@ -58,35 +63,33 @@ export default function CreateNewPasswordPage() {
       return
     }
 
-    setIsLoading(true)
     setErrorMessage(null)
 
-    try {
-      const response = await resetPassword(email, otp, passwords.newPassword)
+    resetPasswordMutation.mutate(undefined, {
+      onSuccess: (response) => {
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('pendingResetEmail')
+          window.localStorage.removeItem('pendingResetPhone')
+          window.localStorage.removeItem('pendingResetOtp')
+        }
 
-      if (typeof window !== 'undefined') {
-        window.localStorage.removeItem('pendingResetEmail')
-        window.localStorage.removeItem('pendingResetPhone')
-        window.localStorage.removeItem('pendingResetOtp')
-      }
+        toast({
+          title: 'Password updated',
+          description: response?.message || 'Your password has been changed successfully.',
+        })
 
-      toast({
-        title: 'Password updated',
-        description: response?.message || 'Your password has been changed successfully.',
-      })
-
-      router.push('/sign-in')
-    } catch (err: any) {
-      const apiErrorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        'Password reset failed. Please try again.'
-      setErrorMessage(apiErrorMessage)
-      toast({ title: 'Reset failed', description: apiErrorMessage })
-    } finally {
-      setIsLoading(false)
-    }
+        router.push('/sign-in')
+      },
+      onError: (err: any) => {
+        const apiErrorMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Password reset failed. Please try again.'
+        setErrorMessage(apiErrorMessage)
+        toast({ title: 'Reset failed', description: apiErrorMessage })
+      },
+    })
   }
 
   return (
@@ -125,6 +128,7 @@ export default function CreateNewPasswordPage() {
                   </svg>
                   <Input
                     type={showNewPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     placeholder="New Password"
                     value={passwords.newPassword}
                     onChange={(e) => handleInputChange('newPassword', e.target.value)}
@@ -157,6 +161,7 @@ export default function CreateNewPasswordPage() {
                   </svg>
                   <Input
                     type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     placeholder="Confirm Password"
                     value={passwords.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}

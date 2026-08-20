@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
@@ -15,9 +16,41 @@ export default function RegisterPage() {
   const [passwordFocused, setPasswordFocused] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const signUpMutation = useMutation({
+    mutationFn: () => signUp(email, password),
+  })
+  const isLoading = signUpMutation.isPending
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
+    signUpMutation.mutate(undefined, {
+      onSuccess: (res) => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('pendingSignupEmail', email)
+        }
+
+        const message = res?.message || 'Verification email sent. Please verify your email to continue.'
+        setSuccessMessage(message)
+        toast({ title: 'Signup successful', description: message })
+        setTimeout(() => router.push('/verify-email'), 800)
+      },
+      onError: (err: any) => {
+        const apiErrorMessage =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          'Signup failed. Please try again.'
+        setErrorMessage(apiErrorMessage)
+        toast({ title: 'Signup failed', description: apiErrorMessage })
+      },
+    })
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -44,35 +77,7 @@ export default function RegisterPage() {
 
             <form
               className="space-y-6 mb-8"
-              onSubmit={async (e) => {
-                e.preventDefault()
-                setErrorMessage(null)
-                setSuccessMessage(null)
-                setIsLoading(true)
-
-                try {
-                  const res = await signUp(email, password)
-
-                  if (typeof window !== 'undefined') {
-                    localStorage.setItem('pendingSignupEmail', email)
-                  }
-
-                  const message = res?.message || 'Verification email sent. Please verify your email to continue.'
-                  setSuccessMessage(message)
-                  toast({ title: 'Signup successful', description: message })
-                  setTimeout(() => router.push('/verify-email'), 800)
-                } catch (err: any) {
-                  const apiErrorMessage =
-                    err?.response?.data?.message ||
-                    err?.response?.data?.error ||
-                    err?.message ||
-                    'Signup failed. Please try again.'
-                  setErrorMessage(apiErrorMessage)
-                  toast({ title: 'Signup failed', description: apiErrorMessage })
-                } finally {
-                  setIsLoading(false)
-                }
-              }}
+              onSubmit={handleSubmit}
             >
               <div className="relative">
                 <div className={`flex items-center rounded-xl px-4 py-4 transition-all duration-300 ease-in-out ${
