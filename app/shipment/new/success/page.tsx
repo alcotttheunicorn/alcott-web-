@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
@@ -23,6 +24,7 @@ function SuccessContent() {
   const { token } = useAuth()
   const [shipment, setShipment] = useState<ShipmentData | null>(null)
   const [status, setStatus] = useState<'checking' | 'ready' | 'failed'>('checking')
+  const verifyPaymentMutation = useMutation({ mutationFn: (reference: string) => verifyPayment(reference) })
 
   useEffect(() => {
     const reference = searchParams.get('reference')
@@ -37,12 +39,14 @@ function SuccessContent() {
 
     // Card payments: Paystack redirected back here — confirm the payment actually went through.
     if (!token) return
-    verifyPayment(token, reference)
-      .then(() => {
+    verifyPaymentMutation.mutate(reference, {
+      onSuccess: () => {
         setShipment(stored)
         setStatus('ready')
-      })
-      .catch(() => setStatus('failed'))
+      },
+      onError: () => setStatus('failed'),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, token])
 
   if (status === 'checking') {

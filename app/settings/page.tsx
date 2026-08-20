@@ -1,28 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
-import { getProfile } from '@/lib/api/profile-api'
-import type { ProfileData } from '@/lib/api/types'
+import { useProfile } from '@/hooks/use-profile'
 
 export default function SettingsPage() {
-  const { token, logout } = useAuth()
+  const { logout } = useAuth()
+  const { profile } = useProfile()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [darkMode, setDarkMode] = useState(false)
-  const [profile, setProfile] = useState<ProfileData | null>(null)
   const router = useRouter()
-
-  useEffect(() => {
-    if (!token) return
-    getProfile(token)
-      .then((res) => setProfile(res.data))
-      .catch(() => {})
-  }, [token])
 
   const handleSearchFocus = () => {
     router.push('/search')

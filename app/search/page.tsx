@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
+import { useProfile } from '@/hooks/use-profile'
 import { getShipmentByTrackingId } from '@/lib/api/shipment-api'
 import type { ShipmentData } from '@/lib/api/types'
-import { useProfile } from '@/hooks/use-profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,9 +39,13 @@ function SearchContent() {
   const { displayName } = useProfile()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<ShipmentData[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [searchError, setSearchError] = useState('')
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+
+  const searchMutation = useMutation({
+    mutationFn: (trackingId: string) => getShipmentByTrackingId(trackingId),
+  })
+  const isLoading = searchMutation.isPending
 
   useEffect(() => {
     setRecentSearches(loadRecentSearches())
@@ -52,28 +57,28 @@ function SearchContent() {
       setSearchQuery(query)
       performSearch(query)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, token])
 
-  const performSearch = async (query: string) => {
+  const performSearch = (query: string) => {
     const trackingId = query.trim()
     if (!trackingId || !token) return
 
-    setIsLoading(true)
     setSearchError('')
-    try {
-      const res = await getShipmentByTrackingId(token, trackingId)
-      setSearchResults(res.data ? [res.data] : [])
-      setRecentSearches(saveRecentSearch(trackingId) ?? recentSearches)
-    } catch (err: any) {
-      setSearchResults([])
-      setSearchError(
-        err?.response?.status === 404
-          ? 'No shipment found for that tracking ID.'
-          : 'Something went wrong while searching. Please try again.'
-      )
-    } finally {
-      setIsLoading(false)
-    }
+    searchMutation.mutate(trackingId, {
+      onSuccess: (res) => {
+        setSearchResults(res.data ? [res.data] : [])
+        setRecentSearches(saveRecentSearch(trackingId) ?? recentSearches)
+      },
+      onError: (err: any) => {
+        setSearchResults([])
+        setSearchError(
+          err?.response?.status === 404
+            ? 'No shipment found for that tracking ID.'
+            : 'Something went wrong while searching. Please try again.'
+        )
+      },
+    })
   }
 
   const handleClearRecent = () => {

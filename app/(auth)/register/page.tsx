@@ -87,6 +87,7 @@ export default function RegisterPage() {
                   </svg>
                   <Input
                     type="email"
+                    autoComplete="email"
                     placeholder="info@alcott.com.ng"
                     className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                     onFocus={() => setEmailFocused(true)}
@@ -111,6 +112,7 @@ export default function RegisterPage() {
                   </svg>
                   <Input
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     placeholder="Password"
                     className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                     onFocus={() => setPasswordFocused(true)}

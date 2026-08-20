@@ -1,51 +1,43 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
-import { getTransactions } from '@/lib/api/wallet-api'
-import type { Transaction } from '@/lib/api/types'
 import { useProfile } from '@/hooks/use-profile'
+import { getTransactions } from '@/lib/api/wallet-api'
 
 export default function TransactionHistoryPage() {
   const { token } = useAuth()
   const { displayName } = useProfile()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
   const router = useRouter()
 
-  const fetchTransactions = useCallback(async (pageNum: number, append: boolean) => {
-    if (!token) return
-    setLoading(true)
-    try {
-      const res = await getTransactions(token, pageNum, 20)
-      const items = res.data?.transactions ?? []
-      setTransactions(prev => append ? [...prev, ...items] : items)
-      if (pageNum >= res.totalPages) setHasMore(false)
-    } catch {
-      if (!append) setTransactions([])
-      setHasMore(false)
-    } finally {
-      setLoading(false)
-    }
-  }, [token])
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetching: loading,
+  } = useInfiniteQuery({
+    queryKey: ['wallet-transactions-infinite', token],
+    queryFn: ({ pageParam }) => getTransactions(pageParam, 20),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      allPages.length < (lastPage.totalPages ?? 1) ? allPages.length + 1 : undefined,
+    enabled: !!token,
+  })
 
-  useEffect(() => {
-    fetchTransactions(1, false)
-  }, [fetchTransactions])
+  const transactions = data?.pages.flatMap((page) => page.data?.transactions ?? []) ?? []
+  const hasMore = !!hasNextPage
 
-  const loadMore = useCallback(() => {
+  const loadMore = () => {
     if (loading || !hasMore) return
-    const nextPage = page + 1
-    setPage(nextPage)
-    fetchTransactions(nextPage, true)
-  }, [loading, hasMore, page, fetchTransactions])
+    fetchNextPage()
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,7 +48,8 @@ export default function TransactionHistoryPage() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [loadMore, loading])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, hasMore])
 
   const getTransactionColor = (type: string) => {
     switch (type) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import type { ChangeEvent, ComponentType, RefObject, SVGProps } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -75,8 +76,18 @@ const initialPayment: ShipmentPaymentSelection = {
 export default function NewShipmentPage() {
   const router = useRouter()
   const { token } = useAuth()
-  const [categories, setCategories] = useState<string[]>([])
-  const [walletBalance, setWalletBalance] = useState<number | null>(null)
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['shipment-categories', token],
+    queryFn: () => getCategories().then((res) => (Array.isArray(res.data) ? res.data : [])),
+    enabled: !!token,
+  })
+
+  const { data: walletBalance = null } = useQuery({
+    queryKey: ['wallet-balance', token],
+    queryFn: () => getBalance().then((res) => res.data?.balance ?? null),
+    enabled: !!token,
+  })
 
   const sanitizePhoneInput = (value: string) => {
     const stripped = value.replace(/[^0-9+]/g, '')
@@ -127,7 +138,10 @@ export default function NewShipmentPage() {
     initialPayment,
   })
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const createShipmentMutation = useMutation({
+    mutationFn: (payload: CreateShipmentRequest) => createShipment(payload),
+  })
+  const isSubmitting = createShipmentMutation.isPending
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
@@ -152,16 +166,6 @@ export default function NewShipmentPage() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-
-  useEffect(() => {
-    if (!token) return
-    getCategories(token).then((res) => {
-      if (Array.isArray(res.data)) setCategories(res.data)
-    }).catch(() => {})
-    getBalance(token).then((res) => {
-      if (res.data?.balance != null) setWalletBalance(res.data.balance)
-    }).catch(() => {})
-  }, [token])
 
   const handleSearchFocus = () => {
     setIsSearchFocused(true)
@@ -193,24 +197,13 @@ export default function NewShipmentPage() {
     [pkg.shippingOption]
   )
 
-  const handleConfirmShipment = async () => {
-    if (typeof window === 'undefined') return
-
-    const authToken =
-      window.localStorage.getItem('authToken') ?? window.sessionStorage.getItem('authToken') ?? ''
-
-    if (!authToken) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in again to create a shipment.',
-      })
-      router.push('/sign-in')
-      return
-    }
-
-    const formattedToken = authToken.trim()
-
-    if (!formattedToken) {
+  const handleConfirmShipment = () => {
+    // Previously this read localStorage/sessionStorage directly, bypassing
+    // useAuth() entirely (flagged as a duplication risk in the security
+    // review). Now it just checks the already-hydrated token from the shared
+    // auth store, and the axios interceptor attaches it — same as every
+    // other page.
+    if (!token) {
       toast({
         title: 'Authentication required',
         description: 'Please sign in again to create a shipment.',
@@ -249,37 +242,36 @@ export default function NewShipmentPage() {
       package_height: parseFloat(heightInCm.toFixed(2)),
     }
 
-    try {
-      setIsSubmitting(true)
-      const response = await createShipment(payload, formattedToken)
-      if (response?.data?.shipment) {
-        window.sessionStorage.setItem('lastCreatedShipment', JSON.stringify(response.data.shipment))
-      }
+    createShipmentMutation.mutate(payload, {
+      onSuccess: (response) => {
+        if (response?.data?.shipment) {
+          window.sessionStorage.setItem('lastCreatedShipment', JSON.stringify(response.data.shipment))
+        }
 
-      // Card payments come back with a Paystack checkout link — send the user
-      // there first; Paystack redirects back to /shipment/new/success?reference=...
-      // Wallet payments have no payment_url since the balance is deducted server-side.
-      if (response?.data?.payment_url) {
-        window.location.href = response.data.payment_url
-        return
-      }
+        // Card payments come back with a Paystack checkout link — send the user
+        // there first; Paystack redirects back to /shipment/new/success?reference=...
+        // Wallet payments have no payment_url since the balance is deducted server-side.
+        if (response?.data?.payment_url) {
+          window.location.href = response.data.payment_url
+          return
+        }
 
-      toast({
-        title: 'Shipment created',
-        description: 'Your shipment has been created successfully.',
-      })
-      router.push('/shipment/new/success')
-    } catch (error) {
-      console.error('Failed to create shipment', error)
-      const errorMessage =
-        (error as any)?.response?.data?.message ||
-        (error as any)?.response?.data?.error ||
-        (error as Error).message ||
-        'Unable to create shipment. Please try again.'
-      toast({ title: 'Shipment creation failed', description: errorMessage })
-    } finally {
-      setIsSubmitting(false)
-    }
+        toast({
+          title: 'Shipment created',
+          description: 'Your shipment has been created successfully.',
+        })
+        router.push('/shipment/new/success')
+      },
+      onError: (error: any) => {
+        console.error('Failed to create shipment', error)
+        const errorMessage =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          'Unable to create shipment. Please try again.'
+        toast({ title: 'Shipment creation failed', description: errorMessage })
+      },
+    })
   }
 
   return (

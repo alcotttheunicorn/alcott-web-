@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
@@ -18,7 +19,6 @@ export default function CheckRatesPage() {
   const [destination, setDestination] = useState('')
   const [weight, setWeight] = useState('0')
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg')
-  const [isLoading, setIsLoading] = useState(false)
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
   const [showRates, setShowRates] = useState(false)
@@ -64,7 +64,13 @@ export default function CheckRatesPage() {
     return integer
   }
 
-  const handleCheckRates = async () => {
+  const checkRatesMutation = useMutation({
+    mutationFn: (weightInKg: number) =>
+      checkPricingAuth(pickupLocation.trim(), destination.trim(), weightInKg),
+  })
+  const isLoading = checkRatesMutation.isPending
+
+  const handleCheckRates = () => {
     if (!pickupLocation.trim() || !destination.trim()) {
       toast({
         title: 'Missing information',
@@ -82,35 +88,37 @@ export default function CheckRatesPage() {
       return
     }
 
-    setIsLoading(true)
-
     const weightInKg = weightUnit === 'lb' ? weightValue * 0.453592 : weightValue
 
-    try {
-      const res = await checkPricingAuth(token, pickupLocation.trim(), destination.trim(), weightInKg)
-      const hasPremiseShape = typeof res.data?.price?.amount === 'number'
-      const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
+    checkRatesMutation.mutate(weightInKg, {
+      onSuccess: (res) => {
+        // Confirmed via console logs: PREMISE (domestic) responses nest the price
+        // under `price.amount`, but INTERNATIONAL_ZONE (cross-border) responses
+        // have no `price` field at all — instead `export_price`/`import_price`.
+        // Accept either rather than assuming one shape covers every pricing_type.
+        const hasPremiseShape = typeof res.data?.price?.amount === 'number'
+        const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
 
-      if (!hasPremiseShape && !hasZoneShape) {
-        console.error('Unexpected /pricing/check/authenticated response shape:', res)
+        if (!hasPremiseShape && !hasZoneShape) {
+          console.error('Unexpected /pricing/check/authenticated response shape:', res)
+          toast({
+            title: 'Unexpected pricing response',
+            description: "The server didn't return pricing in the expected format. Check the console for details.",
+          })
+          return
+        }
+
+        setPricingResult(res.data)
+        setShowRates(true)
+      },
+      onError: (err: any) => {
+        console.error('checkPricingAuth failed:', err?.response?.data ?? err)
         toast({
-          title: 'Unexpected pricing response',
-          description: "The server didn't return pricing in the expected format. Check the console for details.",
+          title: 'Could not fetch rates',
+          description: err?.response?.data?.message || 'Please try again later.',
         })
-        return
-      }
-
-      setPricingResult(res.data)
-      setShowRates(true)
-    } catch (err: any) {
-      console.error('checkPricingAuth failed:', err?.response?.data ?? err)
-      toast({
-        title: 'Could not fetch rates',
-        description: err?.response?.data?.message || 'Please try again later.',
-      })
-    } finally {
-      setIsLoading(false)
-    }
+      },
+    })
   }
 
   return (

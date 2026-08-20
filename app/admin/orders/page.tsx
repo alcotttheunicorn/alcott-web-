@@ -1,25 +1,28 @@
 'use client'
 
 import Link from 'next/link'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { getAdminShipments } from '@/lib/api/admin-api'
-import type { ShipmentData } from '@/lib/api/types'
 
-type OrderStatus = 'all' | 'pending' | 'on_process' | 'delivered' | 'canceled'
+// NOTE: the backend docs only confirm PENDING / ONGOING / DELIVERED as shipment
+// statuses (see GET /shipments and GET /admin/shipments). This UI was originally
+// built against a 5-status mock (initiated/pending/on_process/delivered/canceled)
+// that doesn't match the real enum. Mapped what's documented below; if the
+// backend does support INITIATED/CANCELED too, add them back here.
+type OrderStatus = 'all' | 'pending' | 'on_process' | 'delivered'
 
 const statusToApiValue: Record<Exclude<OrderStatus, 'all'>, string> = {
     pending: 'PENDING',
     on_process: 'ONGOING',
     delivered: 'DELIVERED',
-    canceled: 'CANCELED'
 }
 
 function mapShipmentStatus(status: string): Exclude<OrderStatus, 'all'> {
     if (status === 'ONGOING') return 'on_process'
     if (status === 'DELIVERED') return 'delivered'
-    if (status === 'CANCELED') return 'canceled'
     return 'pending'
 }
 
@@ -28,7 +31,6 @@ const statusTabs: { key: OrderStatus; label: string }[] = [
     { key: 'pending', label: 'PENDING' },
     { key: 'on_process', label: 'ON PROCESS' },
     { key: 'delivered', label: 'DELIVERED' },
-    { key: 'canceled', label: 'CANCELED'}
 ]
 
 function OrderStatusIcon({ status }: { status: Exclude<OrderStatus, 'all'> }) {
@@ -49,14 +51,6 @@ function OrderStatusIcon({ status }: { status: Exclude<OrderStatus, 'all'> }) {
                     </svg>
                 </div>
             )
-        case 'canceled':
-            return (
-                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <svg className="w-4 h-4 lg:w-5 lg:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-            )    
         default:
             return (
                 <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
@@ -73,27 +67,23 @@ function AdminOrdersContent() {
     const searchParams = useSearchParams()
     const userIdFilter = searchParams.get('user_id')
     const [activeTab, setActiveTab] = useState<OrderStatus>('all')
-    const [orders, setOrders] = useState<ShipmentData[]>([])
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
 
-    useEffect(() => {
-        if (!token) return
-        setLoading(true)
-        setError('')
-        const status = activeTab === 'all' ? undefined : statusToApiValue[activeTab]
-        getAdminShipments(token, { status, user_id: userIdFilter ?? undefined, limit: 50 })
-            .then((res) => setOrders(Array.isArray(res.data) ? res.data : []))
-            .catch((err) => {
-                setOrders([])
-                setError(
-                    err?.response?.status === 403
-                        ? "You don't have admin access to view shipments."
-                        : 'Could not load orders.'
-                )
-            })
-            .finally(() => setLoading(false))
-    }, [token, activeTab, userIdFilter])
+    const status = activeTab === 'all' ? undefined : statusToApiValue[activeTab]
+
+    const { data: orders = [], isLoading: loading, error: queryError } = useQuery({
+        queryKey: ['admin-shipments', token, status, userIdFilter],
+        queryFn: () =>
+            getAdminShipments({ status, user_id: userIdFilter ?? undefined, limit: 50 }).then((res) =>
+                Array.isArray(res.data) ? res.data : []
+            ),
+        enabled: !!token,
+    })
+
+    const error = queryError
+        ? ((queryError as any)?.response?.status === 403
+            ? "You don't have admin access to view shipments."
+            : 'Could not load orders.')
+        : ''
 
     return (
         <div className="p-4 lg:p-6">

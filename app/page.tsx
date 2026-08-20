@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -21,9 +22,13 @@ export default function HomePage() {
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [weight, setWeight] = useState('')
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
-  const [isCheckingRates, setIsCheckingRates] = useState(false)
 
-  const handleCheckRates = async () => {
+  const checkPricingMutation = useMutation({
+    mutationFn: (weightValue: number) => checkPricing(pickupAddress.trim(), deliveryAddress.trim(), weightValue),
+  })
+  const isCheckingRates = checkPricingMutation.isPending
+
+  const handleCheckRates = () => {
     if (!pickupAddress.trim() || !deliveryAddress.trim() || !weight.trim()) {
       toast({ title: 'Missing information', description: 'Please fill in all fields.' })
       return
@@ -35,29 +40,27 @@ export default function HomePage() {
       return
     }
 
-    setIsCheckingRates(true)
-    try {
-      const res = await checkPricing(pickupAddress.trim(), deliveryAddress.trim(), weightValue)
+    checkPricingMutation.mutate(weightValue, {
+      onSuccess: (res) => {
+        const hasPremiseShape = typeof res.data?.price?.amount === 'number'
+        const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
 
-      const hasPremiseShape = typeof res.data?.price?.amount === 'number'
-      const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
+        if (!hasPremiseShape && !hasZoneShape) {
+          console.error('Unexpected /pricing/check response shape:', res)
+          toast({
+            title: 'Unexpected pricing response',
+            description: "The server didn't return pricing in the expected format. Check the console for details.",
+          })
+          return
+        }
 
-      if (!hasPremiseShape && !hasZoneShape) {
-        console.error('Unexpected /pricing/check response shape:', res)
-        toast({
-          title: 'Unexpected pricing response',
-          description: "The server didn't return pricing in the expected format. Check the console for details.",
-        })
-        return
-      }
-
-      setPricingResult(res.data)
-    } catch (err: any) {
-      console.error('checkPricing failed:', err?.response?.data ?? err)
-      toast({ title: 'Could not fetch rates', description: err?.response?.data?.message || 'Please try again later.' })
-    } finally {
-      setIsCheckingRates(false)
-    }
+        setPricingResult(res.data)
+      },
+      onError: (err: any) => {
+        console.error('checkPricing failed:', err?.response?.data ?? err)
+        toast({ title: 'Could not fetch rates', description: err?.response?.data?.message || 'Please try again later.' })
+      },
+    })
   }
   useEffect(() => {
     const mobileMenuButton = document.querySelector('button[class*="md:hidden"]');

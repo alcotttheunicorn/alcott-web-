@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { SuccessModal } from '@/components/ui/success-modal'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
+import { useProfile } from '@/hooks/use-profile'
 import { initializeFund, verifyFund } from '@/lib/api/wallet-api'
 import { toast } from '@/components/ui/use-toast'
-import { useProfile } from '@/hooks/use-profile'
 
 export default function TopUpPage() {
   return (
@@ -30,22 +31,23 @@ function TopUpContent() {
   const [customAmount, setCustomAmount] = useState('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
+
+  const verifyFundMutation = useMutation({ mutationFn: (reference: string) => verifyFund(reference) })
+  const initializeFundMutation = useMutation({ mutationFn: (amount: number) => initializeFund(amount) })
+  const isProcessing = verifyFundMutation.isPending || initializeFundMutation.isPending
 
   useEffect(() => {
     const ref = searchParams.get('reference')
     if (ref && token) {
-      setIsProcessing(true)
-      verifyFund(token, ref)
-        .then(() => {
-          setShowSuccessModal(true)
-        })
-        .catch(() => {
+      verifyFundMutation.mutate(ref, {
+        onSuccess: () => setShowSuccessModal(true),
+        onError: () => {
           toast({ title: 'Verification failed', description: 'Payment could not be verified. Please check your wallet.' })
-        })
-        .finally(() => setIsProcessing(false))
+        },
+      })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, token])
 
   const predefinedAmounts = [
@@ -82,24 +84,24 @@ function TopUpContent() {
     return parseFloat(clean) || 0
   }
 
-  const handleContinueFromPayment = async () => {
+  const handleContinueFromPayment = () => {
     const amount = parseAmount(customAmount || selectedAmount)
     if (!amount || amount <= 0) {
       toast({ title: 'Invalid amount', description: 'Please enter a valid top-up amount.' })
       return
     }
 
-    setIsProcessing(true)
-    try {
-      const res = await initializeFund(token, amount)
-      const authorizationUrl = res.data?.authorization_url
-      if (authorizationUrl) {
-        window.location.href = authorizationUrl
-      }
-    } catch {
-      toast({ title: 'Top-up failed', description: 'Could not initialize payment. Please try again.' })
-      setIsProcessing(false)
-    }
+    initializeFundMutation.mutate(amount, {
+      onSuccess: (res) => {
+        const authorizationUrl = res.data?.authorization_url
+        if (authorizationUrl) {
+          window.location.href = authorizationUrl
+        }
+      },
+      onError: () => {
+        toast({ title: 'Top-up failed', description: 'Could not initialize payment. Please try again.' })
+      },
+    })
   }
 
   const handleSuccessClose = () => {

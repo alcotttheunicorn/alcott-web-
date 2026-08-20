@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
@@ -49,22 +50,18 @@ export default function OrdersPage() {
   const [searchValue, setSearchValue] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (!token) return
-    setLoading(true)
-    const statusParam = activeStatus === 'all' ? undefined : activeStatus === 'onprocess' ? 'ONGOING' : activeStatus.toUpperCase()
-    getShipments(token, { status: statusParam, limit: 20 })
-      .then((res) => {
-        const items = Array.isArray(res.data) ? res.data : []
-        setOrders(items.map(mapShipmentToOrder))
-      })
-      .catch(() => setOrders([]))
-      .finally(() => setLoading(false))
-  }, [token, activeStatus])
+  const statusParam = activeStatus === 'all' ? undefined : activeStatus === 'onprocess' ? 'ONGOING' : activeStatus.toUpperCase()
+
+  const { data: orders = [], isLoading: loading } = useQuery({
+    queryKey: ['shipments', token, statusParam],
+    queryFn: () =>
+      getShipments({ status: statusParam, limit: 20 }).then((res) =>
+        (Array.isArray(res.data) ? res.data : []).map(mapShipmentToOrder)
+      ),
+    enabled: !!token,
+  })
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

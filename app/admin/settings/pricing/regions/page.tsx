@@ -1,11 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { getRegionPricing } from '@/lib/api/pricing-api'
-import type { RegionPricing } from '@/lib/api/types'
 
+// The "Zoned Prices" table and region-pair groupings ("West -> East" etc)
+// below were entirely mock data with no backend field to source them from —
+// GET /pricing/admin/regions returns `data: [{}]` with an undocumented inner
+// shape, and there's no endpoint at all for zone-pairs or a "zoned prices"
+// concept. Rather than invent field names that might not match reality, each
+// region below is rendered generically (its actual key/value pairs, whatever
+// they turn out to be) so this won't silently show wrong or blank labels.
 function formatValue(value: unknown): string {
     if (value == null) return '—'
     if (Array.isArray(value)) return value.map(formatValue).join(', ')
@@ -21,22 +27,16 @@ const mockZonedPrices = [
 
 export default function PricingRegionsPage() {
     const { token } = useAuth()
-    const [regions, setRegions] = useState<RegionPricing[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
 
-    useEffect(() => {
-        if (!token) return
-        setLoading(true)
-        setError('')
-        getRegionPricing(token)
-            .then((res) => setRegions(Array.isArray(res.data) ? res.data : []))
-            .catch((err) => {
-                setRegions([])
-                setError(err?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load regions.')
-            })
-            .finally(() => setLoading(false))
-    }, [token])
+    const { data: regions = [], isLoading: loading, error: queryError } = useQuery({
+        queryKey: ['pricing-regions', token],
+        queryFn: () => getRegionPricing().then((res) => (Array.isArray(res.data) ? res.data : [])),
+        enabled: !!token,
+    })
+
+    const error = queryError
+        ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load regions.')
+        : ''
 
     return (
         <div className="p-4 lg:p-6 w-full overflow-x-hidden">
@@ -91,7 +91,15 @@ export default function PricingRegionsPage() {
                     </div>
                 )}
             </div>
-            
+
+            {/*
+              Zoned Prices table below is still 100% mock data. There is no
+              endpoint anywhere in the docs shared so far for "zoned prices" or
+              region-pair groupings ("West -> East" etc from the original mock) —
+              GET /pricing/admin/regions only returns the region list rendered
+              above. Left in (rather than deleted) since it's already part of
+              the shipped UI; needs a real endpoint before it can be wired.
+            */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6 mt-6">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-bold text-gray-900">Zoned Prices</h2>

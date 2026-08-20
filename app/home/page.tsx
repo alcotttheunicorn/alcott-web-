@@ -1,17 +1,17 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
-import { getBalance } from '@/lib/api/wallet-api'
-import { getTransactions } from '@/lib/api/wallet-api'
-import { getProfile } from '@/lib/api/profile-api'
-import type { ProfileData, Transaction } from '@/lib/api/types'
+import { useProfile } from '@/hooks/use-profile'
+import { getBalance, getTransactions } from '@/lib/api/wallet-api'
 
 export default function HomePage() {
   const { token } = useAuth()
+  const { profile } = useProfile()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
@@ -25,9 +25,11 @@ export default function HomePage() {
     '06/07/2024',
     '07/07/2024'
   ])
-  const [balance, setBalance] = useState<number | null>(null)
-  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
-  const [profile, setProfile] = useState<ProfileData | null>(null)
+  // Starts neutral rather than computing from Date() during render — this is
+  // a 'use client' component but still gets server-rendered first, and the
+  // server's clock/timezone won't match the visitor's, so computing the real
+  // greeting has to happen client-side only (in the effect below) to avoid a
+  // hydration mismatch.
   const [greeting, setGreeting] = useState('Hello')
   const searchRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -39,15 +41,17 @@ export default function HomePage() {
     else setGreeting('Good Evening')
   }, [])
 
-  useEffect(() => {
-    if (!token) return
-    getBalance(token).then((res) => setBalance(res.data.balance)).catch(() => {})
-    getTransactions(token, 1, 4).then((res) => {
-      const txns = res.data?.transactions ?? []
-      setRecentTransactions(txns)
-    }).catch(() => {})
-    getProfile(token).then((res) => setProfile(res.data)).catch(() => {})
-  }, [token])
+  const { data: balance } = useQuery({
+    queryKey: ['wallet-balance', token],
+    queryFn: () => getBalance().then((res) => res.data.balance),
+    enabled: !!token,
+  })
+
+  const { data: recentTransactions = [] } = useQuery({
+    queryKey: ['wallet-transactions', token, 1, 4],
+    queryFn: () => getTransactions(1, 4).then((res) => res.data?.transactions ?? []),
+    enabled: !!token,
+  })
 
   // Handle clicking outside search dropdown
   useEffect(() => {
@@ -390,7 +394,7 @@ export default function HomePage() {
                 <div>
                   <p className="text-white/90 text-xs sm:text-sm font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Your balance</p>
                   <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    {balance !== null ? `${balance.toLocaleString()}.00NGN` : '---'}
+                    {balance != null ? `${balance.toLocaleString()}.00NGN` : '---'}
                   </h3>
                   <button
                     onClick={handleTopUp}

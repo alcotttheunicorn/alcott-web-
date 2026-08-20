@@ -1,11 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { getZonePricing, upsertZonePricing } from '@/lib/api/pricing-api'
 import type { ZonePricing } from '@/lib/api/types'
 
+// The docs only show slabs as bare `{}` — no sub-schema documented. Assuming
+// from_weight/to_weight/price based on how the original mock UI was already
+// modeling "weight range -> price" rows. Confirm with backend and adjust the
+// three field names below if they don't match.
 interface Slab {
     id: number
     from_weight: string
@@ -37,9 +42,17 @@ function payloadToSlabs(raw: Record<string, unknown>[] | undefined): Slab[] {
 
 export default function PricingZonesPage() {
     const { token } = useAuth()
-    const [zones, setZones] = useState<ZonePricing[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
+    const queryClient = useQueryClient()
+
+    const { data: zones = [], isLoading: loading, error: queryError } = useQuery({
+        queryKey: ['pricing-zones', token],
+        queryFn: () => getZonePricing().then((res) => (Array.isArray(res.data) ? res.data : [])),
+        enabled: !!token,
+    })
+
+    const error = queryError
+        ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load zones.')
+        : ''
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingZoneCode, setEditingZoneCode] = useState<number | null>(null)
@@ -49,23 +62,7 @@ export default function PricingZonesPage() {
     const [activeTab, setActiveTab] = useState<'import' | 'export'>('import')
     const [importSlabs, setImportSlabs] = useState<Slab[]>([emptySlab()])
     const [exportSlabs, setExportSlabs] = useState<Slab[]>([emptySlab()])
-    const [saving, setSaving] = useState(false)
     const [formError, setFormError] = useState('')
-
-    const loadZones = () => {
-        if (!token) return
-        setLoading(true)
-        setError('')
-        getZonePricing(token)
-            .then((res) => setZones(Array.isArray(res.data) ? res.data : []))
-            .catch((err) => {
-                setZones([])
-                setError(err?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load zones.')
-            })
-            .finally(() => setLoading(false))
-    }
-
-    useEffect(loadZones, [token])
 
     const openCreateModal = () => {
         setEditingZoneCode(null)
@@ -102,35 +99,39 @@ export default function PricingZonesPage() {
         setCurrentSlabs(currentSlabs.filter((entry) => entry.id !== id))
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!token) return
-        if (!zoneCode.trim()) {
-            setFormError('Zone code is required.')
-            return
-        }
-
-        setSaving(true)
-        setFormError('')
-        try {
-            await upsertZonePricing(token, {
+    const mutation = useMutation({
+        mutationFn: () =>
+            upsertZonePricing({
                 zone_code: Number(zoneCode),
                 base_country_code: baseCountry,
                 destination_country_codes: destinations.split(',').map((s) => s.trim()).filter(Boolean),
                 import_slabs: slabsToPayload(importSlabs),
                 export_slabs: slabsToPayload(exportSlabs),
-            })
+            }),
+        onSuccess: () => {
             setIsModalOpen(false)
-            loadZones()
-        } catch (err: any) {
-            setFormError(
-                err?.response?.data?.message ||
-                (err?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not save zone.')
-            )
-        } finally {
-            setSaving(false)
+            queryClient.invalidateQueries({ queryKey: ['pricing-zones'] })
+        },
+    })
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!zoneCode.trim()) {
+            setFormError('Zone code is required.')
+            return
         }
+        setFormError('')
+        mutation.mutate(undefined, {
+            onError: (err: any) => {
+                setFormError(
+                    err?.response?.data?.message ||
+                    (err?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not save zone.')
+                )
+            },
+        })
     }
+
+    const saving = mutation.isPending
 
     return (
         <div className="p-4 lg:p-6 w-full overflow-x-hidden">
@@ -334,7 +335,9 @@ export default function PricingZonesPage() {
                                     </button>
                                 </div>
 
-                               
+                                {/* Price Entries Table — both import and export slabs are kept in state
+                                    simultaneously; the tab only controls which table is visible so
+                                    switching tabs doesn't lose the other one's entries. */}
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead>

@@ -7,11 +7,6 @@ import type {
   ShipmentCreateResult,
 } from './types'
 
-function authHeader(token: string) {
-  const t = token.trim()
-  return t.startsWith('Bearer ') ? t : `Bearer ${t}`
-}
-
 export interface CreateShipmentRequest {
   payment_method: 'WALLET' | 'CARD'
   price: number
@@ -34,60 +29,40 @@ export interface CreateShipmentRequest {
 
 export async function createShipment(
   payload: CreateShipmentRequest,
-  token: string,
 ): Promise<ApiResponse<ShipmentCreateResult>> {
-  const { data } = await apiClient.post('/shipments', payload, {
-    headers: { Authorization: authHeader(token) },
-  })
+  const { data } = await apiClient.post('/shipments', payload)
   return data
 }
 
 export async function getShipments(
-  token: string,
   params?: { status?: string; page?: number; limit?: number },
 ): Promise<PaginatedResponse<ShipmentData[]>> {
-  const { data } = await apiClient.get('/shipments', {
-    headers: { Authorization: authHeader(token) },
-    params,
-  })
+  const { data } = await apiClient.get('/shipments', { params })
   return data
 }
 
 export async function getShipmentById(
-  token: string,
   id: string,
 ): Promise<ApiResponse<ShipmentData>> {
-  const { data } = await apiClient.get(`/shipments/${id}`, {
-    headers: { Authorization: authHeader(token) },
-  })
+  const { data } = await apiClient.get(`/shipments/${id}`)
   return data
 }
 
 export async function getShipmentByTrackingId(
-  token: string,
   trackingId: string,
 ): Promise<ApiResponse<ShipmentData>> {
-  const { data } = await apiClient.get(`/shipments/tracking/${trackingId}`, {
-    headers: { Authorization: authHeader(token) },
-  })
+  const { data } = await apiClient.get(`/shipments/tracking/${trackingId}`)
   return data
 }
 
-export async function getCategories(
-  token: string,
-): Promise<ApiResponse<string[]>> {
-  const { data } = await apiClient.get('/shipments/categories/list', {
-    headers: { Authorization: authHeader(token) },
-  })
+export async function getCategories(): Promise<ApiResponse<string[]>> {
+  const { data } = await apiClient.get('/shipments/categories/list')
   return data
 }
 
 export async function verifyPayment(
-  token: string,
   reference: string,
 ): Promise<MessageResponse> {
-  const { data } = await apiClient.post('/shipments/verify-payment', { reference }, {
-    headers: { Authorization: authHeader(token) },
-  })
+  const { data } = await apiClient.post('/shipments/verify-payment', { reference })
   return data
 }

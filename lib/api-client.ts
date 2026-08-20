@@ -1,8 +1,18 @@
 import axios from "axios";
+import { getToken } from "./auth-store";
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  withCredentials: true, // important if using cookies
+});
+
+
+apiClient.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+  }
+  return config;
 });
 
 apiClient.interceptors.response.use(

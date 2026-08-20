@@ -111,6 +111,7 @@ export default function SignInPage() {
                   </svg>
                   <Input
                     type="email"
+                    autoComplete="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -134,6 +135,7 @@ export default function SignInPage() {
                   </svg>
                   <Input
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

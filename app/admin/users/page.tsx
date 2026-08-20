@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { getAdminUsers, type AdminUser } from '@/lib/api/admin-api'
@@ -12,7 +13,9 @@ function displayName(user: AdminUser) {
     return name || user.email
 }
 
-
+// Still hardcoded — there's no endpoint for "new users this month" specifically.
+// Left in place rather than deleted since it was already part of the shipped UI;
+// needs a real /admin/users?created_after= filter or equivalent before it can be wired.
 const mockNewUsers = [
     { id: '1', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
     { id: '2', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
@@ -26,46 +29,38 @@ export default function UsersPage() {
     const [searchValue, setSearchValue] = useState('')
     const [selectedReportYear, setSelectedReportYear] = useState('last_year')
     const [currentPage, setCurrentPage] = useState(1)
-    const [users, setUsers] = useState<AdminUser[]>([])
-    const [totalPages, setTotalPages] = useState(1)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
 
+    const { data, isLoading: queryLoading, error: queryError } = useQuery({
+        queryKey: ['admin-users', token, currentPage],
+        queryFn: () => getAdminUsers({ page: currentPage, limit: PAGE_SIZE }),
+        enabled: !authLoading && !!token,
+    })
+
+    const users = data && Array.isArray(data.data) ? data.data : []
+    const totalPages = data?.totalPages || 1
+    // authLoading itself counts as "loading" so the page shows a spinner
+    // instead of flashing the "not signed in" error during the brief window
+    // before useAuth resolves.
+    const loading = authLoading || queryLoading
+    const error = authLoading
+        ? ''
+        : !token
+            ? 'You need to be signed in as an admin to view users.'
+            : queryError
+                ? ((queryError as any)?.response?.status === 403
+                    ? "You don't have admin access to view users."
+                    : (queryError as any)?.response?.status === 401
+                        ? 'Your session has expired — please sign in again.'
+                        : 'Could not load users.')
+                : ''
+
+    // Auto-select the first user once the list loads, without stomping a
+    // selection the admin already made by clicking a row.
     useEffect(() => {
-      
-        if (authLoading) return
-
-        if (!token) {
-            
-            setError('You need to be signed in as an admin to view users.')
-            setLoading(false)
-            return
-        }
-
-        setLoading(true)
-        setError('')
-        getAdminUsers(token, { page: currentPage, limit: PAGE_SIZE })
-            .then((res) => {
-                const list = Array.isArray(res.data) ? res.data : []
-                setUsers(list)
-                setTotalPages(res.totalPages || 1)
-                if (!selectedUser && list.length > 0) setSelectedUser(list[0])
-            })
-            .catch((err) => {
-                setUsers([])
-                console.error('getAdminUsers failed:', err?.response?.data ?? err)
-                setError(
-                    err?.response?.status === 403
-                        ? "You don't have admin access to view users."
-                        : err?.response?.status === 401
-                            ? 'Your session has expired — please sign in again.'
-                            : 'Could not load users.'
-                )
-            })
-            .finally(() => setLoading(false))
+        if (!selectedUser && users.length > 0) setSelectedUser(users[0])
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, authLoading, currentPage])
+    }, [users])
 
     // The /admin/users endpoint only documents page/limit params — no name/email
     // search filter. This filters within the current page only; it will not

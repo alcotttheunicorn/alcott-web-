@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
 import { getShipmentById } from '@/lib/api/shipment-api'
-import type { ShipmentData } from '@/lib/api/types'
 
 const STATUS_STYLES: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -26,21 +25,17 @@ function OrderDetailContent() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { token } = useAuth()
-  const [shipment, setShipment] = useState<ShipmentData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!token || !id) return
-    setLoading(true)
-    setError('')
-    getShipmentById(token, id)
-      .then((res) => setShipment(res.data))
-      .catch((err) => {
-        setError(err?.response?.status === 404 ? 'Order not found.' : 'Could not load this order.')
-      })
-      .finally(() => setLoading(false))
-  }, [token, id])
+  const { data: shipment, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['shipment', token, id],
+    queryFn: () => getShipmentById(id).then((res) => res.data),
+    enabled: !!token && !!id,
+    retry: false,
+  })
+
+  const error = queryError
+    ? ((queryError as any)?.response?.status === 404 ? 'Order not found.' : 'Could not load this order.')
+    : ''
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
