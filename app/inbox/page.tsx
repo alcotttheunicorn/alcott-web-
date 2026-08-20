@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useProfile } from '@/hooks/use-profile'
+import { AuthGuard } from '@/components/auth-guard'
 
-
-export default function InboxPage() {
+function InboxContent() {
   const { displayName } = useProfile()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -383,5 +384,13 @@ export default function InboxPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function InboxPage() {
+  return (
+    <AuthGuard>
+      <InboxContent />
+    </AuthGuard>
   )
 }

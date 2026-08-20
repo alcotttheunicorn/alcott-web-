@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
 import { useProfile } from '@/hooks/use-profile'
+import { AuthGuard } from '@/components/auth-guard'
 
 type FAQCategory = 'general' | 'account' | 'shipping' | 'cost'
 
@@ -15,7 +16,7 @@ interface FAQItem {
   category: FAQCategory
 }
 
-export default function HelpCenterPage() {
+function HelpCenterContent() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'faq' | 'contact'>('faq')
   const [activeCategory, setActiveCategory] = useState<FAQCategory>('general')
@@ -625,5 +626,14 @@ function MobileBottomNav() {
         <BottomNavLink href="/settings" label="Settings" icon={SettingsIcon} />
       </nav>
     </div>
+  )
+}
+
+
+export default function HelpCenterPage() {
+  return (
+    <AuthGuard>
+      <HelpCenterContent />
+    </AuthGuard>
   )
 }

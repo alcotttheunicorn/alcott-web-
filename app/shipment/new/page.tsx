@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { createShipment, getCategories, type CreateShipmentRequest } from '@/lib/api/shipment-api'
 import { getBalance } from '@/lib/api/wallet-api'
 import { useAuth } from '@/hooks/use-auth'
+import { AuthGuard } from '@/components/auth-guard'
 import { useProfile } from '@/hooks/use-profile'
 import { toast } from '@/components/ui/use-toast'
 import { Stepper } from '@/components/shipment/Stepper'
@@ -73,7 +74,7 @@ const initialPayment: ShipmentPaymentSelection = {
   method: 'wallet',
 }
 
-export default function NewShipmentPage() {
+function NewShipmentContent() {
   const router = useRouter()
   const { token } = useAuth()
 
@@ -1082,5 +1083,12 @@ function DimensionInput({
       }
       suffixClassName="pr-1 text-gray-900"
     />
+  )
+}
+export default function NewShipmentPage() {
+  return (
+    <AuthGuard>
+      <NewShipmentContent />
+    </AuthGuard>
   )
 }

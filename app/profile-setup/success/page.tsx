@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { SuccessCard } from '@/components/ui/success-card'
+import { AuthGuard } from '@/components/auth-guard'
 
-export default function SuccessPage() {
+function SuccessContent() {
   const [showCard, setShowCard] = useState(false)
 
   useEffect(() => {
@@ -33,5 +34,13 @@ export default function SuccessPage() {
         />
       </div>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <AuthGuard>
+      <SuccessContent />
+    </AuthGuard>
   )
 }

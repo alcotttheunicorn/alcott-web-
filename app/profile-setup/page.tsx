@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
+import { AuthGuard } from '@/components/auth-guard'
 import { getProfile, setupProfile, updateProfile } from '@/lib/api/profile-api'
 import { toast } from '@/components/ui/use-toast'
 
@@ -19,7 +20,7 @@ function toDateInputValue(dob?: string) {
   return parsed.toISOString().slice(0, 10)
 }
 
-export default function ProfileSetupPage() {
+function ProfileSetupContent() {
   const { token, user, isLoading: authLoading } = useAuth()
   const queryClient = useQueryClient()
   const [formData, setFormData] = useState({
@@ -319,5 +320,12 @@ export default function ProfileSetupPage() {
         </div>
       </div>
     </div>
+  )
+}
+export default function ProfileSetupPage() {
+  return (
+    <AuthGuard>
+      <ProfileSetupContent />
+    </AuthGuard>
   )
 }

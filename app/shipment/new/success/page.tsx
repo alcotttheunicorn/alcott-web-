@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
+import { AuthGuard } from '@/components/auth-guard'
 import { verifyPayment } from '@/lib/api/shipment-api'
 import type { ShipmentData } from '@/lib/api/types'
 
@@ -123,12 +124,14 @@ function SuccessContent() {
 
 export default function ShipmentSuccessPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#F8F9FC] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
-      </div>
-    }>
-      <SuccessContent />
-    </Suspense>
+    <AuthGuard>
+      <Suspense fallback={
+        <div className="min-h-screen bg-[#F8F9FC] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
+        </div>
+      }>
+        <SuccessContent />
+      </Suspense>
+    </AuthGuard>
   )
 }

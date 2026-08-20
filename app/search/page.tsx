@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
+import { AuthGuard } from '@/components/auth-guard'
 import { useProfile } from '@/hooks/use-profile'
 import { getShipmentByTrackingId } from '@/lib/api/shipment-api'
 import type { ShipmentData } from '@/lib/api/types'
@@ -332,12 +333,14 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]"></div>
-      </div>
-    }>
-      <SearchContent />
-    </Suspense>
+    <AuthGuard>
+      <Suspense fallback={
+        <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]"></div>
+        </div>
+      }>
+        <SearchContent />
+      </Suspense>
+    </AuthGuard>
   )
 }

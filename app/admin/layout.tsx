@@ -1,10 +1,10 @@
 'use client'
 
-import { useProfile } from '@/hooks/use-profile'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-
+import { useProfile } from '@/hooks/use-profile'
+import { RoleGuard } from '@/components/role-guard'
 
 const sidebarLinks = [
     { href: '/admin/orders', label: 'Orders', icon: 'orders' },
@@ -98,6 +98,14 @@ function SidebarIcon({ type }: { type: string }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <RoleGuard>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </RoleGuard>
+    )
+}
+
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
     const { displayName } = useProfile()
     const [settingsOpen, setSettingsOpen] = useState(false)
