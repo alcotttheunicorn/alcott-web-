@@ -11,9 +11,8 @@ import {
   getRegionPricing,
   upsertPremisePricing,
   importPricingConfig,
-  type ZonePricing,
-  type PremisePricing,
 } from '@/lib/api/pricing-api'
+import type { ZonePricing, PremisePricing } from '@/lib/api/types'
 import { queryKeys } from '@/components/providers/query-provider'
 
 export function useCheckPricing() {

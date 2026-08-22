@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 import type { PricingResult } from '@/lib/api/types'
 
 interface CheckRatesSectionProps {
@@ -47,13 +48,13 @@ export function CheckRatesSection({
                                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                                         </svg>
                                     </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Pick up address"
-                                        className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
-                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                    <LocationAutocompleteInput
                                         value={pickupAddress}
-                                        onChange={(e) => onPickupChange(e.target.value)}
+                                        onChange={onPickupChange}
+                                        placeholder="Pick up address"
+                                        containerClassName="flex-1"
+                                        className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
+                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
                                     />
                                     <div className="w-6 h-6 bg-[#4043FF] rounded-full flex items-center justify-center shrink-0">
                                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -70,13 +71,13 @@ export function CheckRatesSection({
                                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                                         </svg>
                                     </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Delivery address"
-                                        className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
-                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                    <LocationAutocompleteInput
                                         value={deliveryAddress}
-                                        onChange={(e) => onDeliveryChange(e.target.value)}
+                                        onChange={onDeliveryChange}
+                                        placeholder="Delivery address"
+                                        containerClassName="flex-1"
+                                        className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
+                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
                                     />
                                     <div className="w-6 h-6 bg-[#4043FF] rounded-full flex items-center justify-center shrink-0">
                                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
