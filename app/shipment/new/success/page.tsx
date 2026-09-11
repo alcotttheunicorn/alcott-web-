@@ -13,7 +13,10 @@ function loadLastCreatedShipment(): ShipmentData | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = window.sessionStorage.getItem('lastCreatedShipment')
-    return raw ? JSON.parse(raw) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    // POST /shipments returns { data: { shipment, quote } }, so unwrap `.shipment`.
+    return parsed?.shipment ?? parsed ?? null
   } catch {
     return null
   }

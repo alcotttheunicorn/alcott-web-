@@ -14,6 +14,7 @@ import type { PricingResult } from '@/lib/api/types'
 
 export default function CheckRatesPage() {
   const { token } = useAuth()
+  const { profile } = useProfile()
   const router = useRouter()
   const [pickupLocation, setPickupLocation] = useState('')
   const [destination, setDestination] = useState('')
@@ -66,7 +67,13 @@ export default function CheckRatesPage() {
 
   const checkRatesMutation = useMutation({
     mutationFn: (weightInKg: number) =>
-      checkPricingAuth(pickupLocation.trim(), destination.trim(), weightInKg),
+      checkPricingAuth(
+        pickupLocation.trim(),
+        destination.trim(),
+        weightInKg,
+        profile?.email,
+        profile?.phone_number,
+      ),
   })
   const isLoading = checkRatesMutation.isPending
 

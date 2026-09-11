@@ -1,12 +1,10 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { AuthGuard } from '@/components/auth-guard'
 import { OrderDetailSkeleton } from '@/components/shared/skeletons'
-import { useAuth } from '@/hooks/use-auth'
-import { getShipmentById } from '@/lib/api/shipment-api'
+import { useShipmentById, usePayShipment } from '@/hooks/use-shipments'
 
 const STATUS_STYLES: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -25,18 +23,20 @@ export default function OrderDetailPage() {
 function OrderDetailContent() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { token } = useAuth()
-
-  const { data: shipment, isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['shipment', token, id],
-    queryFn: () => getShipmentById(id).then((res) => res.data),
-    enabled: !!token && !!id,
-    retry: false,
-  })
+  const { data: shipment, isLoading: loading, error: queryError } = useShipmentById(id)
+  const payMutation = usePayShipment()
 
   const error = queryError
     ? ((queryError as any)?.response?.status === 404 ? 'Order not found.' : 'Could not load this order.')
     : ''
+
+  const handlePay = () => {
+    if (!id) return
+    payMutation.mutate({
+      id,
+      payload: { payment_method: 'WALLET', currency: 'NGN' },
+    })
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -115,6 +115,17 @@ function OrderDetailContent() {
                 )}
               </dl>
             </div>
+
+            {shipment.status === 'UNPAID' && (
+              <button
+                type="button"
+                onClick={handlePay}
+                disabled={payMutation.isPending}
+                className="w-full rounded-xl bg-[#4043FF] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {payMutation.isPending ? 'Processing payment...' : 'Pay shipment'}
+              </button>
+            )}
           </div>
         ) : null}
       </main>

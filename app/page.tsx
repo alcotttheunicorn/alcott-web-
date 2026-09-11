@@ -17,10 +17,16 @@ import { checkPricing } from '@/lib/api/pricing-api'
 import type { PricingResult } from '@/lib/api/types'
 import { toast } from '@/components/ui/use-toast'
 
+function formatPricingAmount(amount: number, currency: string) {
+  return `${currency === 'USD' ? '$' : '₦'}${amount.toLocaleString()}`
+}
+
 export default function HomePage() {
   const [pickupAddress, setPickupAddress] = useState('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [weight, setWeight] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [email, setEmail] = useState('')
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
   const [isCheckingRates, setIsCheckingRates] = useState(false)
 
@@ -38,7 +44,13 @@ export default function HomePage() {
 
     setIsCheckingRates(true)
     try {
-      const res = await checkPricing(pickupAddress.trim(), deliveryAddress.trim(), weightValue)
+      const res = await checkPricing(
+        pickupAddress.trim(),
+        deliveryAddress.trim(),
+        weightValue,
+        email.trim() || undefined,
+        phoneNumber.trim() || undefined,
+      )
       setPricingResult(res.data)
     } catch {
       toast({ title: 'Could not fetch rates', description: 'Please try again later.' })
@@ -448,6 +460,8 @@ export default function HomePage() {
                       placeholder="+234 906 000 7571"
                       className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium font-[Urbanist]"
                       style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
                     />
                   </div>
                 </div>
@@ -466,6 +480,8 @@ export default function HomePage() {
                       placeholder="info@alcott.com.ng"
                       className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium font-[Urbanist]"
                       style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                 </div>
@@ -484,9 +500,20 @@ export default function HomePage() {
                     <p className="text-sm text-gray-500 mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                       {pricingResult.pricing_type}
                     </p>
-                    <p className="text-xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                      ₦{pricingResult.total_price.toLocaleString()}
-                    </p>
+                    {pricingResult.price ? (
+                      <p className="text-xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        {formatPricingAmount(pricingResult.price.amount, pricingResult.price.currency)}
+                      </p>
+                    ) : (
+                      <div className="space-y-1 text-sm font-semibold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        {pricingResult.export_price && (
+                          <p>Export: {formatPricingAmount(pricingResult.export_price.amount, pricingResult.export_price.currency)}</p>
+                        )}
+                        {pricingResult.import_price && (
+                          <p>Import: {formatPricingAmount(pricingResult.import_price.amount, pricingResult.import_price.currency)}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

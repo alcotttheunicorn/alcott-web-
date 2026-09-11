@@ -22,13 +22,18 @@ export const queryKeys = {
   admin: {
     users: ['admin', 'users'] as const,
     shipments: ['admin', 'shipments'] as const,
+    shipmentDetail: (id: string) => ['admin', 'shipments', id] as const,
+    shipmentEvents: (id: string) => ['admin', 'shipments', id, 'events'] as const,
+    events: ['admin', 'events'] as const,
     activityLogs: ['admin', 'activity-logs'] as const,
+    rateChecks: ['admin', 'rate-checks'] as const,
   },
   pricing: {
     overview: ['pricing', 'admin', 'overview'] as const,
     zones: ['pricing', 'admin', 'zones'] as const,
     regions: ['pricing', 'admin', 'regions'] as const,
     premise: ['pricing', 'admin', 'premise'] as const,
+    exchangeRate: ['pricing', 'exchange-rate'] as const,
   },
 } as const
 

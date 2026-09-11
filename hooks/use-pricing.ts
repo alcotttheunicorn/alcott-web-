@@ -2,14 +2,21 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from './use-auth'
+import { isAdmin } from '@/lib/rbac'
 import {
   checkPricing,
   checkPricingAuth,
   getPricingOverview,
   getZonePricing,
-  upsertZonePricing,
+  createZonePricing,
+  replaceZonePricing,
+  updateZonePricing,
   getRegionPricing,
+  createRegionPricing,
+  updateRegionPricing,
+  getPremisePricing,
   upsertPremisePricing,
+  updateExchangeRate,
   importPricingConfig,
 } from '@/lib/api/pricing-api'
 import type { ZonePricing, PremisePricing } from '@/lib/api/types'
@@ -21,11 +28,15 @@ export function useCheckPricing() {
       sender_address,
       receiver_address,
       weight,
+      sender_email,
+      sender_phone_number,
     }: {
       sender_address: string
       receiver_address: string
       weight: number
-    }) => checkPricing(sender_address, receiver_address, weight),
+      sender_email?: string
+      sender_phone_number?: string
+    }) => checkPricing(sender_address, receiver_address, weight, sender_email, sender_phone_number),
   })
 }
 
@@ -37,40 +48,71 @@ export function useCheckPricingAuth() {
       sender_address,
       receiver_address,
       weight,
+      sender_email,
+      sender_phone_number,
     }: {
       sender_address: string
       receiver_address: string
       weight: number
-    }) => checkPricingAuth(sender_address, receiver_address, weight),
+      sender_email?: string
+      sender_phone_number?: string
+    }) => checkPricingAuth(sender_address, receiver_address, weight, sender_email, sender_phone_number),
     retry: false,
   })
 }
 
 export function usePricingOverview() {
-  const { isAuthenticated, isAdmin } = useAuth()
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
 
   return useQuery({
     queryKey: queryKeys.pricing.overview,
     queryFn: () => getPricingOverview().then((res) => res.data),
-    enabled: isAuthenticated && isAdmin,
+    enabled: isAuthenticated && hasAdminAccess,
   })
 }
 
 export function useZonePricing() {
-  const { isAuthenticated, isAdmin } = useAuth()
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
 
   return useQuery({
     queryKey: queryKeys.pricing.zones,
     queryFn: () => getZonePricing().then((res) => res.data),
-    enabled: isAuthenticated && isAdmin,
+    enabled: isAuthenticated && hasAdminAccess,
   })
 }
 
-export function useUpsertZonePricing() {
+export function useCreateZonePricing() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (zone: ZonePricing) => upsertZonePricing(zone),
+    mutationFn: (zone: ZonePricing) => createZonePricing(zone),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.zones })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.overview })
+    },
+  })
+}
+
+export function useReplaceZonePricing() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (zone: ZonePricing) => replaceZonePricing(zone),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.zones })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.overview })
+    },
+  })
+}
+
+export function useUpdateZonePricing() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ code, zone }: { code: number; zone: Omit<ZonePricing, 'zone_code'> }) =>
+      updateZonePricing(code, zone),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.zones })
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.overview })
@@ -79,12 +121,49 @@ export function useUpsertZonePricing() {
 }
 
 export function useRegionPricing() {
-  const { isAuthenticated, isAdmin } = useAuth()
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
 
   return useQuery({
     queryKey: queryKeys.pricing.regions,
     queryFn: () => getRegionPricing().then((res) => res.data),
-    enabled: isAuthenticated && isAdmin,
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function usePremisePricing() {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: queryKeys.pricing.premise,
+    queryFn: () => getPremisePricing().then((res) => res.data),
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function useCreateRegionPricing() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ name, states }: { name: string; states?: string[] }) =>
+      createRegionPricing({ name, states }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.regions })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.overview })
+    },
+  })
+}
+
+export function useUpdateExchangeRate() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (ngn_per_usd: number) => updateExchangeRate(ngn_per_usd),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.overview })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.exchangeRate })
+    },
   })
 }
 
@@ -110,6 +189,19 @@ export function useImportPricingConfig() {
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.zones })
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.regions })
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.premise })
+    },
+  })
+}
+
+export function useUpdateRegionPricing() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, name, states }: { id: string; name: string; states: string[] }) =>
+      updateRegionPricing(id, { name, states }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.regions })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.overview })
     },
   })
 }

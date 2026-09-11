@@ -14,7 +14,10 @@ export default function ForgotPasswordPage() {
   const handleContinue = () => {
     if (selectedMethod) {
       // Navigate to OTP verification page
-        window.location.href = '/forgot-password/verify'
+      window.location.href = '/forgot-password/verify'
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}

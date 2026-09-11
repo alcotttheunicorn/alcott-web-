@@ -38,17 +38,19 @@ export default function OTPVerificationPage() {
     }
   }
 
+  const handleResendCode = () => {
+    console.log('Resending code...')
+    setResendTimer(65)
+    setOtp(['', '', '', ''])
+    inputRefs.current[0]?.focus()
+  }
+
   const handleContinue = () => {
     const otpCode = otp.join('')
     if (otpCode.length === 4) {
       // Verify OTP and proceed to create new password
       console.log('OTP:', otpCode)
-        window.location.href = '/forgot-password/new-password'
-      // Resend code logic
-      console.log('Resending code...')
-      setResendTimer(65)
-      setOtp(['', '', '', ''])
-      inputRefs.current[0]?.focus()
+      window.location.href = '/forgot-password/new-password'
     }
   }
 
@@ -95,7 +97,9 @@ export default function OTPVerificationPage() {
                 {otp.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => {
+                      inputRefs.current[index] = el
+                    }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}

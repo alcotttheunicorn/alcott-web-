@@ -50,7 +50,7 @@ export default function ProfileSetupPage() {
             ...prev,
             email: parsed.email || prev.email,
             firstName: prev.firstName || parsed.first_name || '',
-            lastName: prev.last_name || prev.lastName || ''
+            lastName: prev.lastName || parsed.last_name || ''
           }))
         } catch (error) {
           console.error('Failed to parse stored user', error)

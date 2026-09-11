@@ -158,6 +158,9 @@ export interface ZonePricing {
 }
 
 export interface RegionPricing {
+  id?: string
+  name?: string
+  states?: string[]
   [key: string]: unknown
 }
 
@@ -169,7 +172,13 @@ export interface PremisePricing {
   [key: string]: unknown
 }
 
+export interface ShipmentQuote {
+  pricing_type?: string
+  price_ngn?: number
+  currency?: string
+}
+
 export interface ShipmentCreateResult {
   shipment: ShipmentData
-  payment_url?: string | null
+  quote?: ShipmentQuote
 }

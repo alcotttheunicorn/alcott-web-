@@ -8,8 +8,6 @@ import type {
 } from './types'
 
 export interface CreateShipmentRequest {
-  payment_method: 'WALLET' | 'CARD'
-  price: number
   sender_name: string
   sender_phone_number: string
   sender_email: string
@@ -31,6 +29,29 @@ export async function createShipment(
   payload: CreateShipmentRequest,
 ): Promise<ApiResponse<ShipmentCreateResult>> {
   const { data } = await apiClient.post('/shipments', payload)
+  return data
+}
+
+export interface PayShipmentRequest {
+  payment_method: 'WALLET' | 'CARD'
+  currency: 'NGN' | 'USD'
+}
+
+export async function payShipment(
+  id: string,
+  payload: PayShipmentRequest,
+): Promise<ApiResponse<Record<string, unknown>>> {
+  const { data } = await apiClient.post(`/shipments/${id}/pay`, payload)
+  return data
+}
+
+export type UpdateShipmentRequest = Partial<Omit<CreateShipmentRequest, 'payment_method' | 'currency'>>
+
+export async function updateShipment(
+  id: string,
+  payload: UpdateShipmentRequest,
+): Promise<ApiResponse<ShipmentCreateResult>> {
+  const { data } = await apiClient.patch(`/shipments/${id}`, payload)
   return data
 }
 

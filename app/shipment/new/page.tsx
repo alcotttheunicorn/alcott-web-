@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { createShipment, getCategories, type CreateShipmentRequest } from '@/lib/api/shipment-api'
 import { getBalance } from '@/lib/api/wallet-api'
 import { useAuth } from '@/hooks/use-auth'
+import { useProfile } from '@/hooks/use-profile'
 import { toast } from '@/components/ui/use-toast'
 import { Stepper } from '@/components/shipment/Stepper'
 import { FormSection } from '@/components/shipment/FormSection'
@@ -74,6 +75,7 @@ const initialPayment: ShipmentPaymentSelection = {
 export default function NewShipmentPage() {
   const router = useRouter()
   const { token } = useAuth()
+  const { displayName } = useProfile()
   const [categories, setCategories] = useState<string[]>([])
   const [walletBalance, setWalletBalance] = useState<number | null>(null)
 
@@ -154,10 +156,10 @@ export default function NewShipmentPage() {
 
   useEffect(() => {
     if (!token) return
-    getCategories(token).then((res) => {
+    getCategories().then((res) => {
       if (Array.isArray(res.data)) setCategories(res.data)
     }).catch(() => {})
-    getBalance(token).then((res) => {
+    getBalance().then((res) => {
       if (res.data?.balance != null) setWalletBalance(res.data.balance)
     }).catch(() => {})
   }, [token])
@@ -195,21 +197,7 @@ export default function NewShipmentPage() {
   const handleConfirmShipment = async () => {
     if (typeof window === 'undefined') return
 
-    const authToken =
-      window.localStorage.getItem('authToken') ?? window.sessionStorage.getItem('authToken') ?? ''
-
-    if (!authToken) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in again to create a shipment.',
-      })
-      router.push('/sign-in')
-      return
-    }
-
-    const formattedToken = authToken.trim()
-
-    if (!formattedToken) {
+    if (!token) {
       toast({
         title: 'Authentication required',
         description: 'Please sign in again to create a shipment.',
@@ -229,8 +217,6 @@ export default function NewShipmentPage() {
     const heightInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.height) * 2.54 : toNumber(pkg.height)
 
     const payload: CreateShipmentRequest = {
-      payment_method: payment.method.toUpperCase() as 'WALLET' | 'CARD',
-      price: shippingSelection.price,
       sender_name: sender.name.trim(),
       sender_phone_number: ensureIntlPhone(sender.phone, '+234'),
       sender_email: sender.email.trim(),
@@ -250,7 +236,7 @@ export default function NewShipmentPage() {
 
     try {
       setIsSubmitting(true)
-      const response = await createShipment(payload, formattedToken)
+      const response = await createShipment(payload)
       toast({
         title: 'Shipment created',
         description: 'Your shipment has been created successfully.',
@@ -442,6 +428,8 @@ function Header({
   onRecentClick: (search: string) => void
   onClearRecent: () => void
 }) {
+  const { displayName } = useProfile()
+
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
       <div className="flex items-center justify-between">
@@ -512,7 +500,7 @@ function Header({
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gray-300" />
-            <div className="hidden md:block text-sm font-semibold text-gray-900">Olusegun Matanmi</div>
+            <div className="hidden md:block text-sm font-semibold text-gray-900">{displayName ?? 'Guest'}</div>
             <svg className="hidden md:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>

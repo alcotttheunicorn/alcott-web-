@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/hooks/use-auth'
+import { useAdminRateChecks, type RateCheck } from '@/hooks/use-admin'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 interface RateEntry {
     id: string
@@ -16,45 +17,6 @@ interface RateEntry {
     currency: string
     weight: string
 }
-
-const mockRateEntries: RateEntry[] = [
-    {
-        id: '1',
-        time: '06: 10 am',
-        date: '22-08-25',
-        from: '2001 Ed Bluestein Blvd Austin T78721 USA',
-        to: '35 Enoma St. Ilasamaja, Lagos 102214, Lagos, Nigeria',
-        email: 'freviaspieces@amail.com',
-        phone: '08098031206',
-        price: 170300,
-        currency: 'NGN',
-        weight: '300KG',
-    },
-    {
-        id: '2',
-        time: '06: 10 am',
-        date: '22-08-25',
-        from: '2001 Ed Bluestein Blvd Austin T78721 USA',
-        to: '35 Enoma St. Ilasamaja, Lagos 102214, Lagos, Nigeria',
-        email: 'freviaspieces@amail.com',
-        phone: '08098031206',
-        price: 170300,
-        currency: 'NGN',
-        weight: '300KG',
-    },
-    {
-        id: '3',
-        time: '06: 10 am',
-        date: '22-08-25',
-        from: '2001 Ed Bluestein Blvd Austin T78721 USA',
-        to: '35 Enoma St. Ilasamaja, Lagos 102214, Lagos, Nigeria',
-        email: 'freviaspieces@amail.com',
-        phone: '08098031206',
-        price: 170300,
-        currency: 'NGN',
-        weight: '300KG',
-    },
-]
 
 const MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -71,30 +33,47 @@ function getFirstDayOfMonth(year: number, month: number) {
     return new Date(year, month, 1).getDay()
 }
 
-export default function RatesCheckPage() {
-    const { token } = useAuth()
-    const [currentYear, setCurrentYear] = useState(2025)
-    const [currentMonthIndex, setCurrentMonthIndex] = useState(8) // September = 8
-    const [selectedDay, setSelectedDay] = useState(29)
-    const [calendarOpen, setCalendarOpen] = useState(false)
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
-    const [rateEntries, setRateEntries] = useState<RateEntry[]>(mockRateEntries)
+function toRateEntry(rc: RateCheck): RateEntry {
+    const createdAt = typeof rc.created_at === 'string' ? new Date(rc.created_at) : null
+    const price = typeof rc.price === 'number' ? rc.price : typeof rc.total_price === 'number' ? rc.total_price : 0
+    return {
+        id: typeof rc.id === 'string' || typeof rc.id === 'number' ? String(rc.id) : '',
+        time: createdAt ? createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+        date: createdAt ? createdAt.toLocaleDateString('en-GB') : '',
+        from: typeof rc.sender_address === 'string' ? rc.sender_address : '',
+        to: typeof rc.receiver_address === 'string' ? rc.receiver_address : '',
+        email: typeof rc.sender_email === 'string' ? rc.sender_email : '',
+        phone: typeof rc.sender_phone_number === 'string' ? rc.sender_phone_number : '',
+        price,
+        currency: typeof rc.currency === 'string' ? rc.currency : 'NGN',
+        weight: typeof rc.weight === 'number' ? `${rc.weight} KG` : '',
+    }
+}
 
-    useEffect(() => {
-        if (!token) return
-        setLoading(true)
-        setError('')
-        
-        // TODO: Once backend endpoint is available, replace with:
-        // getAdminRateChecks(token, { year: currentYear, month: currentMonthIndex + 1 })
-        //   .then((res) => setRateEntries(res.data))
-        //   .catch((err) => setError('Could not load rate checks.'))
-        //   .finally(() => setLoading(false))
-        
-        // For now, use mock data
-        setLoading(false)
-    }, [token, currentYear, currentMonthIndex])
+export default function RatesCheckPage() {
+    const now = new Date()
+    const [currentYear, setCurrentYear] = useState(now.getFullYear())
+    const [currentMonthIndex, setCurrentMonthIndex] = useState(now.getMonth())
+    const [selectedDay, setSelectedDay] = useState(now.getDate())
+    const [calendarOpen, setCalendarOpen] = useState(false)
+
+    const { data, isLoading, error: queryError } = useAdminRateChecks({ limit: 100 })
+    const errorMsg = queryError
+        ? ((queryError as any)?.response?.status === 403
+            ? "You don't have admin access to view rate checks."
+            : 'Could not load rate checks.')
+        : ''
+
+    const rateEntries = useMemo(() => {
+        const checks = data?.rateChecks ?? []
+        return checks
+            .filter((rc) => {
+                if (!rc.created_at) return true
+                const d = new Date(rc.created_at)
+                return d.getFullYear() === currentYear && d.getMonth() === currentMonthIndex
+            })
+            .map(toRateEntry)
+    }, [data, currentYear, currentMonthIndex])
 
     const currentMonth = `${MONTHS[currentMonthIndex].toUpperCase()} ${currentYear}`
     const calendarMonth = `${MONTHS[currentMonthIndex]} ${currentYear}`
@@ -252,18 +231,18 @@ export default function RatesCheckPage() {
             </div>
 
             {/* Rate Entries List */}
-            {error ? (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                    <p className="text-sm text-red-600">{error}</p>
-                </div>
-            ) : loading ? (
+            {errorMsg ? (
+                <EmptyState message={errorMsg} />
+            ) : isLoading ? (
                 <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]" />
                 </div>
+            ) : rateEntries.length === 0 ? (
+                <EmptyState message="No rate checks found for this period." />
             ) : (
                 <div className="space-y-6 lg:space-y-8">
                     {rateEntries.map((entry) => (
-                        <div key={entry.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                        <div key={entry.id || `${entry.time}-${entry.email}`} className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                             {/* Left side - Entry details */}
                             <div className="space-y-1 flex-1 min-w-0">
                                 <p className="text-base lg:text-lg font-bold text-gray-900">

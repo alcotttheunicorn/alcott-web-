@@ -1,9 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/hooks/use-auth'
-import { getZonePricing, upsertZonePricing } from '@/lib/api/pricing-api'
+import { useCreateZonePricing, useUpdateZonePricing, useZonePricing } from '@/hooks/use-pricing'
 import type { ZonePricing } from '@/lib/api/types'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ZoneGridSkeleton } from '@/components/shared/skeletons'
@@ -12,14 +10,9 @@ import { ZoneCard } from '@/components/admin/ZoneCard'
 import { PricingZoneModal } from '@/components/admin/PricingZoneModal'
 
 export default function PricingZonesPage() {
-    const { token } = useAuth()
-    const queryClient = useQueryClient()
-
-    const { data: zones = [], isLoading: loading, error: queryError } = useQuery({
-        queryKey: ['pricing-zones', token],
-        queryFn: () => getZonePricing().then((res) => (Array.isArray(res.data) ? res.data : [])),
-        enabled: !!token,
-    })
+    const { data: zones = [], isLoading: loading, error: queryError } = useZonePricing()
+    const createMutation = useCreateZonePricing()
+    const updateMutation = useUpdateZonePricing()
 
     const error = queryError
         ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load zones.')
@@ -29,13 +22,7 @@ export default function PricingZonesPage() {
     const [editingZone, setEditingZone] = useState<ZonePricing | null>(null)
     const [formError, setFormError] = useState('')
 
-    const mutation = useMutation({
-        mutationFn: (data: any) => upsertZonePricing(data),
-        onSuccess: () => {
-            setIsModalOpen(false)
-            queryClient.invalidateQueries({ queryKey: ['pricing-zones'] })
-        },
-    })
+    const saving = createMutation.isPending || updateMutation.isPending
 
     const handleOpenCreate = () => {
         setEditingZone(null)
@@ -51,14 +38,18 @@ export default function PricingZonesPage() {
 
     const handleSave = (data: any) => {
         setFormError('')
-        mutation.mutate(data, {
-            onError: (err: any) => {
-                setFormError(
-                    err?.response?.data?.message ||
-                    (err?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not save zone.')
-                )
-            },
-        })
+        const handleError = (err: any) => setFormError(
+            err?.response?.data?.message ||
+            (err?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not save zone.')
+        )
+
+        if (editingZone?.zone_code == null) {
+            createMutation.mutate(data, { onSuccess: () => setIsModalOpen(false), onError: handleError })
+            return
+        }
+
+        const { zone_code, ...zonePatch } = data
+        updateMutation.mutate({ code: zone_code, zone: zonePatch }, { onSuccess: () => setIsModalOpen(false), onError: handleError })
     }
 
     return (
@@ -94,7 +85,7 @@ export default function PricingZonesPage() {
                 onClose={() => setIsModalOpen(false)}
                 editingZone={editingZone}
                 onSave={handleSave}
-                isSaving={mutation.isPending}
+                isSaving={saving}
                 formError={formError}
             />
         </div>
