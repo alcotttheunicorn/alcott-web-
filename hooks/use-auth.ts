@@ -1,53 +1,47 @@
 'use client'
 
-import { useSyncExternalStore, useCallback, useMemo } from 'react'
-import {
-  subscribe,
-  getSnapshot,
-  getServerSnapshot,
-  setSession,
-  clearSession,
-  refreshFromStorage,
-} from '@/lib/auth-store'
+import { useState, useEffect, useCallback } from 'react'
 import type { AuthUser } from '@/lib/api/types'
-import { isAdmin as isAdminRole, isUser as isUserRole, hasRole as hasRoleFn, hasAnyRole as hasAnyRoleFn } from '@/lib/rbac'
-
-export function saveAuthSession(user: AuthUser, token: string, rememberMe = false) {
-  setSession(user, token, rememberMe)
-}
-
-export function clearAuthSession() {
-  clearSession()
-}
 
 export function useAuth() {
-  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const [token, setToken] = useState<string>('')
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  if (typeof window !== 'undefined' && !state.hydrated) {
-    refreshFromStorage()
-  }
+  useEffect(() => {
+    const storedToken = window.localStorage.getItem('authToken')
+      ?? window.sessionStorage.getItem('authToken')
+      ?? ''
+
+    const storedUser = window.localStorage.getItem('authUser')
+      ?? window.sessionStorage.getItem('authUser')
+
+    setToken(storedToken)
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch {
+        setUser(null)
+      }
+    }
+    setIsLoading(false)
+  }, [])
 
   const logout = useCallback(() => {
-    clearSession()
+    window.localStorage.removeItem('authToken')
+    window.localStorage.removeItem('authUser')
+    window.sessionStorage.removeItem('authToken')
+    window.sessionStorage.removeItem('authUser')
+    setToken('')
+    setUser(null)
     window.location.href = '/lets-get-you-in'
   }, [])
 
-  const role = state.user?.role
-
-  const roleUtils = useMemo(() => ({
-    isAdmin: isAdminRole(role),
-    isUser: isUserRole(role),
-    hasRole: (requiredRole: string) => hasRoleFn(role, requiredRole),
-    hasAnyRole: (requiredRoles: readonly string[]) => hasAnyRoleFn(role, requiredRoles),
-  }), [role])
-
   return {
-    token: state.token,
-    user: state.user,
-    role: role ?? null,
-    isAuthenticated: !!state.token,
-    isLoading: !state.hydrated,
+    token,
+    user,
+    isAuthenticated: !!token,
+    isLoading,
     logout,
-    ...roleUtils,
   }
 }

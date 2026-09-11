@@ -2,21 +2,24 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { token, isLoading } = useAuth()
 
   useEffect(() => {
-    if (isLoading) return
+    const token = window.localStorage.getItem('authToken')
+      ?? window.sessionStorage.getItem('authToken')
+
     if (!token) {
       router.replace('/lets-get-you-in')
     }
-  }, [token, isLoading, router])
+  }, [router])
 
-  if (isLoading || !token) return <LoadingSpinner />
+  const token = typeof window !== 'undefined'
+    ? (window.localStorage.getItem('authToken') ?? window.sessionStorage.getItem('authToken'))
+    : null
+
+  if (!token) return null
 
   return <>{children}</>
 }
