@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
-import { getShipmentByTrackingId } from '@/lib/api/shipment-api'
+import { useShipmentByTrackingId } from '@/hooks/use-shipments'
 import type { ShipmentData } from '@/lib/api/types'
 
 export const dynamic = 'force-dynamic'
@@ -38,14 +37,16 @@ function SearchContent() {
   const { token } = useAuth()
   const { displayName } = useProfile()
   const [searchQuery, setSearchQuery] = useState('')
+  const [submittedQuery, setSubmittedQuery] = useState('')
   const [searchResults, setSearchResults] = useState<ShipmentData[]>([])
   const [searchError, setSearchError] = useState('')
   const [recentSearches, setRecentSearches] = useState<string[]>([])
 
-  const searchMutation = useMutation({
-    mutationFn: (trackingId: string) => getShipmentByTrackingId(trackingId),
-  })
-  const isLoading = searchMutation.isPending
+  const {
+    data: searchData,
+    isPending: isLoading,
+    error: queryError,
+  } = useShipmentByTrackingId(submittedQuery.trim())
 
   useEffect(() => {
     setRecentSearches(loadRecentSearches())
@@ -60,25 +61,31 @@ function SearchContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, token])
 
+  useEffect(() => {
+    if (!submittedQuery) return
+    if (queryError) {
+      setSearchResults([])
+      setSearchError(
+        (queryError as any)?.response?.status === 404
+          ? 'No shipment found for that tracking ID.'
+          : 'Something went wrong while searching. Please try again.'
+      )
+      return
+    }
+    if (searchData) {
+      setSearchResults([searchData])
+      setSearchError('')
+      setRecentSearches(saveRecentSearch(submittedQuery) ?? recentSearches)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submittedQuery, searchData, queryError])
+
   const performSearch = (query: string) => {
     const trackingId = query.trim()
     if (!trackingId || !token) return
 
     setSearchError('')
-    searchMutation.mutate(trackingId, {
-      onSuccess: (res) => {
-        setSearchResults(res.data ? [res.data] : [])
-        setRecentSearches(saveRecentSearch(trackingId) ?? recentSearches)
-      },
-      onError: (err: any) => {
-        setSearchResults([])
-        setSearchError(
-          err?.response?.status === 404
-            ? 'No shipment found for that tracking ID.'
-            : 'Something went wrong while searching. Please try again.'
-        )
-      },
-    })
+    setSubmittedQuery(trackingId)
   }
 
   const handleClearRecent = () => {

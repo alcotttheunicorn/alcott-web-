@@ -5,8 +5,9 @@ import type { ChangeEvent, ComponentType, RefObject, SVGProps } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { createShipment, getCategories, type CreateShipmentRequest } from '@/lib/api/shipment-api'
-import { getBalance } from '@/lib/api/wallet-api'
+import type { CreateShipmentRequest } from '@/lib/api/shipment-api'
+import { useShipmentCategories, useCreateShipment } from '@/hooks/use-shipments'
+import { useWalletBalance } from '@/hooks/use-wallet'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { toast } from '@/components/ui/use-toast'
@@ -76,8 +77,10 @@ export default function NewShipmentPage() {
   const router = useRouter()
   const { token } = useAuth()
   const { displayName } = useProfile()
-  const [categories, setCategories] = useState<string[]>([])
-  const [walletBalance, setWalletBalance] = useState<number | null>(null)
+  const { data: categories = [] } = useShipmentCategories()
+  const { data: balance } = useWalletBalance()
+  const walletBalance = balance ?? null
+  const createMutation = useCreateShipment()
 
   const sanitizePhoneInput = (value: string) => {
     const stripped = value.replace(/[^0-9+]/g, '')
@@ -154,16 +157,6 @@ export default function NewShipmentPage() {
     }
   }, [])
 
-  useEffect(() => {
-    if (!token) return
-    getCategories().then((res) => {
-      if (Array.isArray(res.data)) setCategories(res.data)
-    }).catch(() => {})
-    getBalance().then((res) => {
-      if (res.data?.balance != null) setWalletBalance(res.data.balance)
-    }).catch(() => {})
-  }, [token])
-
   const handleSearchFocus = () => {
     setIsSearchFocused(true)
   }
@@ -236,7 +229,7 @@ export default function NewShipmentPage() {
 
     try {
       setIsSubmitting(true)
-      const response = await createShipment(payload)
+      const response = await createMutation.mutateAsync(payload)
       toast({
         title: 'Shipment created',
         description: 'Your shipment has been created successfully.',
@@ -253,7 +246,6 @@ export default function NewShipmentPage() {
         (error as Error).message ||
         'Unable to create shipment. Please try again.'
       toast({ title: 'Shipment creation failed', description: errorMessage })
-    } finally {
       setIsSubmitting(false)
     }
   }

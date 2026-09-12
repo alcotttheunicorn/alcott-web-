@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
-import { getAdminUsers, type AdminUser } from '@/lib/api/admin-api'
+import { useAdminUsers } from '@/hooks/use-admin'
+import type { AdminUser } from '@/lib/api/admin-api'
 
 const PAGE_SIZE = 10
 
@@ -31,11 +31,7 @@ export default function UsersPage() {
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
 
-    const { data, isLoading: queryLoading, error: queryError } = useQuery({
-        queryKey: ['admin-users', token, currentPage],
-        queryFn: () => getAdminUsers({ page: currentPage, limit: PAGE_SIZE }),
-        enabled: !authLoading && !!token,
-    })
+    const { data, isLoading: queryLoading, error: queryError } = useAdminUsers({ page: currentPage, limit: PAGE_SIZE })
 
     const users = data && Array.isArray(data.data) ? data.data : []
     const totalPages = data?.totalPages || 1

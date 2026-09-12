@@ -1,17 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
-import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
-import { getTransactions } from '@/lib/api/wallet-api'
+import { useTransactionsInfinite } from '@/hooks/use-wallet'
 
 export default function TransactionHistoryPage() {
-  const { token } = useAuth()
   const { displayName } = useProfile()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -22,14 +19,7 @@ export default function TransactionHistoryPage() {
     fetchNextPage,
     hasNextPage,
     isFetching: loading,
-  } = useInfiniteQuery({
-    queryKey: ['wallet-transactions-infinite', token],
-    queryFn: ({ pageParam }) => getTransactions(pageParam, 20),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) =>
-      allPages.length < (lastPage.totalPages ?? 1) ? allPages.length + 1 : undefined,
-    enabled: !!token,
-  })
+  } = useTransactionsInfinite(20)
 
   const transactions = data?.pages.flatMap((page) => page.data?.transactions ?? []) ?? []
   const hasMore = !!hasNextPage

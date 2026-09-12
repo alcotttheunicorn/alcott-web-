@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
-import apiClient from '@/lib/api-client'
+import { verifyEmail, resendVerification } from '@/lib/api/auth-api'
 import { toast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 import {
@@ -60,8 +60,8 @@ export default function VerifyEmailPage() {
               setSuccessMessage(null)
               setIsLoading(true)
               try {
-                const res = await apiClient.post('/auth/verify-email', { email, otp })
-                const message = res?.data?.message || 'Email verified successfully.'
+                const res = await verifyEmail(email, otp)
+                const message = res?.message || 'Email verified successfully.'
                 setSuccessMessage(message)
                 toast({ title: 'Verification successful', description: message })
                 if (typeof window !== 'undefined') {
@@ -190,8 +190,8 @@ export default function VerifyEmailPage() {
                   setResendMessage(null)
 
                   try {
-                    const res = await apiClient.post('/auth/resend-verification', { email })
-                    const message = res?.data?.message || 'Verification email sent successfully.'
+                    const res = await resendVerification(email)
+                    const message = res?.message || 'Verification email sent successfully.'
                     setResendMessage(message)
                     toast({ title: 'Verification email sent', description: message })
                   } catch (err: any) {

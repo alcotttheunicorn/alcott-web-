@@ -1,19 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import { AuthGuard } from '@/components/auth-guard'
-import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
-import { checkPricingAuth } from '@/lib/api/pricing-api'
+import { useCheckPricingAuth } from '@/hooks/use-pricing'
 import type { PricingResult } from '@/lib/api/types'
 
 export default function CheckRatesPage() {
-  const { token } = useAuth()
   const { profile } = useProfile()
   const router = useRouter()
   const [pickupLocation, setPickupLocation] = useState('')
@@ -65,16 +62,7 @@ export default function CheckRatesPage() {
     return integer
   }
 
-  const checkRatesMutation = useMutation({
-    mutationFn: (weightInKg: number) =>
-      checkPricingAuth(
-        pickupLocation.trim(),
-        destination.trim(),
-        weightInKg,
-        profile?.email,
-        profile?.phone_number,
-      ),
-  })
+  const checkRatesMutation = useCheckPricingAuth()
   const isLoading = checkRatesMutation.isPending
 
   const handleCheckRates = () => {
@@ -97,35 +85,44 @@ export default function CheckRatesPage() {
 
     const weightInKg = weightUnit === 'lb' ? weightValue * 0.453592 : weightValue
 
-    checkRatesMutation.mutate(weightInKg, {
-      onSuccess: (res) => {
-        // Confirmed via console logs: PREMISE (domestic) responses nest the price
-        // under `price.amount`, but INTERNATIONAL_ZONE (cross-border) responses
-        // have no `price` field at all — instead `export_price`/`import_price`.
-        // Accept either rather than assuming one shape covers every pricing_type.
-        const hasPremiseShape = typeof res.data?.price?.amount === 'number'
-        const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
+    checkRatesMutation.mutate(
+      {
+        sender_address: pickupLocation.trim(),
+        receiver_address: destination.trim(),
+        weight: weightInKg,
+        sender_email: profile?.email,
+        sender_phone_number: profile?.phone_number,
+      },
+      {
+        onSuccess: (res) => {
+          // Confirmed via console logs: PREMISE (domestic) responses nest the price
+          // under `price.amount`, but INTERNATIONAL_ZONE (cross-border) responses
+          // have no `price` field at all — instead `export_price`/`import_price`.
+          // Accept either rather than assuming one shape covers every pricing_type.
+          const hasPremiseShape = typeof res.data?.price?.amount === 'number'
+          const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
 
-        if (!hasPremiseShape && !hasZoneShape) {
-          console.error('Unexpected /pricing/check/authenticated response shape:', res)
+          if (!hasPremiseShape && !hasZoneShape) {
+            console.error('Unexpected /pricing/check/authenticated response shape:', res)
+            toast({
+              title: 'Unexpected pricing response',
+              description: "The server didn't return pricing in the expected format. Check the console for details.",
+            })
+            return
+          }
+
+          setPricingResult(res.data)
+          setShowRates(true)
+        },
+        onError: (err: any) => {
+          console.error('checkPricingAuth failed:', err?.response?.data ?? err)
           toast({
-            title: 'Unexpected pricing response',
-            description: "The server didn't return pricing in the expected format. Check the console for details.",
+            title: 'Could not fetch rates',
+            description: err?.response?.data?.message || 'Please try again later.',
           })
-          return
-        }
-
-        setPricingResult(res.data)
-        setShowRates(true)
+        },
       },
-      onError: (err: any) => {
-        console.error('checkPricingAuth failed:', err?.response?.data ?? err)
-        toast({
-          title: 'Could not fetch rates',
-          description: err?.response?.data?.message || 'Please try again later.',
-        })
-      },
-    })
+    )
   }
 
   return (

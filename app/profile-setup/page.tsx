@@ -7,7 +7,7 @@ import { ImagePicker } from '@/components/ui/image-picker'
 import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
-import apiClient from '@/lib/api-client'
+import { useSetupProfile } from '@/hooks/use-profile'
 import { toast } from '@/components/ui/use-toast'
 
 export default function ProfileSetupPage() {
@@ -25,6 +25,7 @@ export default function ProfileSetupPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const router = useRouter()
+  const setupProfileMutation = useSetupProfile()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -100,14 +101,8 @@ export default function ProfileSetupPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await apiClient.post('/profile', payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      })
-
-      const message = response?.data?.message || 'Profile created successfully.'
+      await setupProfileMutation.mutateAsync(payload)
+      const message = 'Profile created successfully.'
       setSuccessMessage(message)
       toast({ title: 'Profile complete', description: message })
 

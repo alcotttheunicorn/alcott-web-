@@ -1,14 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
 import { AuthGuard } from '@/components/auth-guard'
-import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
-import { getShipments } from '@/lib/api/shipment-api'
+import { useShipments } from '@/hooks/use-shipments'
 import type { ShipmentData } from '@/lib/api/types'
 
 type OrderStatus = 'all' | 'pending' | 'onprocess' | 'delivered'
@@ -42,7 +40,6 @@ function mapShipmentToOrder(s: ShipmentData): Order {
 }
 
 export default function OrdersPage() {
-  const { token } = useAuth()
   const router = useRouter()
   const [activeStatus, setActiveStatus] = useState<OrderStatus>('all')
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
@@ -54,14 +51,8 @@ export default function OrdersPage() {
 
   const statusParam = activeStatus === 'all' ? undefined : activeStatus === 'onprocess' ? 'ONGOING' : activeStatus.toUpperCase()
 
-  const { data: orders = [], isLoading: loading } = useQuery({
-    queryKey: ['shipments', token, statusParam],
-    queryFn: () =>
-      getShipments({ status: statusParam, limit: 20 }).then((res) =>
-        (Array.isArray(res.data) ? res.data : []).map(mapShipmentToOrder)
-      ),
-    enabled: !!token,
-  })
+  const { data: shipmentData = [], isLoading: loading } = useShipments({ status: statusParam, limit: 20 })
+  const orders = shipmentData.map(mapShipmentToOrder)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

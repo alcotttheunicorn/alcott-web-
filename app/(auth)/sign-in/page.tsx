@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import apiClient from '@/lib/api-client'
+import { signIn } from '@/lib/api/auth-api'
 import { toast } from '@/components/ui/use-toast'
 
 export default function SignInPage() {
@@ -35,12 +35,9 @@ export default function SignInPage() {
     setIsLoading(true)
 
     try {
-      const response = await apiClient.post('/auth/signin', {
-        email,
-        password,
-      })
+      const response = await signIn(email, password)
 
-      const { user, token } = response?.data?.data || {}
+      const { user, token } = response?.data || {}
 
       if (!user || !token) {
         throw new Error('Unexpected response from server. Please try again.')

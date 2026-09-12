@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
-import apiClient from '@/lib/api-client'
+import { signUp } from '@/lib/api/auth-api'
 import { toast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 
@@ -69,16 +69,13 @@ export default function RegisterPage() {
                 setSuccessMessage(null)
                 setIsLoading(true)
                 try {
-                  const res = await apiClient.post('/auth/signup/', {
-                    email,
-                    password,
-                  })
+                  const res = await signUp(email, password)
                   // Save temp info for next steps if needed
                   if (typeof window !== 'undefined') {
                     localStorage.setItem('pendingSignupEmail', email)
                   }
                   const message =
-                    res?.data?.message ||
+                    res?.message ||
                     'Verification email sent. Please verify your email to continue.'
                   setSuccessMessage(message)
                   toast({

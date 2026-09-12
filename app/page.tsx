@@ -13,7 +13,7 @@ import {
 import { TestimonialsSection } from '@/components/testimonials-section'
 import { ContactSection } from '@/components/contact-section'
 import { Footer } from '@/components/footer'
-import { checkPricing } from '@/lib/api/pricing-api'
+import { useCheckPricing } from '@/hooks/use-pricing'
 import type { PricingResult } from '@/lib/api/types'
 import { toast } from '@/components/ui/use-toast'
 
@@ -22,6 +22,7 @@ function formatPricingAmount(amount: number, currency: string) {
 }
 
 export default function HomePage() {
+  const checkRatesMutation = useCheckPricing()
   const [pickupAddress, setPickupAddress] = useState('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [weight, setWeight] = useState('')
@@ -44,13 +45,13 @@ export default function HomePage() {
 
     setIsCheckingRates(true)
     try {
-      const res = await checkPricing(
-        pickupAddress.trim(),
-        deliveryAddress.trim(),
-        weightValue,
-        email.trim() || undefined,
-        phoneNumber.trim() || undefined,
-      )
+      const res = await checkRatesMutation.mutateAsync({
+        sender_address: pickupAddress.trim(),
+        receiver_address: deliveryAddress.trim(),
+        weight: weightValue,
+        sender_email: email.trim() || undefined,
+        sender_phone_number: phoneNumber.trim() || undefined,
+      })
       setPricingResult(res.data)
     } catch {
       toast({ title: 'Could not fetch rates', description: 'Please try again later.' })

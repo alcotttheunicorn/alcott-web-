@@ -1,12 +1,11 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { AuthGuard } from '@/components/auth-guard'
-import { verifyPayment } from '@/lib/api/shipment-api'
+import { useVerifyShipmentPayment } from '@/hooks/use-shipments'
 import type { ShipmentData } from '@/lib/api/types'
 
 function loadLastCreatedShipment(): ShipmentData | null {
@@ -28,7 +27,7 @@ function SuccessContent() {
   const { token } = useAuth()
   const [shipment, setShipment] = useState<ShipmentData | null>(null)
   const [status, setStatus] = useState<'checking' | 'ready' | 'failed'>('checking')
-  const verifyPaymentMutation = useMutation({ mutationFn: (reference: string) => verifyPayment(reference) })
+  const verifyPaymentMutation = useVerifyShipmentPayment()
 
   useEffect(() => {
     const reference = searchParams.get('reference')
