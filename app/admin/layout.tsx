@@ -1,6 +1,7 @@
 'use client'
 
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -351,7 +352,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Main Content */}
             <div className="flex-1 lg:ml-56 flex flex-col">
                 {/* Header */}
-                <header className="bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] px-4 lg:px-6 py-4 flex items-center justify-between">
+                <header className="bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] px-4 lg:px-6 py-4">
+                    <div className="mx-auto flex w-full max-w-8xl items-center justify-between">
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setMobileMenuOpen(true)}
@@ -379,7 +381,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
 
                     {/* Right side */}
-                    <div className="flex items-center gap-2 lg:gap-4 ml-2">
+                    <HeaderActions />
+                    <div className="hidden">
                         {/* Notifications */}
                         <button className="relative p-2 rounded-lg hover:bg-gray-100">
                             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,11 +402,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </svg>
                         </div>
                     </div>
+                    </div>
                 </header>
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-auto pb-20 lg:pb-0">
-                    {children}
+                    <div className="mx-auto w-full max-w-8xl">
+                        {children}
+                    </div>
                 </main>
 
                 {/* Mobile Bottom Navigation */}

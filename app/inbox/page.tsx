@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 
 
 export default function InboxPage() {
@@ -178,7 +179,7 @@ export default function InboxPage() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="mx-auto flex w-full max-w-8xl items-center justify-between">
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -208,7 +209,8 @@ export default function InboxPage() {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-3">
+            <HeaderActions />
+            <div className="hidden">
               {/* Currency Dropdown */}
               <div className="relative hidden md:block">
                 <select
@@ -248,6 +250,7 @@ export default function InboxPage() {
 
         {/* Inbox Content */}
         <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 overflow-x-hidden">
+          <div className="mx-auto w-full max-w-8xl">
           {/* Header with Back Arrow */}
           <div className="flex items-center mb-6">
             <button className="mr-4 p-2 rounded-lg hover:bg-gray-100">
@@ -256,6 +259,7 @@ export default function InboxPage() {
               </svg>
             </button>
             <h1 className="text-2xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Inbox</h1>
+          </div>
           </div>
 
           {/* Filter Tabs */}

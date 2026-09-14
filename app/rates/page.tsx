@@ -6,7 +6,9 @@ import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import { AuthGuard } from '@/components/auth-guard'
+import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 import { useCheckPricingAuth } from '@/hooks/use-pricing'
 import type { PricingResult } from '@/lib/api/types'
 
@@ -148,7 +150,7 @@ export default function CheckRatesPage() {
         />
 
         <main className="flex-1 px-4 lg:px-6 py-6 lg:py-8 overflow-y-auto bg-white">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-8xl mx-auto">
             {/* Back button and title */}
             <div className="flex items-center gap-3 mb-8">
               <button
@@ -175,11 +177,12 @@ export default function CheckRatesPage() {
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Pick up Location</label>
-                    <input
-                      type="text"
-                      placeholder="Enter pickup location"
+                    <LocationAutocompleteInput
                       value={pickupLocation}
-                      onChange={(e) => setPickupLocation(e.target.value)}
+                      onChange={(v) => setPickupLocation(v)}
+                      onSelect={(p) => setPickupLocation(p.fullText || `${p.mainText}, ${p.secondaryText}`)}
+                      placeholder="Enter pickup location"
+                      country="NG"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist]"
                       style={{ fontFamily: "'Urbanist', sans-serif" }}
                     />
@@ -211,11 +214,12 @@ export default function CheckRatesPage() {
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Package Destination</label>
-                    <input
-                      type="text"
-                      placeholder="Enter destination"
+                    <LocationAutocompleteInput
                       value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
+                      onChange={(v) => setDestination(v)}
+                      onSelect={(p) => setDestination(p.fullText || `${p.mainText}, ${p.secondaryText}`)}
+                      placeholder="Enter destination"
+                      country="NG"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist]"
                       style={{ fontFamily: "'Urbanist', sans-serif" }}
                     />
@@ -596,7 +600,7 @@ function Header({
   const { displayName } = useProfile()
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
-      <div className="flex items-center justify-between">
+      <div className="mx-auto flex w-full max-w-8xl items-center justify-between">
         <button onClick={onToggleMobileMenu} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -643,7 +647,8 @@ function Header({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <HeaderActions />
+        <div className="hidden">
           <button className="relative p-2 rounded-lg hover:bg-gray-100">
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

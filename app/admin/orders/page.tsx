@@ -14,13 +14,14 @@ type OrderStatus = 'all' | 'pending' | 'on_process' | 'delivered'
 
 const statusToApiValue: Record<Exclude<OrderStatus, 'all'>, string> = {
     pending: 'PENDING',
-    on_process: 'ONGOING',
+    on_process: 'ON_PROCESS',
     delivered: 'DELIVERED',
 }
 
 function mapShipmentStatus(status: string): Exclude<OrderStatus, 'all'> {
-    if (status === 'ONGOING') return 'on_process'
+    if (status === 'ON_PROCESS' || status === 'ONGOING') return 'on_process'
     if (status === 'DELIVERED') return 'delivered'
+    if (status === 'SUBMITTED' || status === 'UNPAID') return 'pending'
     return 'pending'
 }
 

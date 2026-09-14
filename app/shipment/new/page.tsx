@@ -10,6 +10,7 @@ import { useShipmentCategories, useCreateShipment } from '@/hooks/use-shipments'
 import { useWalletBalance } from '@/hooks/use-wallet'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 import { toast } from '@/components/ui/use-toast'
 import { Stepper } from '@/components/shipment/Stepper'
 import { FormSection } from '@/components/shipment/FormSection'
@@ -289,7 +290,7 @@ export default function NewShipmentPage() {
           <div className="flex flex-col gap-3 lg:gap-2">
             <Stepper steps={steps} activeIndex={activeIndex} />
 
-            <div className="max-w-4xl w-full mx-auto space-y-5 lg:space-y-6">
+            <div className="max-w-8xl w-full mx-auto space-y-5 lg:space-y-6">
               {currentStep === 'sender' && (
                 <SenderForm
                   data={sender}
@@ -424,7 +425,7 @@ function Header({
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
-      <div className="flex items-center justify-between">
+      <div className="mx-auto flex w-full max-w-8xl items-center justify-between">
         <button onClick={onToggleMobileMenu} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -470,7 +471,8 @@ function Header({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <HeaderActions />
+        <div className="hidden">
           <button className="relative p-2 rounded-lg hover:bg-gray-100">
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

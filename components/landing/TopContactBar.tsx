@@ -1,7 +1,7 @@
 export function TopContactBar() {
     return (
         <div className="bg-[#4043FF] text-white text-sm py-2">
-            <div className="max-w-7xl mx-auto px-4 md:px-12 flex items-center justify-center">
+            <div className="max-w-8xl mx-auto px-4 md:px-12 flex items-center justify-center">
                 <div className="flex items-center space-x-6">
                     <div className="flex items-center space-x-2">
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn } from '@/lib/api/auth-api'
+import { setSession } from '@/lib/auth-store'
 import { toast } from '@/components/ui/use-toast'
 
 export default function SignInPage() {
@@ -60,14 +61,7 @@ export default function SignInPage() {
         return
       }
 
-      if (typeof window !== 'undefined') {
-        // Persist auth data
-        const storage = rememberMe ? window.localStorage : window.sessionStorage
-        storage.setItem('authToken', token)
-        storage.setItem('authUser', JSON.stringify(user))
-        // Clear any pending signup data
-        window.localStorage.removeItem('pendingSignupEmail')
-      }
+      setSession(user, token, rememberMe)
 
       toast({
         title: 'Welcome back!',

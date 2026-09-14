@@ -25,7 +25,7 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false)
   return (
     <UserAppLayout activeNav="settings" contentBgClass="bg-[#F8F9FA]">
-      <div className="max-w-2xl mx-auto p-4 lg:p-6">
+      <div className="max-w-8xl mx-auto p-4 lg:p-6">
         <PageHeading title="Settings" onBack={() => router.back()} />
         <section className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <div className="p-5 border-b border-gray-100">

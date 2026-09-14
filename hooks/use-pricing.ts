@@ -126,7 +126,24 @@ export function useRegionPricing() {
 
   return useQuery({
     queryKey: queryKeys.pricing.regions,
-    queryFn: () => getRegionPricing().then((res) => res.data),
+    queryFn: async () => {
+      const response = await getRegionPricing()
+      const payload = response.data as unknown
+
+      if (Array.isArray(payload)) return payload
+      if (!payload || typeof payload !== 'object') return []
+
+      const wrapped = payload as {
+        regions?: unknown
+        data?: unknown
+        items?: unknown
+      }
+
+      if (Array.isArray(wrapped.regions)) return wrapped.regions
+      if (Array.isArray(wrapped.data)) return wrapped.data
+      if (Array.isArray(wrapped.items)) return wrapped.items
+      return []
+    },
     enabled: isAuthenticated && hasAdminAccess,
   })
 }

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 export function ContactSection() {
   return (
     <section className="bg-[#4043FF] py-20">
-      <div className="max-w-4xl mx-auto px-4 lg:px-12 text-center">
+      <div className="max-w-8xl mx-auto px-4 lg:px-12 text-center">
         {/* Header */}
         <div className="mb-12">
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>

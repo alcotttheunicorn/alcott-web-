@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 import { initializeFund, verifyFund } from '@/lib/api/wallet-api'
 import { toast } from '@/components/ui/use-toast'
 
@@ -250,7 +251,7 @@ function TopUpContent() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="mx-auto flex w-full max-w-8xl items-center justify-between">
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -298,7 +299,8 @@ function TopUpContent() {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-3">
+            <HeaderActions />
+            <div className="hidden">
               {/* Notifications */}
               <button className="relative p-2 rounded-lg hover:bg-gray-100">
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -340,7 +342,7 @@ function TopUpContent() {
 
         {/* Top Up Content */}
         <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-8xl mx-auto">
             {/* Step 1: Amount Selection */}
             {currentStep === 1 && (
               <div className="space-y-8">

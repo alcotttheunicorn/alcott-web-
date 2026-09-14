@@ -3,7 +3,7 @@ export function HowItWorksSection() {
         <section className="bg-[#4043FF] py-16 relative overflow-hidden">
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-500 rounded-full transform -translate-x-1/2 translate-y-1/2 opacity-20"></div>
 
-            <div className="max-w-6xl mx-auto px-4 lg:px-12 relative z-10">
+            <div className="max-w-8xl mx-auto px-4 lg:px-12 relative z-10">
                 <div className="hidden lg:flex items-end gap-8">
                     <div className="flex-1 flex justify-center">
                         <div className="relative -mb-16">

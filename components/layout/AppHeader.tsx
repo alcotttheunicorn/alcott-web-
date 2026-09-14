@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useProfile } from '@/hooks/use-profile'
+import { useAuth } from '@/hooks/use-auth'
+import { HeaderActions } from './HeaderActions'
 
 interface HeaderTitleConfig {
     title: string
@@ -31,8 +33,12 @@ export function AppHeader({
     isAdmin,
     showSearch = true,
 }: AppHeaderProps) {
-    const { displayName } = useProfile()
+    const { displayName, profile } = useProfile()
+    const { logout } = useAuth()
     const [selectedCurrency, setSelectedCurrency] = useState('NGN')
+    const [currencyOpen, setCurrencyOpen] = useState(false)
+    const [notificationsOpen, setNotificationsOpen] = useState(false)
+    const [profileOpen, setProfileOpen] = useState(false)
     const [searchValue, setSearchValue] = useState('')
     const [isSearchFocused, setIsSearchFocused] = useState(false)
     const [recentSearches, setRecentSearches] = useState<string[]>([])
@@ -67,8 +73,8 @@ export function AppHeader({
     }
 
     return (
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 shrink-0">
-            <div className="flex items-center justify-between gap-2">
+        <header className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+            <div className="mx-auto flex w-full max-w-8xl items-center justify-between gap-2">
                 <button onClick={onToggleMobileMenu} className="lg:hidden p-2 rounded-lg hover:bg-gray-100 shrink-0">
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -91,7 +97,7 @@ export function AppHeader({
                 ) : null}
 
                 {showSearch && (
-                <div className="flex-1 max-w-md mx-4" ref={searchRef}>
+                <div className="flex-1 max-w-md mr-4" ref={searchRef}>
                     <div className="relative">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -132,14 +138,59 @@ export function AppHeader({
                 </div>
                 )}
 
-                <div className="flex items-center gap-2 lg:gap-3 shrink-0">
+                <HeaderActions showCurrencySelector={showCurrencySelector} showNotifications={showNotifications} isAdmin={isAdmin} />
+                <div className="hidden items-center gap-2 lg:gap-3 shrink-0">
                     {showNotifications && (
-                        <button className="relative p-2 rounded-lg hover:bg-gray-100">
+                        <div className="relative">
+                        <button
+                            onClick={() => {
+                                setNotificationsOpen((open) => !open)
+                                setCurrencyOpen(false)
+                                setProfileOpen(false)
+                            }}
+                            aria-label="Open notifications"
+                            aria-expanded={notificationsOpen}
+                            className="relative p-2 rounded-lg hover:bg-gray-100"
+                        >
                             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
                             <span className="absolute top-1 right-1 block w-2 h-2 bg-red-500 rounded-full" />
                         </button>
+                        {notificationsOpen && (
+                            <div className="absolute right-0 top-full mt-2 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setNotificationsOpen(false)} aria-label="Close notifications" className="text-gray-500 hover:text-gray-900">←</button>
+                                        <h2 className="text-sm font-bold text-gray-900">Notification</h2>
+                                    </div>
+                                    <button onClick={() => setNotificationsOpen(false)} aria-label="Close notifications" className="text-gray-400 hover:text-gray-700">×</button>
+                                </div>
+                                <div className="max-h-88 space-y-4 overflow-y-auto p-3">
+                                    {[
+                                        ['Today', 'Payment Successful!', 'You have made a shopping payment', 'bg-emerald-100 text-emerald-500'],
+                                        ["Yesterday", "Today's Special Offers", 'You got a special promo today!', 'bg-amber-100 text-amber-500'],
+                                        ['Yesterday', 'New Services Available!', 'Now you can search the nearby drop', 'bg-red-100 text-red-500'],
+                                        ['December 20, 2024', 'Credit Card Connected!', 'Credit Card has been linked', 'bg-indigo-100 text-indigo-500'],
+                                        ['December 20, 2024', 'Account Setup Successful!', 'Your account has been created', 'bg-emerald-100 text-emerald-500'],
+                                    ].map(([group, title, description, color], index, items) => (
+                                        <div key={`${title}-${index}`}>
+                                            {(index === 0 || group !== items[index - 1][0]) && <p className="mb-2 text-[10px] font-semibold text-gray-700">{group}</p>}
+                                            <div className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 shadow-sm">
+                                                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${color}`}>
+                                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l2 2m6-2a8 8 0 11-16 0 8 8 0 0116 0z" /></svg>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-xs font-bold text-gray-900">{title}</p>
+                                                    <p className="truncate text-[10px] text-gray-500">{description}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        </div>
                     )}
 
                     {isAdmin && (
@@ -158,22 +209,45 @@ export function AppHeader({
 
                     {showCurrencySelector && (
                         <div className="hidden md:block relative">
-                            <select
-                                value={selectedCurrency}
-                                onChange={(e) => setSelectedCurrency(e.target.value)}
-                                className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
+                            <button
+                                onClick={() => {
+                                    setCurrencyOpen((open) => !open)
+                                    setNotificationsOpen(false)
+                                    setProfileOpen(false)
+                                }}
+                                aria-expanded={currencyOpen}
+                                className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
                             >
-                                <option value="NGN">NGN</option>
-                                <option value="USD">USD</option>
-                            </select>
-                            <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
+                                {selectedCurrency}
+                                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                            {currencyOpen && (
+                                <div className="absolute right-0 top-full z-50 mt-1 w-full min-w-20 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+                                    {['NGN', 'USD'].map((currency) => (
+                                        <button
+                                            key={currency}
+                                            onClick={() => { setSelectedCurrency(currency); setCurrencyOpen(false) }}
+                                            className={`block w-full rounded px-2 py-1.5 text-left text-xs hover:bg-[#F0F0FF] ${selectedCurrency === currency ? 'font-bold text-[#4043FF]' : 'text-gray-700'}`}
+                                        >
+                                            {currency}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    <div className="flex items-center gap-2 lg:gap-3">
+                    <div className="relative flex items-center gap-2 lg:gap-3">
+                        <button
+                            onClick={() => {
+                                setProfileOpen((open) => !open)
+                                setCurrencyOpen(false)
+                                setNotificationsOpen(false)
+                            }}
+                            aria-expanded={profileOpen}
+                            className="flex items-center gap-2 lg:gap-3 rounded-lg p-1 hover:bg-gray-50"
+                        >
                         <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden shrink-0">
                             <img src="/avatar-placeholder.png" alt="Profile" className="w-full h-full object-cover" onError={(e: any) => { e.currentTarget.style.display = 'none' }} />
                         </div>
@@ -183,6 +257,18 @@ export function AppHeader({
                         <svg className="hidden md:block w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
+                        </button>
+                        {profileOpen && (
+                            <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white p-2 shadow-xl">
+                                <div className="border-b border-gray-100 px-3 py-2">
+                                    <p className="text-sm font-bold text-gray-900">{displayName ?? 'Guest'}</p>
+                                    <p className="truncate text-xs text-gray-500">{profile?.email ?? 'Manage your account'}</p>
+                                </div>
+                                <button onClick={() => { setProfileOpen(false); router.push('/profile-setup') }} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50">Edit profile</button>
+                                <button onClick={() => { setProfileOpen(false); router.push('/settings') }} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50">Settings</button>
+                                <button onClick={logout} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50">Log out</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

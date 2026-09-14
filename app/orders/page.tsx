@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { ComponentType, SVGProps } from 'react'
 import { AuthGuard } from '@/components/auth-guard'
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 import { useShipments } from '@/hooks/use-shipments'
 import type { ShipmentData } from '@/lib/api/types'
 
@@ -24,6 +25,7 @@ interface Order {
 function mapShipmentToOrder(s: ShipmentData): Order {
   const statusMap: Record<string, { status: OrderStatus; text: string; label: string; color: string }> = {
     PENDING: { status: 'pending', text: 'Awaiting pickup', label: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
+    ON_PROCESS: { status: 'onprocess', text: 'On transit', label: 'On Process', color: 'bg-[#4043FF] text-white' },
     ONGOING: { status: 'onprocess', text: 'On transit', label: 'On Process', color: 'bg-[#4043FF] text-white' },
     DELIVERED: { status: 'delivered', text: 'Package received', label: 'Completed', color: 'bg-green-100 text-green-700' },
   }
@@ -49,7 +51,7 @@ export default function OrdersPage() {
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
 
-  const statusParam = activeStatus === 'all' ? undefined : activeStatus === 'onprocess' ? 'ONGOING' : activeStatus.toUpperCase()
+    const statusParam = activeStatus === 'all' ? undefined : activeStatus === 'onprocess' ? 'ON_PROCESS' : activeStatus.toUpperCase()
 
   const { data: shipmentData = [], isLoading: loading } = useShipments({ status: statusParam, limit: 20 })
   const orders = shipmentData.map(mapShipmentToOrder)
@@ -104,7 +106,7 @@ export default function OrdersPage() {
         />
 
         <main className="flex-1 px-4 lg:px-6 py-6 lg:py-8 overflow-y-auto bg-white">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-8xl mx-auto">
             {/* Page Header */}
             <div className="flex items-center gap-3 mb-6">
               <button
@@ -382,7 +384,7 @@ function Header({
   const { displayName } = useProfile()
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
-      <div className="flex items-center justify-between">
+      <div className="mx-auto flex w-full max-w-8xl items-center justify-between">
         <button onClick={onToggleMobileMenu} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -429,7 +431,8 @@ function Header({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <HeaderActions />
+        <div className="hidden">
           <button className="relative p-2 rounded-lg hover:bg-gray-100">
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

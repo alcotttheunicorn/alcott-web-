@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 import { useTransactionsInfinite } from '@/hooks/use-wallet'
 
 export default function TransactionHistoryPage() {
@@ -230,7 +231,8 @@ export default function TransactionHistoryPage() {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-3">
+            <HeaderActions />
+            <div className="hidden">
               {/* Notifications */}
               <button className="relative p-2 rounded-lg hover:bg-gray-100">
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +274,7 @@ export default function TransactionHistoryPage() {
 
         {/* Transaction History Content */}
         <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-8xl mx-auto">
             {/* Transaction List */}
             <div className="space-y-0">
               {transactions.map((transaction, index) => (

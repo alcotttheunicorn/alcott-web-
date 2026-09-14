@@ -15,6 +15,21 @@ function formatValue(value: unknown): string {
     return String(value)
 }
 
+function formatState(value: unknown): string {
+    if (typeof value === 'string') return value
+    if (!value || typeof value !== 'object') return String(value ?? '')
+
+    const state = value as Record<string, unknown>
+    const label = state.name ?? state.state ?? state.label ?? state.title ?? state.code
+    return label == null ? '' : String(label)
+}
+
+function formatStates(states: unknown): string {
+    if (!Array.isArray(states)) return 'No states configured'
+    const labels = states.map(formatState).filter(Boolean)
+    return labels.length ? labels.join(', ') : 'No states configured'
+}
+
 const mockZonedPrices = [
     { id: 1, zone: 'Zone 1', fromWeight: '5.5', toWeight: '6', price: '40,635' },
     { id: 2, zone: 'Zone 1', fromWeight: '5.5', toWeight: '6', price: '40,635' },
@@ -39,7 +54,7 @@ export default function PricingRegionsPage() {
         setIsCreating(false)
         setEditingRegionId(String(region.id ?? ''))
         setRegionName(String(region.name ?? ''))
-        setRegionStates(Array.isArray(region.states) ? region.states.join(', ') : '')
+        setRegionStates(formatStates(region.states).replace('No states configured', ''))
         setFormError('')
     }
 
@@ -119,9 +134,9 @@ export default function PricingRegionsPage() {
                     </form>
                 )}
 
-{loading ? (
-    <ZoneGridSkeleton />
-) : error ? (
+                {loading ? (
+                    <ZoneGridSkeleton />
+                ) : error ? (
                     <ErrorBanner message={error} />
                 ) : regions.length === 0 ? (
                     <EmptyState message="No regions configured." className="border-0" />
@@ -132,31 +147,35 @@ export default function PricingRegionsPage() {
                             const isEditing = editingRegionId === regionId
 
                             return (
-                            <div key={regionId || i} className="border border-gray-200 rounded-lg p-4">
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3">Region {i + 1}</h3>
-                                {isEditing ? (
-                                    <form onSubmit={(event) => { event.preventDefault(); handleSave(region) }} className="space-y-3">
-                                        <input value={regionName} onChange={(event) => setRegionName(event.target.value)} placeholder="Region name" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
-                                        <input value={regionStates} onChange={(event) => setRegionStates(event.target.value)} placeholder="States, comma-separated" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
-                                        <div className="flex gap-2">
-                                            <button type="submit" disabled={updateMutation.isPending} className="rounded bg-[#4043FF] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">{updateMutation.isPending ? 'SAVING...' : 'SAVE'}</button>
-                                            <button type="button" onClick={() => setEditingRegionId(null)} className="rounded border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700">CANCEL</button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <>
-                                        <dl className="space-y-1.5 text-xs">
-                                            {Object.entries(region).map(([key, value]) => (
-                                                <div key={key} className="flex justify-between gap-3">
-                                                    <dt className="text-gray-500 shrink-0">{key}</dt>
-                                                    <dd className="text-gray-900 text-right break-words">{formatValue(value)}</dd>
+                                <div key={regionId || i} className="border border-gray-200 rounded-lg p-4">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Region {i + 1}</h3>
+                                    {isEditing ? (
+                                        <form onSubmit={(event) => { event.preventDefault(); handleSave(region) }} className="space-y-3">
+                                            <input value={regionName} onChange={(event) => setRegionName(event.target.value)} placeholder="Region name" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+                                            <input value={regionStates} onChange={(event) => setRegionStates(event.target.value)} placeholder="States, comma-separated" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
+                                            <div className="flex gap-2">
+                                                <button type="submit" disabled={updateMutation.isPending} className="rounded bg-[#4043FF] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">{updateMutation.isPending ? 'SAVING...' : 'SAVE'}</button>
+                                                <button type="button" onClick={() => setEditingRegionId(null)} className="rounded border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700">CANCEL</button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <dl className="space-y-2 text-xs">
+                                                <div className="flex justify-between gap-3">
+                                                    <dt className="text-gray-500">Name</dt>
+                                                    <dd className="text-right font-medium text-gray-900">{region.name || 'Unnamed region'}</dd>
                                                 </div>
-                                            ))}
-                                        </dl>
-                                        <button type="button" onClick={() => startEditing(region)} className="mt-4 text-xs font-semibold text-[#4043FF]">EDIT REGION</button>
-                                    </>
-                                )}
-                            </div>
+                                                <div className="flex justify-between gap-3">
+                                                    <dt className="text-gray-500">States</dt>
+                                                    <dd className="max-w-[70%] text-right font-medium text-gray-900">
+                                                        {formatStates(region.states)}
+                                                    </dd>
+                                                </div>
+                                            </dl>
+                                            <button type="button" onClick={() => startEditing(region)} className="mt-4 text-xs font-semibold text-[#4043FF]">EDIT REGION</button>
+                                        </>
+                                    )}
+                                </div>
                             )
                         })}
                     </div>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
+import { HeaderActions } from '@/components/layout/HeaderActions'
 import { useShipmentByTrackingId } from '@/hooks/use-shipments'
 import type { ShipmentData } from '@/lib/api/types'
 
@@ -200,7 +201,8 @@ function SearchContent() {
             </form>
 
             {/* Profile */}
-            <div className="flex items-center space-x-3">
+            <HeaderActions />
+            <div className="hidden">
               <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
               <div className="hidden md:block">
                 <p className="text-sm font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{displayName ?? 'Guest'}</p>

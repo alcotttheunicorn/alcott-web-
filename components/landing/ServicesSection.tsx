@@ -1,7 +1,7 @@
 export function ServicesSection() {
     return (
         <section className="bg-white py-20">
-            <div className="max-w-7xl mx-auto px-4 lg:px-12 text-center">
+            <div className="max-w-8xl mx-auto px-4 lg:px-12 text-center">
                 <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-16" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Our Services</h2>
 
                 <div className="grid md:grid-cols-3 gap-12">

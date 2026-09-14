@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 
 export function HeroSection() {
     return (
-        <main className="flex-1 flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto w-full px-4 lg:px-12 py-8">
+        <main className="flex-1 flex flex-col lg:flex-row items-center justify-between max-w-8xl mx-auto w-full px-4 lg:px-12 py-8">
             <section className="hidden lg:flex flex-1 flex-col items-start justify-center max-w-2xl lg:pr-12">
                 <h1 className="text-4xl lg:text-6xl font-bold leading-tight text-gray-900 mb-6" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                     <span className="text-[#4043FF]">Ship</span> and receive{' '}

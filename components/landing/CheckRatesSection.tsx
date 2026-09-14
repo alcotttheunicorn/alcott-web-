@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 import type { PricingResult } from '@/lib/api/types'
@@ -11,7 +12,7 @@ interface CheckRatesSectionProps {
     onDeliveryChange: (value: string) => void
     weight: string
     onWeightChange: (value: string) => void
-    onCheckRates: () => void
+    onCheckRates: (phoneNumber: string, email: string) => void
     isCheckingRates: boolean
     pricingResult: PricingResult | null
 }
@@ -27,9 +28,12 @@ export function CheckRatesSection({
     isCheckingRates,
     pricingResult,
 }: CheckRatesSectionProps) {
+    const [phoneNumber, setPhoneNumber] = useState('')
+    const [email, setEmail] = useState('')
+
     return (
         <section className="bg-white py-12 lg:py-16">
-            <div className="max-w-7xl mx-auto px-4 lg:px-12">
+            <div className="max-w-8xl mx-auto px-4 lg:px-12">
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
                     <div className="flex-1 flex flex-col items-center">
                         <div className="relative mb-6 lg:mb-8">
@@ -52,6 +56,7 @@ export function CheckRatesSection({
                                         value={pickupAddress}
                                         onChange={onPickupChange}
                                         placeholder="Pick up address"
+                                        country="NG"
                                         containerClassName="flex-1"
                                         className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
                                         style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
@@ -75,6 +80,7 @@ export function CheckRatesSection({
                                         value={deliveryAddress}
                                         onChange={onDeliveryChange}
                                         placeholder="Delivery address"
+                                        country="NG"
                                         containerClassName="flex-1"
                                         className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
                                         style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
@@ -120,6 +126,8 @@ export function CheckRatesSection({
                                         placeholder="+234 906 000 7571"
                                         className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
                                         style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                        value={phoneNumber}
+                                        onChange={(event) => setPhoneNumber(event.target.value)}
                                     />
                                 </div>
                             </div>
@@ -137,13 +145,15 @@ export function CheckRatesSection({
                                         placeholder="info@alcott.com.ng"
                                         className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
                                         style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                        value={email}
+                                        onChange={(event) => setEmail(event.target.value)}
                                     />
                                 </div>
                             </div>
 
                             <Button
                                 className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 text-base font-semibold rounded-full w-full h-12 mt-6"
-                                onClick={onCheckRates}
+                                onClick={() => onCheckRates(phoneNumber, email)}
                                 disabled={isCheckingRates}
                             >
                                 {isCheckingRates ? 'Checking...' : 'Check'}

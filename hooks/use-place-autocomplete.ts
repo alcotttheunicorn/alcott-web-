@@ -32,18 +32,20 @@ export function usePlaceAutocomplete(query: string, options?: { country?: string
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+    const abortController = new AbortController()
+    let isCurrentRequest = true
 
     const trimmed = query.trim()
     if (trimmed.length < 3) {
       setPredictions([])
+      setLoading(false)
       return
     }
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
     if (!apiKey) {
-      // Fails silently rather than throwing — an address input should still
-      // work as a plain text field if the key isn't configured (e.g. local
-      // dev without the env var set), it just won't show suggestions.
+      setPredictions([])
+      setLoading(false)
       return
     }
 
@@ -56,6 +58,7 @@ export function usePlaceAutocomplete(query: string, options?: { country?: string
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
           },
+          signal: abortController.signal,
           body: JSON.stringify({
             input: trimmed,
             sessionToken: sessionTokenRef.current,
@@ -65,32 +68,38 @@ export function usePlaceAutocomplete(query: string, options?: { country?: string
 
         if (!res.ok) {
           console.error('Places autocomplete request failed:', await res.text())
-          setPredictions([])
+          if (isCurrentRequest) setPredictions([])
           return
         }
 
         const data = await res.json()
         const suggestions = Array.isArray(data.suggestions) ? data.suggestions : []
-        setPredictions(
-          suggestions
-            .filter((s: any) => s.placePrediction)
-            .map((s: any) => ({
-              placeId: s.placePrediction.placeId,
-              mainText: s.placePrediction.structuredFormat?.mainText?.text ?? s.placePrediction.text?.text ?? '',
-              secondaryText: s.placePrediction.structuredFormat?.secondaryText?.text ?? '',
-              fullText: s.placePrediction.text?.text ?? '',
-            }))
-        )
+        if (isCurrentRequest) {
+          setPredictions(
+            suggestions
+              .filter((s: any) => s.placePrediction)
+              .map((s: any) => ({
+                placeId: s.placePrediction.placeId,
+                mainText: s.placePrediction.structuredFormat?.mainText?.text ?? s.placePrediction.text?.text ?? '',
+                secondaryText: s.placePrediction.structuredFormat?.secondaryText?.text ?? '',
+                fullText: s.placePrediction.text?.text ?? '',
+              }))
+          )
+        }
       } catch (err) {
-        console.error('Places autocomplete failed:', err)
-        setPredictions([])
+        if (!abortController.signal.aborted) {
+          console.error('Places autocomplete failed:', err)
+          if (isCurrentRequest) setPredictions([])
+        }
       } finally {
-        setLoading(false)
+        if (isCurrentRequest) setLoading(false)
       }
     }, 300)
 
     return () => {
+      isCurrentRequest = false
       if (debounceRef.current) clearTimeout(debounceRef.current)
+      abortController.abort()
     }
   }, [query, options?.country])
 
