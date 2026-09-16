@@ -15,9 +15,11 @@ const sidebarLinks = [
 
 const settingsLinks = [
     { href: '/admin/settings/policies', label: 'Policies', icon: 'policies' },
+    { href: '/admin/settings/activity-logs', label: 'Activity Logs', icon: 'logs' },
 ]
 
-const pricingLinks = [
+const pricingLinks: { href: string; label: string; icon: string; exact?: boolean }[] = [
+    { href: '/admin/settings/pricing', label: 'Overview', icon: 'overview', exact: true },
     { href: '/admin/settings/pricing/premise', label: 'Premise', icon: 'premise' },
     { href: '/admin/settings/pricing/zones', label: 'Zones', icon: 'zones' },
     { href: '/admin/settings/pricing/regions', label: 'Regions', icon: 'regions' },
@@ -68,10 +70,22 @@ function SidebarIcon({ type }: { type: string }) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             )
+        case 'logs':
+            return (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+            )
         case 'monitor':
             return (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+            )
+        case 'overview':
+            return (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
                 </svg>
             )
         case 'premise':
@@ -201,7 +215,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                     <li key={link.href}>
                                                         <Link
                                                             href={link.href}
-                                                            className={`flex items-center gap-3 px-5 py-2 text-sm font-medium transition-colors ${isActive(link.href)
+                                                            className={`flex items-center gap-3 px-5 py-2 text-sm font-medium transition-colors ${(link.exact ? pathname === link.href : isActive(link.href))
                                                                 ? 'bg-white/20 text-white'
                                                                 : 'text-white/70 hover:bg-white/10 hover:text-white'
                                                                 }`}

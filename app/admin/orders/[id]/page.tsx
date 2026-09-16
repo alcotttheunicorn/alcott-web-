@@ -61,7 +61,8 @@ export default function OrderDetailsPage() {
 
   const { data: shipment, isLoading, error: queryError } = useAdminShipment(orderId)
   const { data: events = [] } = useAdminShipmentEvents(orderId)
-  const { data: catalogEvents = [] } = useAdminEvents({ limit: 50 })
+  const { data: eventsResponse } = useAdminEvents({ limit: 50 })
+  const catalogEvents = eventsResponse?.data?.events ?? []
 
   const startProcessing = useStartProcessingShipment()
   const markDelivered = useDeliverShipment()

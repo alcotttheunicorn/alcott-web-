@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useCreateRegionPricing, useRegionPricing, useUpdateRegionPricing } from '@/hooks/use-pricing'
-import type { RegionPricing } from '@/lib/api/types'
+import type { RegionPricing, RegionZoneRateCard } from '@/lib/api/types'
 import { ErrorBanner } from '@/components/shared/ErrorBanner'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ZoneGridSkeleton } from '@/components/shared/skeletons'
@@ -30,14 +30,26 @@ function formatStates(states: unknown): string {
     return labels.length ? labels.join(', ') : 'No states configured'
 }
 
-const mockZonedPrices = [
-    { id: 1, zone: 'Zone 1', fromWeight: '5.5', toWeight: '6', price: '40,635' },
-    { id: 2, zone: 'Zone 1', fromWeight: '5.5', toWeight: '6', price: '40,635' },
-    { id: 3, zone: 'Zone 1', fromWeight: '5.5', toWeight: '6', price: '40,635' },
-]
+function formatWeight(value: unknown): string {
+    return value == null ? '—' : String(value)
+}
+
+function buildZonedPriceRows(rateCards: RegionZoneRateCard[]) {
+    return rateCards.flatMap((card) =>
+        (card.slabs ?? []).map((slab, index) => ({
+            id: String(slab.id ?? `${card.zone_code ?? 'zone'}-${index}`),
+            zone: `Zone ${card.zone_code ?? '—'}`,
+            fromWeight: formatWeight(slab.min_weight ?? slab.from_weight),
+            toWeight: formatWeight(slab.max_weight ?? slab.to_weight),
+            price: typeof slab.price === 'number' ? slab.price.toLocaleString() : '—',
+        }))
+    )
+}
 
 export default function PricingRegionsPage() {
-    const { data: regions = [], isLoading: loading, error: queryError } = useRegionPricing()
+    const { data, isLoading: loading, error: queryError } = useRegionPricing()
+    const regions = data?.regions ?? []
+    const zonedPriceRows = buildZonedPriceRows(data?.zoneRateCards ?? [])
     const updateMutation = useUpdateRegionPricing()
     const createMutation = useCreateRegionPricing()
     const [isCreating, setIsCreating] = useState(false)
@@ -185,11 +197,11 @@ export default function PricingRegionsPage() {
             <div className="bg-white border border-gray-200 rounded-lg p-4 lg:p-6 mt-6">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-bold text-gray-900">Zoned Prices</h2>
-                    <span className="text-gray-400 text-sm font-medium cursor-not-allowed" title="No backend endpoint for this yet">
+                    <span className="text-gray-400 text-sm font-medium cursor-not-allowed" title="Editing zoned prices is not supported here yet">
                         ADD
                     </span>
                 </div>
-                <p className="text-xs text-gray-400 mb-6">Mock data — no backend endpoint exists for this yet.</p>
+                <p className="text-xs text-gray-400 mb-6">Read-only zoned prices from the region pricing config.</p>
 
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[500px]">
@@ -203,24 +215,30 @@ export default function PricingRegionsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {mockZonedPrices.map((price) => (
-                                <tr key={price.id} className="border-b border-gray-100 last:border-0">
-                                    <td className="py-3 text-sm text-gray-900">{price.zone}</td>
-                                    <td className="py-3 text-sm text-gray-600">{price.fromWeight}</td>
-                                    <td className="py-3 text-sm text-gray-600">{price.toWeight}</td>
-                                    <td className="py-3 text-sm text-gray-900">{price.price}</td>
-                                    <td className="py-3">
-                                        <div className="flex items-center gap-2 justify-end opacity-40 cursor-not-allowed">
-                                            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                                            </svg>
-                                        </div>
-                                    </td>
+                            {zonedPriceRows.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="py-6 text-center text-sm text-gray-400">No zoned prices configured.</td>
                                 </tr>
-                            ))}
+                            ) : (
+                                zonedPriceRows.map((price) => (
+                                    <tr key={price.id} className="border-b border-gray-100 last:border-0">
+                                        <td className="py-3 text-sm text-gray-900">{price.zone}</td>
+                                        <td className="py-3 text-sm text-gray-600">{price.fromWeight}</td>
+                                        <td className="py-3 text-sm text-gray-600">{price.toWeight}</td>
+                                        <td className="py-3 text-sm text-gray-900">{price.price}</td>
+                                        <td className="py-3">
+                                            <div className="flex items-center gap-2 justify-end opacity-40 cursor-not-allowed">
+                                                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                </svg>
+                                                <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                                                </svg>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

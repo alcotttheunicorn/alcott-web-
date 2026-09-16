@@ -3,11 +3,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { resetPassword } from '@/lib/api/auth-api'
+import { toast } from '@/components/ui/use-toast'
 
 export default function OTPVerificationPage() {
-  const [otp, setOtp] = useState(['', '', '', ''])
+  const [otp, setOtp] = useState(['', '', '', '', '', '']) // Changed to 6 digits
   const [resendTimer, setResendTimer] = useState(65)
+  const [isLoading, setIsLoading] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const router = useRouter()
+
+  // Get the contact info from localStorage
+  const email = typeof window !== 'undefined' ? localStorage.getItem('pendingResetEmail') : null
+  const phoneNumber = typeof window !== 'undefined' ? localStorage.getItem('pendingResetPhone') : null
 
   // Timer for resend functionality
   useEffect(() => {
@@ -26,7 +35,7 @@ export default function OTPVerificationPage() {
     setOtp(newOtp)
 
     // Auto-focus next input
-    if (value && index < 3) {
+    if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
     }
   }
@@ -38,20 +47,71 @@ export default function OTPVerificationPage() {
     }
   }
 
-  const handleResendCode = () => {
-    console.log('Resending code...')
-    setResendTimer(65)
-    setOtp(['', '', '', ''])
-    inputRefs.current[0]?.focus()
+  const handleResendCode = async () => {
+    if (!email && !phoneNumber) {
+      toast({
+        title: 'Contact information missing',
+        description: 'Please start the password reset process again.',
+      })
+      router.push('/forgot-password')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      // Call forgotPassword again to resend the code
+      const { forgotPassword } = await import('@/lib/api/auth-api')
+      await forgotPassword(email || undefined, phoneNumber || undefined)
+
+      toast({
+        title: 'Code resent',
+        description: 'A new reset code has been sent.',
+      })
+
+      setResendTimer(65)
+      setOtp(['', '', '', '', '', ''])
+      inputRefs.current[0]?.focus()
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Failed to resend code. Please try again.'
+      toast({
+        title: 'Failed to resend code',
+        description: errorMessage,
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const otpCode = otp.join('')
-    if (otpCode.length === 4) {
-      // Verify OTP and proceed to create new password
-      console.log('OTP:', otpCode)
-      window.location.href = '/forgot-password/new-password'
+    if (otpCode.length !== 6) {
+      toast({
+        title: 'Invalid code',
+        description: 'Please enter the 6-digit code.',
+      })
+      return
     }
+
+    if (!email && !phoneNumber) {
+      toast({
+        title: 'Contact information missing',
+        description: 'Please start the password reset process again.',
+      })
+      router.push('/forgot-password')
+      return
+    }
+
+    // Store the OTP for the next step
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pendingResetOtp', otpCode)
+    }
+
+    // Navigate to create new password page
+    router.push('/forgot-password/new-password')
   }
 
   return (
@@ -87,13 +147,13 @@ export default function OTPVerificationPage() {
             {/* Header Text */}
             <div className="mb-8 text-center lg:text-left">
               <h2 className="text-lg font-bold text-gray-900 mb-4 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                Code has been send to +1 111 ••••••99
+                Code has been sent to {email || phoneNumber || 'your contact'}
               </h2>
             </div>
 
             {/* OTP Input */}
             <div className="mb-8">
-              <div className="flex justify-center lg:justify-start space-x-4 mb-6">
+              <div className="flex justify-center lg:justify-start space-x-2 mb-6">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -106,7 +166,7 @@ export default function OTPVerificationPage() {
                     value={digit}
                     onChange={(e) => handleInputChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-20 h-16 text-center text-2xl font-bold border-2 border-gray-300 bg-gray-50 rounded-lg focus:border-[#4043FF] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all duration-200 font-[Urbanist]"
+                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 bg-gray-50 rounded-lg focus:border-[#4043FF] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all duration-200 font-[Urbanist]"
                     style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
                   />
                 ))}
@@ -135,11 +195,11 @@ export default function OTPVerificationPage() {
             {/* Continue Button */}
             <Button
               onClick={handleContinue}
-              disabled={otp.join('').length !== 4}
+              disabled={otp.join('').length !== 6 || isLoading}
               className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full font-[Urbanist]"
               style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
             >
-              Continue
+              {isLoading ? 'Verifying...' : 'Continue'}
             </Button>
           </div>
         </div>

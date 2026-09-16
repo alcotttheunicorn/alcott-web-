@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { resetPassword } from '@/lib/api/auth-api'
+import { toast } from '@/components/ui/use-toast'
 
 export default function CreateNewPasswordPage() {
   const [passwords, setPasswords] = useState({
@@ -12,7 +15,8 @@ export default function CreateNewPasswordPage() {
   })
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleInputChange = (field: string, value: string) => {
     setPasswords(prev => ({
@@ -21,16 +25,88 @@ export default function CreateNewPasswordPage() {
     }))
   }
 
-  const handleContinue = () => {
-    if (passwords.newPassword && passwords.confirmPassword) {
-      if (passwords.newPassword === passwords.confirmPassword) {
-        // Password reset successful
-        console.log('Password reset successful')
-        // Navigate to success page or sign in
-        window.location.href = '/sign-in'
-      } else {
-        alert('Passwords do not match')
+  const handleContinue = async () => {
+    if (!passwords.newPassword || !passwords.confirmPassword) {
+      toast({
+        title: 'Missing fields',
+        description: 'Please enter both password fields.',
+      })
+      return
+    }
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      toast({
+        title: 'Passwords do not match',
+        description: 'Please make sure both passwords match.',
+      })
+      return
+    }
+
+    if (passwords.newPassword.length < 6) {
+      toast({
+        title: 'Password too short',
+        description: 'Password must be at least 6 characters.',
+      })
+      return
+    }
+
+    // Get the contact info and OTP from localStorage
+    const email = typeof window !== 'undefined' ? localStorage.getItem('pendingResetEmail') : null
+    const phoneNumber = typeof window !== 'undefined' ? localStorage.getItem('pendingResetPhone') : null
+    const otp = typeof window !== 'undefined' ? localStorage.getItem('pendingResetOtp') : null
+
+    if (!otp) {
+      toast({
+        title: 'OTP missing',
+        description: 'Please start the password reset process again.',
+      })
+      router.push('/forgot-password')
+      return
+    }
+
+    if (!email && !phoneNumber) {
+      toast({
+        title: 'Contact information missing',
+        description: 'Please start the password reset process again.',
+      })
+      router.push('/forgot-password')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await resetPassword(
+        email ?? '',
+        otp,
+        passwords.newPassword
+      )
+
+      // Clear the stored data
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('pendingResetEmail')
+        localStorage.removeItem('pendingResetPhone')
+        localStorage.removeItem('pendingResetOtp')
       }
+
+      toast({
+        title: 'Password reset successful',
+        description: 'Your password has been reset. Please sign in with your new password.',
+      })
+
+      // Navigate to sign in page
+      router.push('/sign-in')
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Failed to reset password. Please try again.'
+      toast({
+        title: 'Password reset failed',
+        description: errorMessage,
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -140,42 +216,14 @@ export default function CreateNewPasswordPage() {
               </div>
             </div>
 
-            {/* Remember Me Checkbox */}
-            <div className="flex items-center justify-center lg:justify-start mb-8">
-              <div className="relative inline-flex items-center">
-                <input
-                  id="remember"
-                  name="remember"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="absolute opacity-0 w-5 h-5 cursor-pointer"
-                />
-                <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all duration-200 cursor-pointer ${
-                  rememberMe 
-                    ? 'bg-[#4043FF] border-[#4043FF]' 
-                    : 'bg-white border-gray-300'
-                }`}>
-                  {rememberMe && (
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <label htmlFor="remember" className="ml-3 block text-sm text-gray-700 font-bold cursor-pointer font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                Remember me
-              </label>
-            </div>
-
             {/* Continue Button */}
             <Button
               onClick={handleContinue}
-              disabled={!passwords.newPassword || !passwords.confirmPassword}
+              disabled={!passwords.newPassword || !passwords.confirmPassword || isLoading}
               className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full font-[Urbanist]"
               style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
             >
-              Continue
+              {isLoading ? 'Resetting...' : 'Continue'}
             </Button>
           </div>
         </div>

@@ -8,11 +8,20 @@ export interface AdminUser extends AuthUser {
   [key: string]: unknown
 }
 
+export interface ActivityLogUser {
+  first_name?: string
+  last_name?: string
+  email?: string
+  [key: string]: unknown
+}
+
 export interface ActivityLog {
   id?: string
   user_id?: string
   action?: string
+  details?: string
   created_at?: string
+  user?: ActivityLogUser
   [key: string]: unknown
 }
 
@@ -69,7 +78,7 @@ export async function getAdminShipments(
 
 export async function getAdminActivityLogs(
   params?: { user_id?: string; action?: string; page?: number; limit?: number },
-): Promise<PaginatedResponse<ActivityLog[]>> {
+): Promise<PaginatedResponse<{ logs: ActivityLog[] }>> {
   const { data } = await apiClient.get('/admin/activity-logs', { params })
   return data
 }
@@ -125,7 +134,7 @@ export async function appendShipmentEvent(
 
 export async function getAdminEvents(
   params?: { search?: string; page?: number; limit?: number },
-): Promise<PaginatedResponse<AdminEvent[]>> {
+): Promise<PaginatedResponse<{ events: AdminEvent[] }>> {
   const { data } = await apiClient.get('/admin/events', { params })
   return data
 }

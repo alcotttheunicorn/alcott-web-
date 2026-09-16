@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { PricingResult } from '@/lib/api/types'
 
 interface CheckRatesSectionProps {
@@ -15,6 +16,7 @@ interface CheckRatesSectionProps {
     onCheckRates: (phoneNumber: string, email: string) => void
     isCheckingRates: boolean
     pricingResult: PricingResult | null
+    onClearResult?: () => void
 }
 
 export function CheckRatesSection({
@@ -27,6 +29,7 @@ export function CheckRatesSection({
     onCheckRates,
     isCheckingRates,
     pricingResult,
+    onClearResult,
 }: CheckRatesSectionProps) {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [email, setEmail] = useState('')
@@ -35,7 +38,7 @@ export function CheckRatesSection({
         <section className="bg-white py-12 lg:py-16">
             <div className="max-w-8xl mx-auto px-4 lg:px-12">
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
-                    <div className="flex-1 flex flex-col items-center">
+                    <div className="flex-1 flex flex-col items-start">
                         <div className="relative mb-6 lg:mb-8">
                             <img src="/check-rates.png" alt="Product packaging" className="w-full max-w-sm lg:max-w-lg rounded-2xl mx-auto" />
                         </div>
@@ -160,34 +163,43 @@ export function CheckRatesSection({
                             </Button>
 
                             {pricingResult && (
-                                <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                    <p className="text-sm text-gray-500 mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                        {pricingResult.pricing_type}
-                                    </p>
-                                    {'price' in pricingResult && pricingResult.price ? (
-                                        <p className="text-xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                            {pricingResult.price.currency === 'NGN' ? '₦' : `${pricingResult.price.currency} `}
-                                            {pricingResult.price.amount.toLocaleString()}
-                                        </p>
-                                    ) : pricingResult.export_price ? (
-                                        <div className="space-y-1">
-                                            <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                Export: <span className="font-bold text-[#4043FF]">
-                                                    {pricingResult.export_price.currency === 'NGN' ? '₦' : `${pricingResult.export_price.currency} `}
-                                                    {pricingResult.export_price.amount.toLocaleString()}
-                                                </span>
+                                <Dialog open={!!pricingResult} onOpenChange={(open) => { if (!open) onClearResult?.() }}>
+                                    <DialogContent className="sm:max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                Rate Estimate
+                                            </DialogTitle>
+                                        </DialogHeader>
+                                        <div className="pt-2 pb-4 space-y-3">
+                                            <p className="text-sm text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                {pricingResult.pricing_type}
                                             </p>
-                                            {pricingResult.import_price && (
-                                                <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                    Import: <span className="font-bold text-[#4043FF]">
-                                                        {pricingResult.import_price.currency === 'NGN' ? '₦' : `${pricingResult.import_price.currency} `}
-                                                        {pricingResult.import_price.amount.toLocaleString()}
-                                                    </span>
+                                            {'price' in pricingResult && pricingResult.price ? (
+                                                <p className="text-2xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                    {pricingResult.price.currency === 'NGN' ? '₦' : `${pricingResult.price.currency} `}
+                                                    {pricingResult.price.amount.toLocaleString()}
                                                 </p>
-                                            )}
+                                            ) : pricingResult.export_price ? (
+                                                <div className="space-y-2">
+                                                    <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                        Export: <span className="font-bold text-[#4043FF]">
+                                                            {pricingResult.export_price.currency === 'NGN' ? '₦' : `${pricingResult.export_price.currency} `}
+                                                            {pricingResult.export_price.amount.toLocaleString()}
+                                                        </span>
+                                                    </p>
+                                                    {pricingResult.import_price && (
+                                                        <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                            Import: <span className="font-bold text-[#4043FF]">
+                                                                {pricingResult.import_price.currency === 'NGN' ? '₦' : `${pricingResult.import_price.currency} `}
+                                                                {pricingResult.import_price.amount.toLocaleString()}
+                                                            </span>
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            ) : null}
                                         </div>
-                                    ) : null}
-                                </div>
+                                    </DialogContent>
+                                </Dialog>
                             )}
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useCreateZonePricing, useUpdateZonePricing, useZonePricing } from '@/hooks/use-pricing'
+import { useCreateZonePricing, useReplaceZonePricing, useUpdateZonePricing, useZonePricing } from '@/hooks/use-pricing'
 import type { ZonePricing } from '@/lib/api/types'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ZoneGridSkeleton } from '@/components/shared/skeletons'
@@ -13,6 +13,7 @@ export default function PricingZonesPage() {
     const { data: zones = [], isLoading: loading, error: queryError } = useZonePricing()
     const createMutation = useCreateZonePricing()
     const updateMutation = useUpdateZonePricing()
+    const replaceMutation = useReplaceZonePricing()
 
     const error = queryError
         ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load zones.')
@@ -22,7 +23,7 @@ export default function PricingZonesPage() {
     const [editingZone, setEditingZone] = useState<ZonePricing | null>(null)
     const [formError, setFormError] = useState('')
 
-    const saving = createMutation.isPending || updateMutation.isPending
+    const saving = createMutation.isPending || updateMutation.isPending || replaceMutation.isPending
 
     const handleOpenCreate = () => {
         setEditingZone(null)
@@ -36,7 +37,7 @@ export default function PricingZonesPage() {
         setIsModalOpen(true)
     }
 
-    const handleSave = (data: any) => {
+    const handleSave = (data: any, mode: 'update' | 'replace' = 'update') => {
         setFormError('')
         const handleError = (err: any) => setFormError(
             err?.response?.data?.message ||
@@ -45,6 +46,13 @@ export default function PricingZonesPage() {
 
         if (editingZone?.zone_code == null) {
             createMutation.mutate(data, { onSuccess: () => setIsModalOpen(false), onError: handleError })
+            return
+        }
+
+        // Replace sends the complete zone object via PUT and overwrites every
+        // field; update PATCHes just the edited fields.
+        if (mode === 'replace') {
+            replaceMutation.mutate(data, { onSuccess: () => setIsModalOpen(false), onError: handleError })
             return
         }
 
@@ -74,13 +82,16 @@ export default function PricingZonesPage() {
                 <EmptyState message='No pricing zones configured yet. Click "ADD ZONE" to create one.' />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-                    {zones.map((zone, i) => (
+                    {zones.map((zone: ZonePricing, i: number) => (
                         <ZoneCard key={zone.zone_code ?? i} zone={zone} index={i} onEdit={handleOpenEdit} />
                     ))}
                 </div>
             )}
 
+            {/* key remounts the modal per zone/create so form state never
+                leaks from a previously edited zone into the next one. */}
             <PricingZoneModal
+                key={editingZone?.zone_code ?? 'new'}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 editingZone={editingZone}

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { SuccessModal } from '@/components/ui/success-modal'
 import Link from 'next/link'
@@ -10,7 +9,7 @@ import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { HeaderActions } from '@/components/layout/HeaderActions'
-import { initializeFund, verifyFund } from '@/lib/api/wallet-api'
+import { useInitializeFund, useVerifyFund } from '@/hooks/use-wallet'
 import { toast } from '@/components/ui/use-toast'
 
 export default function TopUpPage() {
@@ -34,8 +33,11 @@ function TopUpContent() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const router = useRouter()
 
-  const verifyFundMutation = useMutation({ mutationFn: (reference: string) => verifyFund(reference) })
-  const initializeFundMutation = useMutation({ mutationFn: (amount: number) => initializeFund(amount) })
+  // The hook versions invalidate wallet balance/transaction queries on
+  // success, so /home and /transactions reflect the top-up without a manual
+  // refetch. Per-call onSuccess below only handles page-local UI.
+  const verifyFundMutation = useVerifyFund()
+  const initializeFundMutation = useInitializeFund()
   const isProcessing = verifyFundMutation.isPending || initializeFundMutation.isPending
 
   useEffect(() => {

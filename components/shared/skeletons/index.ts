@@ -7,4 +7,5 @@ export { AdminOrderCardSkeleton, AdminOrderListSkeleton } from './AdminOrderSkel
 export { AdminUsersTableSkeleton } from './AdminUsersTableSkeleton'
 export { StatCardSkeleton, StatCardsSkeleton, UserDetailsCardSkeleton, ActiveUsersCardSkeleton } from './AdminStatsSkeleton'
 export { ZoneCardSkeleton, ZoneGridSkeleton } from './ZoneSkeleton'
+export { AdminListRowSkeleton, AdminListSkeleton } from './AdminListSkeleton'
 export { FormSkeleton, ProfileFormSkeleton } from './FormSkeleton'

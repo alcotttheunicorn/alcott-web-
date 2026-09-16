@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { useProfile } from '@/hooks/use-profile'

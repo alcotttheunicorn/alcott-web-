@@ -82,7 +82,7 @@ export function HeroSection() {
                 </Button>
             </section>
 
-            <section className="hidden lg:flex flex-1 flex-col items-center justify-center relative w-full h-[600px]">
+            <section className="hidden lg:flex flex-1 flex-col items-end justify-center relative w-full h-[600px]">
                 <img src="/mobile-landing-hero.png" alt="Mobile app mockup" className="w-[400px] h-auto transform rotate-12 mb-8" />
                 <div className="flex flex-col items-center text-center">
                     <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>

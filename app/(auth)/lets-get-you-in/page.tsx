@@ -2,8 +2,23 @@
 
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function SignInPage() {
+function LetsGetYouInContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect')
+
+  const handleSignInClick = () => {
+    // Preserve the redirect parameter when navigating to sign-in
+    if (redirectUrl) {
+      router.push(`/sign-in?redirect=${encodeURIComponent(redirectUrl)}`)
+    } else {
+      router.push('/sign-in')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Top Logo */}
@@ -79,10 +94,10 @@ export default function SignInPage() {
 
           {/* Sign in with password button */}
           <div className="mb-6">
-            <Button 
+            <Button
               type="button"
               className="w-full h-16 bg-[#4043FF] hover:bg-[#3333CC] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-lg font-['Urbanist']"
-              onClick={() => window.location.href = '/sign-in'}
+              onClick={handleSignInClick}
             >
               Sign in with password
             </Button>
@@ -99,5 +114,17 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LetsGetYouInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]"></div>
+      </div>
+    }>
+      <LetsGetYouInContent />
+    </Suspense>
   )
 }

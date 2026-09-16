@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from '@/lib/api/auth-api'
 import { setSession } from '@/lib/auth-store'
 import { toast } from '@/components/ui/use-toast'
 
-export default function SignInPage() {
+function SignInContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [emailFocused, setEmailFocused] = useState(false)
   const [passwordFocused, setPasswordFocused] = useState(false)
@@ -19,6 +19,8 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +54,9 @@ export default function SignInPage() {
           localStorage.removeItem('authUser')
           sessionStorage.removeItem('authToken')
           sessionStorage.removeItem('authUser')
+          // Clear cookies as well
+          document.cookie = 'authToken=; path=/; max-age=0; SameSite=Lax'
+          document.cookie = 'authUser=; path=/; max-age=0; SameSite=Lax'
         }
         toast({
           title: 'Verify your email',
@@ -68,7 +73,8 @@ export default function SignInPage() {
         description: `Hello ${user.first_name || ''}!`,
       })
 
-      router.push('/home')
+      // Redirect to the URL they were trying to access, or home by default
+      router.push(redirectUrl || '/home')
     } catch (err: any) {
       const apiErrorMessage =
         err?.response?.data?.message ||
@@ -234,11 +240,12 @@ export default function SignInPage() {
                 </label>
               </div>
 
-              {/* Sign In Button */}
+              {/* Error Message */}
               {errorMessage && (
                 <p className="text-sm text-red-600 text-center font-['Urbanist'] font-bold">{errorMessage}</p>
               )}
 
+              {/* Sign In Button */}
               <Button 
                 type="submit"
                 disabled={isLoading}
@@ -289,5 +296,17 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4043FF]"></div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 }

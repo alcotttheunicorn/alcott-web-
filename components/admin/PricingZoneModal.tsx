@@ -44,7 +44,7 @@ interface PricingZoneModalProps {
         destination_country_codes: string[]
         import_slabs: { from_weight: number; to_weight: number; price: number }[]
         export_slabs: { from_weight: number; to_weight: number; price: number }[]
-    }) => void
+    }, mode: 'update' | 'replace') => void
     isSaving: boolean
     formError: string
 }
@@ -56,6 +56,7 @@ export function PricingZoneModal({ isOpen, onClose, editingZone, onSave, isSavin
     const [activeTab, setActiveTab] = useState<'import' | 'export'>('import')
     const [importSlabs, setImportSlabs] = useState<Slab[]>(payloadToSlabs(editingZone?.import_slabs))
     const [exportSlabs, setExportSlabs] = useState<Slab[]>(payloadToSlabs(editingZone?.export_slabs))
+    const [replaceMode, setReplaceMode] = useState(false)
 
     const currentSlabs = activeTab === 'import' ? importSlabs : exportSlabs
     const setCurrentSlabs = activeTab === 'import' ? setImportSlabs : setExportSlabs
@@ -68,7 +69,7 @@ export function PricingZoneModal({ isOpen, onClose, editingZone, onSave, isSavin
             destination_country_codes: destinations.split(',').map((s) => s.trim()).filter(Boolean),
             import_slabs: slabsToPayload(importSlabs),
             export_slabs: slabsToPayload(exportSlabs),
-        })
+        }, editingZone != null && replaceMode ? 'replace' : 'update')
     }
 
     return (
@@ -140,6 +141,20 @@ export function PricingZoneModal({ isOpen, onClose, editingZone, onSave, isSavin
                     </div>
                     <SlabEditorTable slabs={currentSlabs} onChange={setCurrentSlabs} />
                 </div>
+
+                {editingZone != null && (
+                    <label className="flex items-start gap-2 mb-4 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={replaceMode}
+                            onChange={(e) => setReplaceMode(e.target.checked)}
+                            className="mt-0.5 accent-[#4043FF]"
+                        />
+                        <span className="text-xs text-gray-600">
+                            Replace entire zone — overwrite all fields with the values above instead of patching them
+                        </span>
+                    </label>
+                )}
 
                 <button
                     type="submit"

@@ -70,6 +70,7 @@ export default function HomePage() {
         onCheckRates={handleCheckRates}
         isCheckingRates={isCheckingRates}
         pricingResult={pricingResult}
+        onClearResult={() => setPricingResult(null)}
       />
       <ServicesSection />
       <WhyUseAlcottSection />

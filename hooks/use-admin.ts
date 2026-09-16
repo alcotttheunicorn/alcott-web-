@@ -16,6 +16,9 @@ import {
   startProcessingShipment,
   deliverShipment,
   appendShipmentEvent,
+  createAdminEvent,
+  updateAdminEvent,
+  deleteAdminEvent,
   type AdminUser,
   type AdminShipmentEvent,
   type AdminEvent,
@@ -82,8 +85,7 @@ export function useAdminEvents(params?: { search?: string; page?: number; limit?
 
   return useQuery({
     queryKey: [...queryKeys.admin.events, params?.search, params?.page, params?.limit],
-    queryFn: () =>
-      getAdminEvents(params).then((res) => (Array.isArray(res.data) ? res.data : [])),
+    queryFn: () => getAdminEvents(params),
     enabled: isAuthenticated && hasAdminAccess,
   })
 }
@@ -186,6 +188,41 @@ export function useAppendShipmentEvent() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipmentEvents(variables.id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipmentDetail(variables.id) })
+    },
+  })
+}
+
+
+export function useCreateAdminEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: { name: string; description?: string }) => createAdminEvent(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.events })
+    },
+  })
+}
+
+export function useUpdateAdminEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, name, description }: { id: string; name: string; description?: string }) =>
+      updateAdminEvent(id, { name, description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.events })
+    },
+  })
+}
+
+export function useDeleteAdminEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteAdminEvent(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.events })
     },
   })
 }

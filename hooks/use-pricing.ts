@@ -6,6 +6,7 @@ import { isAdmin } from '@/lib/rbac'
 import {
   checkPricing,
   checkPricingAuth,
+  getExchangeRate,
   getPricingOverview,
   getZonePricing,
   createZonePricing,
@@ -19,7 +20,7 @@ import {
   updateExchangeRate,
   importPricingConfig,
 } from '@/lib/api/pricing-api'
-import type { ZonePricing, PremisePricing } from '@/lib/api/types'
+import type { ZonePricing, PremisePricing, RegionPricing, RegionZoneRateCard } from '@/lib/api/types'
 import { queryKeys } from '@/components/providers/query-provider'
 
 export function useCheckPricing() {
@@ -61,6 +62,17 @@ export function useCheckPricingAuth() {
   })
 }
 
+export function useExchangeRate() {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: queryKeys.pricing.exchangeRate,
+    queryFn: () => getExchangeRate().then((res) => res.data),
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
 export function usePricingOverview() {
   const { isAuthenticated, user } = useAuth()
   const hasAdminAccess = isAdmin(user?.role)
@@ -78,7 +90,38 @@ export function useZonePricing() {
 
   return useQuery({
     queryKey: queryKeys.pricing.zones,
-    queryFn: () => getZonePricing().then((res) => res.data),
+
+    queryFn: async () => {
+      const response = await getZonePricing()
+      const data = response.data as any
+
+      const zones = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.zones)
+          ? data.zones
+          : []
+
+      return zones.map((zone: any): ZonePricing => {
+        const importRateCard = (zone.rate_cards ?? []).find(
+          (card: any) => card.mode === 'IMPORT'
+        )
+
+        const exportRateCard = (zone.rate_cards ?? []).find(
+          (card: any) => card.mode === 'EXPORT'
+        )
+
+        return {
+          zone_code: zone.code,
+          base_country_code: zone.base_country?.code,
+          destination_country_codes: (zone.destinations ?? [])
+            .map((destination: any) => destination.country?.code)
+            .filter(Boolean),
+          import_slabs: importRateCard?.slabs ?? [],
+          export_slabs: exportRateCard?.slabs ?? [],
+        }
+      })
+    },
+
     enabled: isAuthenticated && hasAdminAccess,
   })
 }
@@ -130,19 +173,34 @@ export function useRegionPricing() {
       const response = await getRegionPricing()
       const payload = response.data as unknown
 
-      if (Array.isArray(payload)) return payload
-      if (!payload || typeof payload !== 'object') return []
+      if (Array.isArray(payload)) {
+        return { regions: payload as RegionPricing[], zoneRateCards: [] as RegionZoneRateCard[] }
+      }
+      if (!payload || typeof payload !== 'object') {
+        return { regions: [] as RegionPricing[], zoneRateCards: [] as RegionZoneRateCard[] }
+      }
 
       const wrapped = payload as {
         regions?: unknown
         data?: unknown
         items?: unknown
+        zone_rate_cards?: unknown
       }
 
-      if (Array.isArray(wrapped.regions)) return wrapped.regions
-      if (Array.isArray(wrapped.data)) return wrapped.data
-      if (Array.isArray(wrapped.items)) return wrapped.items
-      return []
+      const regions = Array.isArray(wrapped.regions)
+        ? wrapped.regions
+        : Array.isArray(wrapped.data)
+          ? wrapped.data
+          : Array.isArray(wrapped.items)
+            ? wrapped.items
+            : []
+
+      const zoneRateCards = Array.isArray(wrapped.zone_rate_cards) ? wrapped.zone_rate_cards : []
+
+      return {
+        regions: regions as RegionPricing[],
+        zoneRateCards: zoneRateCards as RegionZoneRateCard[],
+      }
     },
     enabled: isAuthenticated && hasAdminAccess,
   })
