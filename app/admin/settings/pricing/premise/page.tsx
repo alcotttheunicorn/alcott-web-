@@ -1,66 +1,54 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/hooks/use-auth'
-import { getPricingOverview, upsertPremisePricing } from '@/lib/api/pricing-api'
+import { usePremisePricing, useUpsertPremisePricing } from '@/hooks/use-pricing'
 import { FormMessages } from '@/components/shared/FormMessages'
 import { FormSkeleton } from '@/components/shared/skeletons'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { CostField } from '@/components/admin/CostField'
 
 export default function PricingPremisePage() {
-    const { token } = useAuth()
-    const queryClient = useQueryClient()
+    const { data: premise, isLoading: loading, error: queryError } = usePremisePricing()
     const [baseRangeCost, setBaseRangeCost] = useState('')
-    const [costPerKM, setCostPerKM] = useState('')
+    const [costPerKm, setCostPerKm] = useState('')
     const [costPerMinute, setCostPerMinute] = useState('')
     const [costPerKG, setCostPerKG] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
 
-    const { data: overview, isLoading: loading, error: queryError } = useQuery({
-        queryKey: ['pricing-overview', token],
-        queryFn: () => getPricingOverview().then((res) => res.data),
-        enabled: !!token,
-    })
-
     useEffect(() => {
-        const premise = overview?.premise as Record<string, unknown> | undefined
         if (!premise) return
         if (premise.base_range_cost != null) setBaseRangeCost(String(premise.base_range_cost))
-        if (premise.cost_per_km != null) setCostPerKM(String(premise.cost_per_km))
+        if (premise.cost_per_km != null) setCostPerKm(String(premise.cost_per_km))
         if (premise.cost_per_minute != null) setCostPerMinute(String(premise.cost_per_minute))
         if (premise.cost_per_kg != null) setCostPerKG(String(premise.cost_per_kg))
-    }, [overview])
+    }, [premise])
 
     const error = queryError
         ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load current premise pricing.')
         : ''
 
-    const mutation = useMutation({
-        mutationFn: () =>
-            upsertPremisePricing({
-                base_range_cost: Number(baseRangeCost),
-                cost_per_km: Number(costPerKM),
-                cost_per_minute: Number(costPerMinute),
-                cost_per_kg: Number(costPerKG),
-            }),
-        onSuccess: () => {
-            setSuccessMessage('Premise pricing updated successfully.')
-            queryClient.invalidateQueries({ queryKey: ['pricing-overview'] })
-        },
-    })
+    const upsertMutation = useUpsertPremisePricing()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         setSuccessMessage('')
-        mutation.mutate()
+        upsertMutation.mutate(
+            {
+                base_range_cost: Number(baseRangeCost),
+                cost_per_km: Number(costPerKm),
+                cost_per_minute: Number(costPerMinute),
+                cost_per_kg: Number(costPerKG),
+            },
+            {
+                onSuccess: () => setSuccessMessage('Premise pricing updated successfully.'),
+            },
+        )
     }
 
-    const saving = mutation.isPending
-    const submitError = mutation.error
-        ? ((mutation.error as any)?.response?.data?.message ||
-            ((mutation.error as any)?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not update premise pricing.'))
+    const saving = upsertMutation.isPending
+    const submitError = upsertMutation.error
+        ? ((upsertMutation.error as any)?.response?.data?.message ||
+            ((upsertMutation.error as any)?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not update premise pricing.'))
         : ''
 
     return (
@@ -74,7 +62,7 @@ export default function PricingPremisePage() {
                     <FormMessages error={error || submitError} success={successMessage} />
 
                     <CostField label="Base Range Cost" value={baseRangeCost} onChange={setBaseRangeCost} />
-                    <CostField label="Cost Per KM" value={costPerKM} onChange={setCostPerKM} />
+                    <CostField label="Cost Per KM" value={costPerKm} onChange={setCostPerKm} />
                     <CostField label="Cost Per Minute" value={costPerMinute} onChange={setCostPerMinute} />
                     <CostField label="Cost Per KG" value={costPerKG} onChange={setCostPerKG} />
 

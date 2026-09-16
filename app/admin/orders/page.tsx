@@ -1,10 +1,8 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { getAdminShipments } from '@/lib/api/admin-api'
+import { useAdminShipments } from '@/hooks/use-admin'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { AdminOrderListSkeleton } from '@/components/shared/skeletons'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
@@ -16,31 +14,28 @@ type OrderStatus = 'all' | 'pending' | 'on_process' | 'delivered'
 
 const statusToApiValue: Record<Exclude<OrderStatus, 'all'>, string> = {
     pending: 'PENDING',
-    on_process: 'ONGOING',
+    on_process: 'ON_PROCESS',
     delivered: 'DELIVERED',
 }
 
 function mapShipmentStatus(status: string): Exclude<OrderStatus, 'all'> {
-    if (status === 'ONGOING') return 'on_process'
+    if (status === 'ON_PROCESS' || status === 'ONGOING') return 'on_process'
     if (status === 'DELIVERED') return 'delivered'
+    if (status === 'SUBMITTED' || status === 'UNPAID') return 'pending'
     return 'pending'
 }
 
 function AdminOrdersContent() {
-    const { token } = useAuth()
     const searchParams = useSearchParams()
     const userIdFilter = searchParams.get('user_id')
     const [activeTab, setActiveTab] = useState<OrderStatus>('all')
 
     const status = activeTab === 'all' ? undefined : statusToApiValue[activeTab]
 
-    const { data: orders = [], isLoading: loading, error: queryError } = useQuery({
-        queryKey: ['admin-shipments', token, status, userIdFilter],
-        queryFn: () =>
-            getAdminShipments({ status, user_id: userIdFilter ?? undefined, limit: 50 }).then((res) =>
-                Array.isArray(res.data) ? res.data : []
-            ),
-        enabled: !!token,
+    const { data: orders = [], isLoading: loading, error: queryError } = useAdminShipments({
+        status,
+        user_id: userIdFilter ?? undefined,
+        limit: 50,
     })
 
     const error = queryError

@@ -5,7 +5,7 @@ export function Footer() {
 
       {/* Main Footer Content */}
       <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 lg:px-12">
+        <div className="max-w-8xl mx-auto px-4 lg:px-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             {/* Column 1: Alcott Logo and Description */}
             
@@ -64,7 +64,7 @@ export function Footer() {
 
       {/* Bottom Footer Bar */}
       <section className="border-t border-gray-200 py-8">
-        <div className="max-w-7xl mx-auto px-4 lg:px-12">
+        <div className="max-w-8xl mx-auto px-4 lg:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             {/* Social Media Icons */}
             <div className="flex space-x-6">

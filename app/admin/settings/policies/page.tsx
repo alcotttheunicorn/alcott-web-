@@ -33,7 +33,7 @@ export default function PoliciesPage() {
             </AdminPageHeader>
 
             {/* Policy Sections - with proper indentation matching screenshot */}
-            <div className="space-y-8 lg:space-y-10 pl-4 lg:pl-8 pr-4 lg:pr-16 max-w-5xl">
+            <div className="space-y-8 lg:space-y-10 pl-4 lg:pl-8 pr-4 lg:pr-16 max-w-8xl">
                 {policies.map((policy) => (
                     <div key={policy.id}>
                         <h2 className="text-sm lg:text-base font-bold text-gray-900 mb-3">{policy.title}</h2>

@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
+import { isAdmin as hasAdminRole } from '@/lib/rbac'
 import { NAV_ITEMS, type UserNavKey } from '@/components/shared/nav-icons'
 import { DesktopSidebar } from './DesktopSidebar'
 import { MobileSidebar } from './MobileSidebar'
@@ -43,7 +44,8 @@ function UserAppLayoutInner({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const { isAdmin } = useAuth()
+  const { user } = useAuth()
+  const isAdmin = hasAdminRole(user?.role)
 
   let resolvedActiveNav = activeNav
   if (!resolvedActiveNav) {

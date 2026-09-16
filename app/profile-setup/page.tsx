@@ -1,29 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ImagePicker } from '@/components/ui/image-picker'
 import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
+import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
-import { AuthGuard } from '@/components/auth-guard'
-import { getProfile, setupProfile, updateProfile } from '@/lib/api/profile-api'
+import { useSetupProfile } from '@/hooks/use-profile'
 import { toast } from '@/components/ui/use-toast'
-import { ProfileFormSkeleton } from '@/components/shared/skeletons'
 
-function toDateInputValue(dob?: string) {
-  if (!dob) return ''
-  const parsed = new Date(dob)
-  if (Number.isNaN(parsed.getTime())) return ''
-  return parsed.toISOString().slice(0, 10)
-}
-
-function ProfileSetupContent() {
-  const { token, user, isLoading: authLoading } = useAuth()
-  const queryClient = useQueryClient()
+export default function ProfileSetupPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -34,19 +22,12 @@ function ProfileSetupContent() {
     address: '',
     profileImage: null as File | null
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [prefilled, setPrefilled] = useState(false)
+  const [step, setStep] = useState<1 | 2>(1)
   const router = useRouter()
-
-  // Determine create-vs-edit by checking whether a profile already exists.
-  // 404 (no profile yet) just means we're in "create" mode, not an error.
-  const { data: existingProfile, isLoading: checkingExisting } = useQuery({
-    queryKey: ['profile', token],
-    queryFn: () => getProfile().then((res) => res.data).catch(() => null),
-    enabled: !authLoading && !!token,
-  })
-  const isEditMode = !!existingProfile
+  const setupProfileMutation = useSetupProfile()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -62,60 +43,26 @@ function ProfileSetupContent() {
     }))
   }
 
-  // Prefill from the signed-up user's name/email immediately (available from
-  // useAuth synchronously), then overwrite with the fuller real profile once
-  // that query resolves (dob, gender, address, phone, avatar — fields the
-  // signup response never had).
   useEffect(() => {
-    if (!user) return
-    setFormData(prev => ({
-      ...prev,
-      email: user.email || prev.email,
-      firstName: prev.firstName || user.first_name || '',
-      lastName: prev.lastName || user.last_name || ''
-    }))
-  }, [user])
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('authUser') || sessionStorage.getItem('authUser')
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser)
+          setFormData(prev => ({
+            ...prev,
+            email: parsed.email || prev.email,
+            firstName: prev.firstName || parsed.first_name || '',
+            lastName: prev.lastName || parsed.last_name || ''
+          }))
+        } catch (error) {
+          console.error('Failed to parse stored user', error)
+        }
+      }
+    }
+  }, [])
 
-  useEffect(() => {
-    if (!existingProfile || prefilled) return
-    setPrefilled(true)
-    setFormData(prev => ({
-      ...prev,
-      firstName: existingProfile.first_name || prev.firstName,
-      lastName: existingProfile.last_name || prev.lastName,
-      email: existingProfile.email || prev.email,
-      phoneNumber: existingProfile.phone_number || prev.phoneNumber,
-      gender: existingProfile.gender || prev.gender,
-      address: existingProfile.address || prev.address,
-      dateOfBirth: toDateInputValue(existingProfile.dob) || prev.dateOfBirth,
-    }))
-  }, [existingProfile, prefilled])
-
-  const submitMutation = useMutation({
-    mutationFn: (payload: FormData) => (isEditMode ? updateProfile(payload) : setupProfile(payload)),
-    onSuccess: (response) => {
-      const message = response?.message || (isEditMode ? 'Profile updated successfully.' : 'Profile created successfully.')
-      setSuccessMessage(message)
-      toast({ title: isEditMode ? 'Profile updated' : 'Profile complete', description: message })
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-
-      setTimeout(() => {
-        router.push(isEditMode ? '/settings' : '/profile-setup/success')
-      }, 800)
-    },
-    onError: (err: any) => {
-      const apiErrorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        `Unable to ${isEditMode ? 'update' : 'complete'} profile. Please try again.`
-      setErrorMessage(apiErrorMessage)
-      toast({ title: isEditMode ? 'Profile update failed' : 'Profile setup failed', description: apiErrorMessage })
-    },
-  })
-  const isSubmitting = submitMutation.isPending
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setErrorMessage(null)
     setSuccessMessage(null)
@@ -128,6 +75,11 @@ function ProfileSetupContent() {
       toast({ title: 'Missing information', description: message })
       return
     }
+
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+        : null
 
     if (!token) {
       const message = 'You need to sign in before setting up your profile.'
@@ -148,33 +100,91 @@ function ProfileSetupContent() {
       payload.append('profile_pic', formData.profileImage)
     }
 
-    submitMutation.mutate(payload)
+    setIsSubmitting(true)
+
+    try {
+      await setupProfileMutation.mutateAsync(payload)
+      const message = 'Profile created successfully.'
+      setSuccessMessage(message)
+      toast({ title: 'Profile complete', description: message })
+
+      setTimeout(() => {
+        router.push('/profile-setup/success')
+      }, 800)
+    } catch (err: any) {
+      const apiErrorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Unable to complete profile setup. Please try again.'
+      setErrorMessage(apiErrorMessage)
+      toast({ title: 'Profile setup failed', description: apiErrorMessage })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  if (authLoading || checkingExisting) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <ProfileFormSkeleton />
-      </div>
-    )
+  const handleContinueToAddress = () => {
+    const requiredFields = ['firstName', 'lastName', 'dateOfBirth', 'phoneNumber', 'gender']
+    const missingField = requiredFields.find((field) => !(formData as any)[field])
+    if (missingField) {
+      const message = 'Please fill in all required fields before continuing.'
+      setErrorMessage(message)
+      toast({ title: 'Missing information', description: message })
+      return
+    }
+    setErrorMessage(null)
+    setStep(2)
   }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center px-6 py-4 border-b border-gray-100">
-        <Link href={isEditMode ? '/settings' : '/register'} className="mr-4">
+        <Link href="/register" className="mr-4">
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
         <h1 className="text-xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-          {isEditMode ? 'Edit Your Profile' : 'Fill Your Profile'}
+          {step === 1 ? 'Fill Your Profile' : 'Pin Your Address Location'}
         </h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex">
+      <div className="flex-1">
+        <div className="mx-auto flex w-full max-w-8xl">
+        {step === 2 ? (
+          <div className="w-full max-w-3xl mx-auto px-6 py-8 lg:py-12">
+            <p className="text-sm text-gray-500 mb-4">Confirm the address where your deliveries can be collected.</p>
+            <div className="relative z-10 rounded-xl border border-gray-100 bg-white p-2 shadow-sm">
+              <LocationAutocompleteInput
+                value={formData.address}
+                onChange={(value) => handleInputChange('address', value)}
+                placeholder="Search for your address"
+                country="NG"
+                className="w-full rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none"
+              />
+            </div>
+            <div className="relative mt-2 h-72 overflow-hidden rounded-xl border border-[#D9DBFF] bg-[#EEF0FF]">
+              <div className="absolute inset-0 opacity-70" style={{ backgroundImage: 'linear-gradient(24deg, transparent 46%, #ffffff 47%, #ffffff 52%, transparent 53%), linear-gradient(112deg, transparent 42%, #ffffff 43%, #ffffff 48%, transparent 49%), linear-gradient(165deg, transparent 61%, #ffffff 62%, #ffffff 66%, transparent 67%)', backgroundSize: '150px 100px, 180px 130px, 210px 150px' }} />
+              <div className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-[#4043FF] shadow-lg">
+                <div className="h-3 w-3 rounded-full bg-white" />
+              </div>
+              <div className="absolute left-[22%] top-[28%] h-3 w-3 rounded-full bg-[#777BFF] shadow-[0_0_0_8px_rgba(64,67,255,0.15)]" />
+              <div className="absolute right-[24%] bottom-[24%] h-3 w-3 rounded-full bg-[#777BFF] shadow-[0_0_0_8px_rgba(64,67,255,0.15)]" />
+            </div>
+            {errorMessage && <p className="mt-3 text-center text-sm font-semibold text-red-600">{errorMessage}</p>}
+            <div className="mt-5 flex gap-3">
+              <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-12 rounded-full px-6">Back</Button>
+              <Button type="button" onClick={() => (document.getElementById('profile-submit-form') as HTMLFormElement | null)?.requestSubmit()} disabled={isSubmitting || !formData.address.trim()} className="h-12 flex-1 rounded-full bg-[#4043FF] font-bold text-white hover:bg-[#3333CC] disabled:opacity-60">
+                {isSubmitting ? 'Saving profile…' : 'Continue'}
+              </Button>
+            </div>
+            <form id="profile-submit-form" onSubmit={handleSubmit} className="hidden" />
+          </div>
+        ) : (
+        <>
         {/* Left Side - Form (60% width) */}
         <div className="w-full lg:w-3/5 p-6">
           <form className="space-y-6 max-w-sm" onSubmit={handleSubmit}>
@@ -274,18 +284,6 @@ function ProfileSetupContent() {
               </svg>
             </div>
 
-            {/* Address */}
-            <div className="relative">
-              <Textarea
-                placeholder="Home address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                className="w-full min-h-[100px] px-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
-                required
-              />
-            </div>
-
             {errorMessage && (
               <p className="text-sm text-red-600 text-center font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                 {errorMessage}
@@ -300,12 +298,13 @@ function ProfileSetupContent() {
             {/* Submit Button */}
             <div className="pt-2">
               <Button 
-                type="submit"
+                type="button"
+                onClick={handleContinueToAddress}
                 disabled={isSubmitting}
                 className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-[Urbanist] max-w-sm disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
               >
-                {isSubmitting ? 'Saving profile…' : isEditMode ? 'Save changes' : 'Complete profile'}
+                Continue
               </Button>
             </div>
           </form>
@@ -315,18 +314,13 @@ function ProfileSetupContent() {
         <div className="hidden lg:flex w-2/5 items-center justify-center p-6">
           <ImagePicker 
             onImageSelect={handleImageSelect}
-            defaultImage={existingProfile?.profile_pic_link || undefined}
             className=""
           />
         </div>
+        </>
+        )}
+        </div>
       </div>
     </div>
-  )
-}
-export default function ProfileSetupPage() {
-  return (
-    <AuthGuard>
-      <ProfileSetupContent />
-    </AuthGuard>
   )
 }

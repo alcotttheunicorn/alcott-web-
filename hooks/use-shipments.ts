@@ -9,6 +9,10 @@ import {
   getShipmentByTrackingId,
   getCategories,
   verifyPayment,
+  payShipment,
+  updateShipment,
+  type PayShipmentRequest,
+  type UpdateShipmentRequest,
   type CreateShipmentRequest,
 } from '@/lib/api/shipment-api'
 import { queryKeys } from '@/components/providers/query-provider'
@@ -73,6 +77,32 @@ export function useVerifyShipmentPayment() {
       queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.wallet.balance })
       queryClient.invalidateQueries({ queryKey: queryKeys.wallet.transactions })
+    },
+  })
+}
+
+export function usePayShipment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: PayShipmentRequest }) => payShipment(id, payload),
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.wallet.balance })
+      queryClient.invalidateQueries({ queryKey: queryKeys.wallet.transactions })
+    },
+  })
+}
+
+export function useUpdateShipment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateShipmentRequest }) => updateShipment(id, payload),
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.detail(variables.id) })
     },
   })
 }

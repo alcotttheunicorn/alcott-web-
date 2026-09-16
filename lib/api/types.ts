@@ -96,18 +96,6 @@ export interface ShipmentData {
   [key: string]: unknown
 }
 
-// The Swagger docs for POST /pricing/check(/authenticated) document the
-// response as {pricing_type, total_price, details: {}} for every case — that's
-// wrong, and worse, the real shape isn't even consistent across pricing_type
-// values. Two variants confirmed so far via runtime console logs:
-//   - pricing_type "PREMISE" (domestic, distance/duration-based):
-//       { breakdown: {...}, distance_km, duration_minutes, price: {amount, currency}, pricing_type, weight }
-//   - pricing_type "INTERNATIONAL_ZONE" (cross-border, slab-based):
-//       { export_price: {amount, currency, min_weight, max_weight}, import_price: {...}, pricing_type, weight, zone_code }
-// There is no top-level total_price in either case, and the two variants
-// don't share a price field name (`price` vs `export_price`/`import_price`).
-// Worth flagging to the backend/API-doc owner — there may be more variants
-// than these two that haven't been triggered yet.
 export interface PricingBreakdown {
   base_range_cost: number
   distance_cost: number
@@ -148,16 +136,41 @@ export interface PricingOverview {
   premise: Record<string, unknown>
 }
 
-export interface ZonePricing {
-  zone_code?: number
-  base_country_code?: string
-  destination_country_codes?: string[]
-  import_slabs?: Record<string, unknown>[]
-  export_slabs?: Record<string, unknown>[]
+export interface ZoneCountry {
+  code?: string
+  name?: string
   [key: string]: unknown
 }
 
+export interface ZoneSlab {
+  min_weight?: number
+  max_weight?: number
+  from_weight?: number
+  to_weight?: number
+  price?: number
+  [key: string]: unknown
+}
+
+export interface ZonePricing {
+  zone_code?: number
+  base_country_code?: string
+  destination_country_codes?: ZoneCountry[]
+  import_slabs?: ZoneSlab[]
+  export_slabs?: ZoneSlab[]
+  [key: string]: unknown
+}
 export interface RegionPricing {
+  id?: string
+  name?: string
+  states?: string[]
+  [key: string]: unknown
+}
+
+export interface RegionZoneRateCard {
+  id?: string
+  zone_code?: number
+  currency?: string
+  slabs?: ZoneSlab[]
   [key: string]: unknown
 }
 
@@ -169,7 +182,13 @@ export interface PremisePricing {
   [key: string]: unknown
 }
 
+export interface ShipmentQuote {
+  pricing_type?: string
+  price_ngn?: number
+  currency?: string
+}
+
 export interface ShipmentCreateResult {
   shipment: ShipmentData
-  payment_url?: string | null
+  quote?: ShipmentQuote
 }

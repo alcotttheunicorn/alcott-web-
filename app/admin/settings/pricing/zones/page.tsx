@@ -1,9 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/hooks/use-auth'
-import { getZonePricing, upsertZonePricing } from '@/lib/api/pricing-api'
+import { useCreateZonePricing, useReplaceZonePricing, useUpdateZonePricing, useZonePricing } from '@/hooks/use-pricing'
 import type { ZonePricing } from '@/lib/api/types'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ZoneGridSkeleton } from '@/components/shared/skeletons'
@@ -12,14 +10,10 @@ import { ZoneCard } from '@/components/admin/ZoneCard'
 import { PricingZoneModal } from '@/components/admin/PricingZoneModal'
 
 export default function PricingZonesPage() {
-    const { token } = useAuth()
-    const queryClient = useQueryClient()
-
-    const { data: zones = [], isLoading: loading, error: queryError } = useQuery({
-        queryKey: ['pricing-zones', token],
-        queryFn: () => getZonePricing().then((res) => (Array.isArray(res.data) ? res.data : [])),
-        enabled: !!token,
-    })
+    const { data: zones = [], isLoading: loading, error: queryError } = useZonePricing()
+    const createMutation = useCreateZonePricing()
+    const updateMutation = useUpdateZonePricing()
+    const replaceMutation = useReplaceZonePricing()
 
     const error = queryError
         ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to pricing config." : 'Could not load zones.')
@@ -29,13 +23,7 @@ export default function PricingZonesPage() {
     const [editingZone, setEditingZone] = useState<ZonePricing | null>(null)
     const [formError, setFormError] = useState('')
 
-    const mutation = useMutation({
-        mutationFn: (data: any) => upsertZonePricing(data),
-        onSuccess: () => {
-            setIsModalOpen(false)
-            queryClient.invalidateQueries({ queryKey: ['pricing-zones'] })
-        },
-    })
+    const saving = createMutation.isPending || updateMutation.isPending || replaceMutation.isPending
 
     const handleOpenCreate = () => {
         setEditingZone(null)
@@ -49,16 +37,27 @@ export default function PricingZonesPage() {
         setIsModalOpen(true)
     }
 
-    const handleSave = (data: any) => {
+    const handleSave = (data: any, mode: 'update' | 'replace' = 'update') => {
         setFormError('')
-        mutation.mutate(data, {
-            onError: (err: any) => {
-                setFormError(
-                    err?.response?.data?.message ||
-                    (err?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not save zone.')
-                )
-            },
-        })
+        const handleError = (err: any) => setFormError(
+            err?.response?.data?.message ||
+            (err?.response?.status === 403 ? "You don't have admin access to update pricing." : 'Could not save zone.')
+        )
+
+        if (editingZone?.zone_code == null) {
+            createMutation.mutate(data, { onSuccess: () => setIsModalOpen(false), onError: handleError })
+            return
+        }
+
+        // Replace sends the complete zone object via PUT and overwrites every
+        // field; update PATCHes just the edited fields.
+        if (mode === 'replace') {
+            replaceMutation.mutate(data, { onSuccess: () => setIsModalOpen(false), onError: handleError })
+            return
+        }
+
+        const { zone_code, ...zonePatch } = data
+        updateMutation.mutate({ code: zone_code, zone: zonePatch }, { onSuccess: () => setIsModalOpen(false), onError: handleError })
     }
 
     return (
@@ -83,18 +82,21 @@ export default function PricingZonesPage() {
                 <EmptyState message='No pricing zones configured yet. Click "ADD ZONE" to create one.' />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-                    {zones.map((zone, i) => (
+                    {zones.map((zone: ZonePricing, i: number) => (
                         <ZoneCard key={zone.zone_code ?? i} zone={zone} index={i} onEdit={handleOpenEdit} />
                     ))}
                 </div>
             )}
 
+            {/* key remounts the modal per zone/create so form state never
+                leaks from a previously edited zone into the next one. */}
             <PricingZoneModal
+                key={editingZone?.zone_code ?? 'new'}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 editingZone={editingZone}
                 onSave={handleSave}
-                isSaving={mutation.isPending}
+                isSaving={saving}
                 formError={formError}
             />
         </div>

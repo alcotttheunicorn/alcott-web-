@@ -1,7 +1,7 @@
 export function WhyUseAlcottSection() {
     return (
         <section className="bg-gray-50 py-20">
-            <div className="max-w-7xl mx-auto px-4 lg:px-12">
+            <div className="max-w-8xl mx-auto px-4 lg:px-12">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                         Why Use Alcott?

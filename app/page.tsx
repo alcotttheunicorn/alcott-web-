@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { checkPricing } from '@/lib/api/pricing-api'
-import type { PricingResult } from '@/lib/api/types'
 import { toast } from '@/components/ui/use-toast'
+import { useCheckPricing } from '@/hooks/use-pricing'
+import type { PricingResult } from '@/lib/api/types'
 import { TopContactBar } from '@/components/landing/TopContactBar'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { MobileMenu } from '@/components/landing/MobileMenu'
@@ -19,60 +18,48 @@ import { ContactSection } from '@/components/contact-section'
 import { Footer } from '@/components/footer'
 
 export default function HomePage() {
+  const checkRatesMutation = useCheckPricing()
   const [pickupAddress, setPickupAddress] = useState('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [weight, setWeight] = useState('')
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
+  const [isCheckingRates, setIsCheckingRates] = useState(false)
 
-  const checkPricingMutation = useMutation({
-    mutationFn: (weightValue: number) => checkPricing(pickupAddress.trim(), deliveryAddress.trim(), weightValue),
-  })
-  const isCheckingRates = checkPricingMutation.isPending
-
-  const handleCheckRates = () => {
+  const handleCheckRates = async (phoneNumber: string, email: string) => {
     if (!pickupAddress.trim() || !deliveryAddress.trim() || !weight.trim()) {
       toast({ title: 'Missing information', description: 'Please fill in all fields.' })
       return
     }
 
-    const weightValue = parseFloat(weight) || 0
-    if (weightValue <= 0) {
+    const weightValue = parseFloat(weight)
+    if (!Number.isFinite(weightValue) || weightValue <= 0) {
       toast({ title: 'Invalid weight', description: 'Please enter a valid weight.' })
       return
     }
 
-    checkPricingMutation.mutate(weightValue, {
-      onSuccess: (res) => {
-        const hasPremiseShape = typeof res.data?.price?.amount === 'number'
-        const hasZoneShape = typeof res.data?.export_price?.amount === 'number' || typeof res.data?.import_price?.amount === 'number'
-
-        if (!hasPremiseShape && !hasZoneShape) {
-          console.error('Unexpected /pricing/check response shape:', res)
-          toast({
-            title: 'Unexpected pricing response',
-            description: "The server didn't return pricing in the expected format. Check the console for details.",
-          })
-          return
-        }
-
-        setPricingResult(res.data)
-      },
-      onError: (err: any) => {
-        console.error('checkPricing failed:', err?.response?.data ?? err)
-        toast({ title: 'Could not fetch rates', description: err?.response?.data?.message || 'Please try again later.' })
-      },
-    })
+    setIsCheckingRates(true)
+    try {
+      const response = await checkRatesMutation.mutateAsync({
+        sender_address: pickupAddress.trim(),
+        receiver_address: deliveryAddress.trim(),
+        weight: weightValue,
+        sender_email: email.trim() || undefined,
+        sender_phone_number: phoneNumber.trim() || undefined,
+      })
+      setPricingResult(response.data)
+    } catch {
+      toast({ title: 'Could not fetch rates', description: 'Please try again later.' })
+    } finally {
+      setIsCheckingRates(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#F3F9FD] flex flex-col">
-      <div className="bg-[#F3F9FD]">
-        <TopContactBar />
-        <LandingHeader />
-        <MobileMenu />
-        <HeroSection />
-      </div>
-
+      <TopContactBar />
+      <LandingHeader />
+      <MobileMenu />
+      <HeroSection />
       <CheckRatesSection
         pickupAddress={pickupAddress}
         onPickupChange={setPickupAddress}
@@ -83,8 +70,8 @@ export default function HomePage() {
         onCheckRates={handleCheckRates}
         isCheckingRates={isCheckingRates}
         pricingResult={pricingResult}
+        onClearResult={() => setPricingResult(null)}
       />
-
       <ServicesSection />
       <WhyUseAlcottSection />
       <HowItWorksSection />

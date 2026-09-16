@@ -27,7 +27,7 @@ const testimonials = [
 export function TestimonialsSection() {
   return (
     <section className="bg-[#F8F9FA] py-20">
-      <div className="max-w-7xl mx-auto px-4 lg:px-12">
+      <div className="max-w-8xl mx-auto px-4 lg:px-12">
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>

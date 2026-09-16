@@ -40,7 +40,7 @@ export function ZoneCard({ zone, index, onEdit }: ZoneCardProps) {
                             key={i}
                             className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200"
                         >
-                            {country}
+                            {country.name ?? country.code ?? '—'}
                         </span>
                     ))}
                 </div>
@@ -57,7 +57,7 @@ export function ZoneCard({ zone, index, onEdit }: ZoneCardProps) {
                             className="p-2 bg-gray-50 rounded border border-gray-200"
                         >
                             <p className="text-xs text-gray-600 mb-0.5">
-                                {String(slab.from_weight ?? '?')} - {String(slab.to_weight ?? '?')} (KG)
+                                {String(slab.min_weight ?? '?')} - {String(slab.max_weight ?? '?')} (KG)
                             </p>
                             <p className="text-xs font-medium text-gray-900">
                                 NGN {Number(slab.price ?? 0).toLocaleString()}

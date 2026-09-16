@@ -1,15 +1,5 @@
 import type { AuthUser } from './api/types'
 
-// Single source of truth for auth state. Two things read from this:
-//  1. The axios interceptor in api-client.ts (plain JS, can't use React hooks)
-//  2. hooks/use-auth.ts, via useSyncExternalStore, for components
-//
-// Previously every page called useAuth() independently, each with its own
-// useState+useEffect reading localStorage directly, and 25+ API call sites
-// each manually built an Authorization header. This collapses all of that
-// into one place: read/write happens here, the interceptor attaches the
-// header automatically, and cross-tab logout is handled by the storage
-// listener at the bottom instead of not existing at all.
 
 interface AuthState {
   token: string
@@ -66,7 +56,24 @@ function readStorage(): AuthState {
 
 export function refreshFromStorage() {
   state = readStorage()
+
+  if (
+    typeof window !== 'undefined' &&
+    state.token &&
+    state.user &&
+    !document.cookie.includes('authToken=')
+  ) {
+    const persistent = Boolean(window.localStorage.getItem('authToken'))
+    writeSessionCookies(state.user, state.token, persistent)
+  }
+
   emit()
+}
+
+function writeSessionCookies(user: AuthUser, token: string, persistent: boolean) {
+  const maxAge = persistent ? `; max-age=${30 * 24 * 60 * 60}` : ''
+  document.cookie = `authToken=${token}; path=/${maxAge}; SameSite=Lax`
+  document.cookie = `authUser=${encodeURIComponent(JSON.stringify(user))}; path=/${maxAge}; SameSite=Lax`
 }
 
 export function setSession(user: AuthUser, token: string, rememberMe = false) {
@@ -76,6 +83,8 @@ export function setSession(user: AuthUser, token: string, rememberMe = false) {
     storage.setItem('authUser', JSON.stringify(user))
     window.localStorage.removeItem('pendingSignupEmail')
     window.localStorage.removeItem('pendingResetEmail')
+
+    writeSessionCookies(user, token, rememberMe)
   }
   state = { token, user, hydrated: true }
   emit()
@@ -88,6 +97,10 @@ export function clearSession() {
     window.localStorage.removeItem('pendingSignupEmail')
     window.sessionStorage.removeItem('authToken')
     window.sessionStorage.removeItem('authUser')
+
+    // Clear cookies for middleware by setting max-age to 0
+    document.cookie = 'authToken=; path=/; max-age=0; SameSite=Lax'
+    document.cookie = 'authUser=; path=/; max-age=0; SameSite=Lax'
   }
   state = { token: '', user: null, hydrated: true }
   emit()

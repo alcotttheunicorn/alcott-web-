@@ -7,19 +7,22 @@ interface EventLog {
 
 interface EventLogCardProps {
     events: EventLog[]
+    onNewEvent?: () => void
 }
 
-export function EventLogCard({ events }: EventLogCardProps) {
+export function EventLogCard({ events, onNewEvent }: EventLogCardProps) {
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-gray-900">Event Log</h3>
-                <button className="text-green-600 text-xs font-semibold flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    New Event
-                </button>
+                {onNewEvent && (
+                    <button onClick={onNewEvent} className="text-green-600 text-xs font-semibold flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        New Event
+                    </button>
+                )}
             </div>
             {events.length > 0 ? (
                 <div className="space-y-2">

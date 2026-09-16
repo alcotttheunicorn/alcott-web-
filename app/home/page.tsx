@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { useProfile } from '@/hooks/use-profile'
@@ -114,8 +113,32 @@ function HomeContent() {
   ]
 
   return (
-    <div className="p-4 lg:p-6 max-w-5xl mx-auto">
+    <div className="mx-auto w-full max-w-8xl px-6 py-4 lg:px-6 lg:py-6">
       <section className="mb-6 lg:mb-8">
+        <div className="flex items-start justify-between gap-4 mb-3 px-0.5">
+          <div>
+            <p className="text-xs sm:text-sm text-gray-500 leading-tight" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              {greeting} <span aria-hidden="true">👋</span>
+            </p>
+            <h2 className="text-sm sm:text-base font-bold text-gray-900 mt-0.5" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              {profile ? `${profile.first_name} ${profile.last_name}` : ''}
+            </h2>
+          </div>
+          <label className="md:hidden relative shrink-0">
+            <span className="sr-only">Currency</span>
+            <select
+              defaultValue="USD"
+              className="appearance-none bg-white border border-gray-200 rounded px-2 py-1 pr-6 text-[10px] text-gray-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-[#4043FF]"
+              style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+            >
+              <option value="NGN">NGN</option>
+              <option value="USD">USD</option>
+            </select>
+            <svg className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </label>
+        </div>
         <div className="relative w-full overflow-hidden rounded-2xl lg:rounded-3xl">
           {balanceLoading ? (
             <BalanceSkeleton />
@@ -138,17 +161,6 @@ function HomeContent() {
                     </svg>
                     Top Up
                   </button>
-                </div>
-                <div className="hidden sm:block text-right">
-                  <p className="text-white/90 text-xs lg:text-sm flex items-center gap-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    {greeting}
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.68 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.81-.34-3.68L23 12z" />
-                    </svg>
-                  </p>
-                  <p className="text-white text-lg lg:text-xl font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    {profile ? `${profile.first_name} ${profile.last_name}` : ''}
-                  </p>
                 </div>
               </div>
             </>
