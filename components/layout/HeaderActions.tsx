@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
@@ -11,6 +11,11 @@ interface HeaderActionsProps {
   isAdmin?: boolean
   compact?: boolean
 }
+
+const currencies = [
+  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+] as const
 
 const notifications = [
   ['Today', 'Payment Successful!', 'You have made a shopping payment', 'bg-emerald-100 text-emerald-500'],
@@ -26,8 +31,25 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
   const { logout } = useAuth()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [openMenu, setOpenMenu] = useState<'currency' | 'notifications' | 'profile' | null>(null)
+  const notificationsButtonRef = useRef<HTMLButtonElement>(null)
+  const [notificationsPos, setNotificationsPos] = useState<{ top: number; right: number } | null>(null)
 
   const closeMenu = () => setOpenMenu(null)
+
+  const toggleNotifications = () => {
+    if (openMenu === 'notifications') {
+      closeMenu()
+      return
+    }
+    const button = notificationsButtonRef.current
+    if (button) {
+      const rect = button.getBoundingClientRect()
+      const menuWidth = Math.min(352, window.innerWidth - 32)
+      const right = Math.min(window.innerWidth - rect.right - 8, window.innerWidth - menuWidth - 16)
+      setNotificationsPos({ top: rect.bottom + 8, right: Math.max(right, 16) })
+    }
+    setOpenMenu('notifications')
+  }
 
   return (
     <div className="flex items-center gap-2 lg:gap-3 shrink-0">
@@ -37,21 +59,32 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
             type="button"
             onClick={() => setOpenMenu((menu) => menu === 'currency' ? null : 'currency')}
             aria-expanded={openMenu === 'currency'}
-            className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >
-            {selectedCurrency}
+            {selectedCurrency === 'NGN' ? '₦ NGN' : '$ USD'}
             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </button>
           {openMenu === 'currency' && (
-            <div className="absolute right-0 top-full z-50 mt-1 w-20 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
-              {['NGN', 'USD'].map((currency) => (
+            <div className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
+              {currencies.map((currency) => (
                 <button
-                  key={currency}
+                  key={currency.code}
                   type="button"
-                  onClick={() => { setSelectedCurrency(currency); closeMenu() }}
-                  className={`block w-full rounded px-2 py-1.5 text-left text-xs hover:bg-[#F0F0FF] ${selectedCurrency === currency ? 'font-bold text-[#4043FF]' : 'text-gray-700'}`}
+                  onClick={() => { setSelectedCurrency(currency.code); closeMenu() }}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[#F0F0FF] ${selectedCurrency === currency.code ? 'font-bold text-[#4043FF]' : 'text-gray-700'}`}
                 >
-                  {currency}
+                  <span className="flex items-center gap-2.5">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E0E0FF] text-xs font-bold text-[#4043FF]">
+                      {currency.symbol}
+                    </span>
+                    <span className="flex flex-col leading-tight">
+                      <span className="text-sm font-semibold">{currency.code}</span>
+                      <span className="text-[10px] font-normal text-gray-400">{currency.name}</span>
+                    </span>
+                  </span>
+                  {selectedCurrency === currency.code && (
+                    <svg className="h-4 w-4 text-[#4043FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  )}
                 </button>
               ))}
             </div>
@@ -65,8 +98,9 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
 
       {showNotifications && <div className="relative">
         <button
+          ref={notificationsButtonRef}
           type="button"
-          onClick={() => setOpenMenu((menu) => menu === 'notifications' ? null : 'notifications')}
+          onClick={toggleNotifications}
           aria-label="Open notifications"
           aria-expanded={openMenu === 'notifications'}
           className="relative rounded-lg p-2 hover:bg-gray-100"
@@ -75,7 +109,10 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
           <span className="absolute right-1 top-1 block h-2 w-2 rounded-full bg-red-500" />
         </button>
         {openMenu === 'notifications' && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+          <div
+            className="fixed z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl"
+            style={notificationsPos ? { top: notificationsPos.top, right: notificationsPos.right } : undefined}
+          >
             <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
               <div className="flex items-center gap-2"><button type="button" onClick={closeMenu} aria-label="Close notifications" className="text-gray-500 hover:text-gray-900">←</button><h2 className="text-sm font-bold text-gray-900">Notification</h2></div>
               <button type="button" onClick={closeMenu} aria-label="Close notifications" className="text-gray-400 hover:text-gray-700">×</button>

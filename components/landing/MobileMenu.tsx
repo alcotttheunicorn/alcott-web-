@@ -2,8 +2,13 @@
 
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/use-auth'
+import { useRouter } from 'next/navigation'
 
 export function MobileMenu() {
+    const { isAuthenticated, logout } = useAuth()
+    const router = useRouter()
+
     useEffect(() => {
         const mobileMenuButton = document.querySelector('button[class*="md:hidden"]');
         const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
@@ -63,21 +68,43 @@ export function MobileMenu() {
                     </nav>
 
                     <div className="space-y-4 mb-8">
-                        <Button
-                            variant="outline"
-                            className="w-full bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white py-3 text-base font-semibold rounded-full"
-                            style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
-                            onClick={() => window.location.href = '/lets-get-you-in'}
-                        >
-                            Sign In
-                        </Button>
-                        <Button
-                            className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
-                            style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
-                            onClick={() => window.location.href = '/lets-get-you-in'}
-                        >
-                            Register
-                        </Button>
+                        {isAuthenticated ? (
+                            <>
+                                <Button
+                                    className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
+                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                    onClick={() => router.push('/home')}
+                                >
+                                    Go to Dashboard
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="w-full bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white py-3 text-base font-semibold rounded-full"
+                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                    onClick={() => { logout(); router.push('/') }}
+                                >
+                                    Sign Out
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    className="w-full bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white py-3 text-base font-semibold rounded-full"
+                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                    onClick={() => window.location.href = '/lets-get-you-in'}
+                                >
+                                    Sign In
+                                </Button>
+                                <Button
+                                    className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
+                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                                    onClick={() => window.location.href = '/register'}
+                                >
+                                    Register
+                                </Button>
+                            </>
+                        )}
                         <Button
                             className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
                             style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
