@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -33,6 +34,7 @@ export function CheckRatesSection({
 }: CheckRatesSectionProps) {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [email, setEmail] = useState('')
+    const router = useRouter()
 
     return (
         <section className="bg-white py-12 lg:py-16">
@@ -51,24 +53,18 @@ export function CheckRatesSection({
                             <div className="relative">
                                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0">
-                                        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M17.9531 33C26.2374 33 32.9531 26.2843 32.9531 18C32.9531 9.71573 26.2374 3 17.9531 3C9.66885 3 2.95312 9.71573 2.95312 18C2.95312 26.2843 9.66885 33 17.9531 33Z" stroke="#4043FF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M18.0013 24.3453C21.5055 24.3453 24.3462 21.5045 24.3462 18.0003C24.3462 14.496 21.5055 11.6553 18.0013 11.6553C14.497 11.6553 11.6562 14.496 11.6562 18.0003C11.6562 21.5045 14.497 24.3453 18.0013 24.3453Z" fill="#4043FF" stroke="#4043FF" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
+                                        <PickupMarkerIcon />
                                     </div>
                                     <LocationAutocompleteInput
                                         value={pickupAddress}
                                         onChange={onPickupChange}
                                         placeholder="Pick up address"
-                                        country="NG"
                                         containerClassName="flex-1"
                                         className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
                                         style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
                                     />
                                     <div className="w-6 h-6  rounded-full flex items-center justify-center shrink-0">
-                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M10.0026 6.66659C8.16094 6.66659 6.66927 8.15825 6.66927 9.99992C6.66927 11.8416 8.16094 13.3333 10.0026 13.3333C11.8443 13.3333 13.3359 11.8416 13.3359 9.99992C13.3359 8.15825 11.8443 6.66659 10.0026 6.66659ZM17.4526 9.16659C17.2638 7.47669 16.5061 5.9012 15.3037 4.69883C14.1013 3.49646 12.5258 2.73868 10.8359 2.54992V1.66659C10.8359 1.20825 10.4609 0.833252 10.0026 0.833252C9.54427 0.833252 9.16927 1.20825 9.16927 1.66659V2.54992C7.47937 2.73868 5.90389 3.49646 4.70152 4.69883C3.49915 5.9012 2.74136 7.47669 2.5526 9.16659H1.66927C1.21094 9.16659 0.835938 9.54159 0.835938 9.99992C0.835938 10.4583 1.21094 10.8333 1.66927 10.8333H2.5526C2.74136 12.5232 3.49915 14.0986 4.70152 15.301C5.90389 16.5034 7.47937 17.2612 9.16927 17.4499V18.3333C9.16927 18.7916 9.54427 19.1666 10.0026 19.1666C10.4609 19.1666 10.8359 18.7916 10.8359 18.3333V17.4499C12.5258 17.2612 14.1013 16.5034 15.3037 15.301C16.5061 14.0986 17.2638 12.5232 17.4526 10.8333H18.3359C18.7943 10.8333 19.1693 10.4583 19.1693 9.99992C19.1693 9.54159 18.7943 9.16659 18.3359 9.16659H17.4526V9.16659ZM10.0026 15.8333C6.7776 15.8333 4.16927 13.2249 4.16927 9.99992C4.16927 6.77492 6.7776 4.16659 10.0026 4.16659C13.2276 4.16659 15.8359 6.77492 15.8359 9.99992C15.8359 13.2249 13.2276 15.8333 10.0026 15.8333Z" fill="#4043FF"/>
-                                        </svg>
+                                        <TargetIcon />
                                     </div>
                                 </div>
                             </div>
@@ -76,24 +72,18 @@ export function CheckRatesSection({
                             <div className="relative">
                                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0">
-                                        <svg width="26" height="30" viewBox="0 0 26 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 12.4766C0 5.57684 5.76582 0 12.7402 0C19.7342 0 25.5 5.57684 25.5 12.4766C25.5 15.9535 24.2355 19.1814 22.1542 21.9174C19.8582 24.9353 17.0282 27.5647 13.8428 29.6286C13.1138 30.1056 12.4558 30.1416 11.6557 29.6286C8.4521 27.5647 5.62213 24.9353 3.34575 21.9174C1.26298 19.1814 0 15.9535 0 12.4766ZM8.54134 12.8651C8.54134 15.1766 10.4275 16.9945 12.7402 16.9945C15.0544 16.9945 16.9587 15.1766 16.9587 12.8651C16.9587 10.5717 15.0544 8.66525 12.7402 8.66525C10.4275 8.66525 8.54134 10.5717 8.54134 12.8651Z" fill="#4043FF"/>
-                                        </svg>
-
+                                        <DeliveryPinIcon />
                                     </div>
                                     <LocationAutocompleteInput
                                         value={deliveryAddress}
                                         onChange={onDeliveryChange}
                                         placeholder="Delivery address"
-                                        country="NG"
                                         containerClassName="flex-1"
                                         className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
                                         style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
                                     />
                                     <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0">
-                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M10.0026 6.66659C8.16094 6.66659 6.66927 8.15825 6.66927 9.99992C6.66927 11.8416 8.16094 13.3333 10.0026 13.3333C11.8443 13.3333 13.3359 11.8416 13.3359 9.99992C13.3359 8.15825 11.8443 6.66659 10.0026 6.66659ZM17.4526 9.16659C17.2638 7.47669 16.5061 5.9012 15.3037 4.69883C14.1013 3.49646 12.5258 2.73868 10.8359 2.54992V1.66659C10.8359 1.20825 10.4609 0.833252 10.0026 0.833252C9.54427 0.833252 9.16927 1.20825 9.16927 1.66659V2.54992C7.47937 2.73868 5.90389 3.49646 4.70152 4.69883C3.49915 5.9012 2.74136 7.47669 2.5526 9.16659H1.66927C1.21094 9.16659 0.835938 9.54159 0.835938 9.99992C0.835938 10.4583 1.21094 10.8333 1.66927 10.8333H2.5526C2.74136 12.5232 3.49915 14.0986 4.70152 15.301C5.90389 16.5034 7.47937 17.2612 9.16927 17.4499V18.3333C9.16927 18.7916 9.54427 19.1666 10.0026 19.1666C10.4609 19.1666 10.8359 18.7916 10.8359 18.3333V17.4499C12.5258 17.2612 14.1013 16.5034 15.3037 15.301C16.5061 14.0986 17.2638 12.5232 17.4526 10.8333H18.3359C18.7943 10.8333 19.1693 10.4583 19.1693 9.99992C19.1693 9.54159 18.7943 9.16659 18.3359 9.16659H17.4526V9.16659ZM10.0026 15.8333C6.7776 15.8333 4.16927 13.2249 4.16927 9.99992C4.16927 6.77492 6.7776 4.16659 10.0026 4.16659C13.2276 4.16659 15.8359 6.77492 15.8359 9.99992C15.8359 13.2249 13.2276 15.8333 10.0026 15.8333Z" fill="#4043FF"/>
-                                        </svg>
+                                        <TargetIcon />
                                     </div>
                                 </div>
                             </div>
@@ -176,36 +166,96 @@ export function CheckRatesSection({
                                     <DialogContent className="sm:max-w-md">
                                         <DialogHeader>
                                             <DialogTitle style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                Rate Estimate
+                                                Rate Check Result
                                             </DialogTitle>
                                         </DialogHeader>
-                                        <div className="pt-2 pb-4 space-y-3">
-                                            <p className="text-sm text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                {pricingResult.pricing_type}
-                                            </p>
-                                            {'price' in pricingResult && pricingResult.price ? (
-                                                <p className="text-2xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                    {pricingResult.price.currency === 'NGN' ? '₦' : `${pricingResult.price.currency} `}
-                                                    {pricingResult.price.amount.toLocaleString()}
-                                                </p>
-                                            ) : pricingResult.export_price ? (
-                                                <div className="space-y-2">
-                                                    <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                        Export: <span className="font-bold text-[#4043FF]">
-                                                            {pricingResult.export_price.currency === 'NGN' ? '₦' : `${pricingResult.export_price.currency} `}
-                                                            {pricingResult.export_price.amount.toLocaleString()}
-                                                        </span>
-                                                    </p>
-                                                    {pricingResult.import_price && (
-                                                        <p className="text-sm text-gray-700" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                            Import: <span className="font-bold text-[#4043FF]">
-                                                                {pricingResult.import_price.currency === 'NGN' ? '₦' : `${pricingResult.import_price.currency} `}
-                                                                {pricingResult.import_price.amount.toLocaleString()}
-                                                            </span>
-                                                        </p>
-                                                    )}
+                                        <div className="pt-2 pb-4 space-y-4">
+                                            {/* Route summary */}
+                                            <div className="bg-gray-50 rounded-xl p-4">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="flex flex-col items-center">
+                                                        <PickupMarkerIcon />
+                                                        <div className="w-px flex-1 min-h-[2.5rem] bg-[#4043FF]/30" />
+                                                        <DeliveryPinIcon />
+                                                    </div>
+                                                    <div className="flex-1 space-y-6">
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>From</p>
+                                                            <p className="text-sm font-bold text-gray-900 mt-0.5" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                                {pickupAddress || '—'}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>To</p>
+                                                            <p className="text-sm font-bold text-gray-900 mt-0.5" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                                {deliveryAddress || '—'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            ) : null}
+                                            </div>
+
+                                            {/* Weight */}
+                                            {weight && (
+                                                <div className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3">
+                                                    <span className="text-sm font-semibold text-gray-600" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Weight</span>
+                                                    <span className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                        {weight} kg
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {/* Price */}
+                                            <div className="rounded-xl bg-[#F0F0FF] px-4 py-4 text-center">
+                                                {'price' in pricingResult && pricingResult.price ? (
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p>
+                                                        <p className="text-2xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                            {pricingResult.price.currency === 'NGN' ? '₦' : `${pricingResult.price.currency} `}
+                                                            {pricingResult.price.amount.toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                ) : pricingResult.export_price ? (
+                                                    <div className="space-y-1">
+                                                        <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p>
+                                                        <div className="flex items-center justify-center gap-4">
+                                                            <div>
+                                                                <p className="text-[10px] font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Export</p>
+                                                                <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                                    {pricingResult.export_price.currency === 'NGN' ? '₦' : `${pricingResult.export_price.currency} `}
+                                                                    {pricingResult.export_price.amount.toLocaleString()}
+                                                                </p>
+                                                            </div>
+                                                            {pricingResult.import_price && (
+                                                                <div>
+                                                                    <p className="text-[10px] font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Import</p>
+                                                                    <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                                        {pricingResult.import_price.currency === 'NGN' ? '₦' : `${pricingResult.import_price.currency} `}
+                                                                        {pricingResult.import_price.amount.toLocaleString()}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="space-y-2.5">
+                                                <Button
+                                                    className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 text-base font-semibold rounded-full w-full"
+                                                    onClick={() => router.push('/shipment/new')}
+                                                >
+                                                    Request Delivery
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="border border-[#4043FF] text-[#4043FF] hover:bg-[#F0F0FF] px-8 py-3 text-base font-semibold rounded-full w-full"
+                                                    onClick={() => onClearResult?.()}
+                                                >
+                                                    New Rate Check
+                                                </Button>
+                                            </div>
                                         </div>
                                     </DialogContent>
                                 </Dialog>
@@ -215,5 +265,30 @@ export function CheckRatesSection({
                 </div>
             </div>
         </section>
+    )
+}
+
+function PickupMarkerIcon() {
+    return (
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <path d="M17.9531 33C26.2374 33 32.9531 26.2843 32.9531 18C32.9531 9.71573 26.2374 3 17.9531 3C9.66885 3 2.95312 9.71573 2.95312 18C2.95312 26.2843 9.66885 33 17.9531 33Z" stroke="#4043FF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18.0013 24.3453C21.5055 24.3453 24.3462 21.5045 24.3462 18.0003C24.3462 14.496 21.5055 11.6553 18.0013 11.6553C14.497 11.6553 11.6562 14.496 11.6562 18.0003C11.6562 21.5045 14.497 24.3453 18.0013 24.3453Z" fill="#4043FF" stroke="#4043FF" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    )
+}
+
+function DeliveryPinIcon() {
+    return (
+        <svg width="26" height="30" viewBox="0 0 26 30" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 12.4766C0 5.57684 5.76582 0 12.7402 0C19.7342 0 25.5 5.57684 25.5 12.4766C25.5 15.9535 24.2355 19.1814 22.1542 21.9174C19.8582 24.9353 17.0282 27.5647 13.8428 29.6286C13.1138 30.1056 12.4558 30.1416 11.6557 29.6286C8.4521 27.5647 5.62213 24.9353 3.34575 21.9174C1.26298 19.1814 0 15.9535 0 12.4766ZM8.54134 12.8651C8.54134 15.1766 10.4275 16.9945 12.7402 16.9945C15.0544 16.9945 16.9587 15.1766 16.9587 12.8651C16.9587 10.5717 15.0544 8.66525 12.7402 8.66525C10.4275 8.66525 8.54134 10.5717 8.54134 12.8651Z" fill="#4043FF"/>
+        </svg>
+    )
+}
+
+function TargetIcon() {
+    return (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.0026 6.66659C8.16094 6.66659 6.66927 8.15825 6.66927 9.99992C6.66927 11.8416 8.16094 13.3333 10.0026 13.3333C11.8443 13.3333 13.3359 11.8416 13.3359 9.99992C13.3359 8.15825 11.8443 6.66659 10.0026 6.66659ZM17.4526 9.16659C17.2638 7.47669 16.5061 5.9012 15.3037 4.69883C14.1013 3.49646 12.5258 2.73868 10.8359 2.54992V1.66659C10.8359 1.20825 10.4609 0.833252 10.0026 0.833252C9.54427 0.833252 9.16927 1.20825 9.16927 1.66659V2.54992C7.47937 2.73868 5.90389 3.49646 4.70152 4.69883C3.49915 5.9012 2.74136 7.47669 2.5526 9.16659H1.66927C1.21094 9.16659 0.835938 9.54159 0.835938 9.99992C0.835938 10.4583 1.21094 10.8333 1.66927 10.8333H2.5526C2.74136 12.5232 3.49915 14.0986 4.70152 15.301C5.90389 16.5034 7.47937 17.2612 9.16927 17.4499V18.3333C9.16927 18.7916 9.54427 19.1666 10.0026 19.1666C10.4609 19.1666 10.8359 18.7916 10.8359 18.3333V17.4499C12.5258 17.2612 14.1013 16.5034 15.3037 15.301C16.5061 14.0986 17.2638 12.5232 17.4526 10.8333H18.3359C18.7943 10.8333 19.1693 10.4583 19.1693 9.99992C19.1693 9.54159 18.7943 9.16659 18.3359 9.16659H17.4526V9.16659ZM10.0026 15.8333C6.7776 15.8333 4.16927 13.2249 4.16927 9.99992C4.16927 6.77492 6.7776 4.16659 10.0026 4.16659C13.2276 4.16659 15.8359 6.77492 15.8359 9.99992C15.8359 13.2249 13.2276 15.8333 10.0026 15.8333Z" fill="#4043FF"/>
+        </svg>
     )
 }
