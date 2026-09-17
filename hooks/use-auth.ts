@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { AuthUser } from '@/lib/api/types'
+import { clearSession } from '@/lib/auth-store'
 
 export function useAuth() {
   const [token, setToken] = useState<string>('')
@@ -28,10 +29,7 @@ export function useAuth() {
   }, [])
 
   const logout = useCallback(() => {
-    window.localStorage.removeItem('authToken')
-    window.localStorage.removeItem('authUser')
-    window.sessionStorage.removeItem('authToken')
-    window.sessionStorage.removeItem('authUser')
+    clearSession()
     setToken('')
     setUser(null)
     window.location.href = '/lets-get-you-in'
