@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
-import { useAdminUsers } from '@/hooks/use-admin'
+import { useAdminUsers, useAdminAllUsers } from '@/hooks/use-admin'
 import type { AdminUser } from '@/lib/api/admin-api'
 
 const PAGE_SIZE = 10
@@ -13,16 +13,23 @@ function displayName(user: AdminUser) {
     return name || user.email
 }
 
-// Still hardcoded — there's no endpoint for "new users this month" specifically.
-// Left in place rather than deleted since it was already part of the shipped UI;
-// needs a real /admin/users?created_after= filter or equivalent before it can be wired.
-const mockNewUsers = [
-    { id: '1', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
-    { id: '2', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
-    { id: '3', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
-    { id: '4', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
-    { id: '5', name: 'John Doe', joinedText: 'Joined Today', email: 'john022@gmail.com', phone: '+234 734 435 3456' },
-]
+function plural(count: number, singular: string, pluralWord = `${singular}s`) {
+    return count === 1 ? singular : pluralWord
+}
+
+// Derives the current-calendar-year monthly signup serial for the chart
+// (Mar → Sept columns). Months with no registrations still get a slot so the
+// axis labels stay aligned, but they render as zero-height bars.
+function monthlySeries(users: AdminUser[], year: number) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
+    const counts = months.map(() => 0)
+    for (const user of users) {
+        if (!user.created_at) continue
+        const d = new Date(user.created_at)
+        if (d.getFullYear() === year) counts[d.getMonth()] += 1
+    }
+    return months.map((label, i) => ({ label, count: counts[i] }))
+}
 
 export default function UsersPage() {
     const { token, isLoading: authLoading } = useAuth()
@@ -32,13 +39,22 @@ export default function UsersPage() {
     const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
 
     const { data, isLoading: queryLoading, error: queryError } = useAdminUsers({ page: currentPage, limit: PAGE_SIZE })
+    const allUsersQuery = useAdminAllUsers()
 
-    const users = data && Array.isArray(data.data) ? data.data : []
+    const users = data && Array.isArray(data.data?.users) ? data.data.users : []
     const totalPages = data?.totalPages || 1
+    // Loads the full user list for the dashboard stats; falls back to the
+    // current page's users only if the "fetch all" request hasn't resolved yet.
+    const allUsers = useMemo(
+        () => (allUsersQuery.data && Array.isArray(allUsersQuery.data.users) ? allUsersQuery.data.users : users),
+        [allUsersQuery.data, users],
+    )
+    const totalUsers = allUsersQuery.data?.totalItems ?? users.length
+
     // authLoading itself counts as "loading" so the page shows a spinner
     // instead of flashing the "not signed in" error during the brief window
     // before useAuth resolves.
-    const loading = authLoading || queryLoading
+    const loading = authLoading || queryLoading || allUsersQuery.isLoading
     const error = authLoading
         ? ''
         : !token
@@ -68,6 +84,63 @@ export default function UsersPage() {
         )
         : users
 
+    // ---- Dashboard stats derived from created_at/is_verified ----
+    const now = new Date()
+    const thisMonthUsers = useMemo(
+        () => allUsers.filter((u) => {
+            if (!u.created_at) return false
+            const d = new Date(u.created_at)
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+        }),
+        [allUsers, now],
+    )
+    const monthlyUsers = thisMonthUsers.length
+    // No last-activity field is exposed on the admin user object, so "active"
+    // is approximated with is_verified for now.
+    const activeUsers = allUsers.filter((u) => u.is_verified === true).length
+    const setDate = new Date().getDate()
+    const newUsers = thisMonthUsers
+        .slice()
+        .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+        .map((u) => {
+            const joined = u.created_at ? new Date(u.created_at) : null
+            const joinedText = joined && joined.getDate() === setDate
+                ? 'Joined Today'
+                : joined
+                    ? `Joined ${joined.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+                    : 'Joined'
+            return { id: u.id, name: displayName(u), joinedText, email: u.email ?? '', phone: u.phone_number ? `+${u.phone_number}` : '—' }
+        })
+
+    const chartSeries = useMemo(() => monthlySeries(allUsers, now.getFullYear()), [allUsers, now])
+
+    // CSV export is generated client-side from the loaded users for the
+    // selected report year — there's no /admin CSV endpoint.
+    const reportYear = selectedReportYear === 'this_year' ? now.getFullYear() : selectedReportYear === 'last_year' ? now.getFullYear() - 1 : now.getFullYear() - 2
+    const exportCsv = () => {
+        const rows = allUsers
+            .filter((u) => u.created_at && new Date(u.created_at).getFullYear() === reportYear)
+            .map((u) => ({
+                name: displayName(u),
+                email: u.email ?? '',
+                phone: u.phone_number ?? '',
+                role: u.role ?? '',
+                verified: u.is_verified ? 'Yes' : 'No',
+                joined: u.created_at ? new Date(u.created_at).toISOString() : '',
+            }))
+        if (rows.length === 0) return
+        const headers = ['Name', 'Email', 'Phone', 'Role', 'Verified', 'Joined At']
+        const escape = (value: string) => `"${value.replace(/"/g, '""')}"`
+        const csv = [headers.join(','), ...rows.map((r) => [r.name, r.email, r.phone, r.role, r.verified, r.joined].map(escape).join(','))].join('\n')
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `users-${reportYear}.csv`
+        link.click()
+        URL.revokeObjectURL(url)
+    }
+
     return (
         <div className="p-6">
             {/* Page Header */}
@@ -82,7 +155,7 @@ export default function UsersPage() {
 
             <div className="flex gap-6">
                 {/* Left Column */}
-                <div className="w-[360px] space-y-4">
+                <div className="w-[360px] space-y-4 shrink-0">
                     {/* User Details Card — shows whichever user is selected from the table below */}
                     <div className="rounded-xl overflow-hidden">
                         <div className="bg-gradient-to-b from-[#E8E9FF] to-[#D4D6FF] p-4">
@@ -131,7 +204,7 @@ export default function UsersPage() {
                         </div>
                     </div>
 
-                    {/* New Users This Month — still mock, see note on mockNewUsers above */}
+                    {/* New Users This Month — real, derived from created_at */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
@@ -140,43 +213,39 @@ export default function UsersPage() {
                                 </svg>
                                 <span className="text-sm font-bold text-gray-900">NEW USERS THIS MONTH</span>
                             </div>
-                            <span className="text-sm font-bold text-gray-900">{mockNewUsers.length}</span>
+                            <span className="text-sm font-bold text-gray-900">{monthlyUsers}</span>
                         </div>
 
                         <div className="space-y-3">
-                            {mockNewUsers.map((user) => (
-                                <div key={user.id} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full border-2 border-[#4043FF] bg-white flex items-center justify-center">
-                                            <svg className="w-5 h-5 text-[#4043FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
+                            {newUsers.length === 0 ? (
+                                <p className="text-sm text-gray-500">No new users this month.</p>
+                            ) : (
+                                newUsers.slice(0, 5).map((user) => (
+                                    <div key={user.id} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-9 h-9 rounded-full border-2 border-[#4043FF] bg-white flex items-center justify-center shrink-0">
+                                                <svg className="w-5 h-5 text-[#4043FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+                                                <p className="text-xs text-gray-500">{user.joinedText}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                                            <p className="text-xs text-gray-500">{user.joinedText}</p>
+                                        <div className="text-right min-w-0">
+                                            <p className="text-xs text-gray-600 truncate">{user.email}</p>
+                                            <p className="text-xs text-gray-500">{user.phone}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-gray-600">{user.email}</p>
-                                        <p className="text-xs text-gray-500">{user.phone}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
-
-                    {/*
-                      "New Users This Month" list above, and everything in the Right Column
-                      below (Total User, Monthly User, User Chart, User Reports, Active Users,
-                      CSV export) are still hardcoded. There's no /admin analytics or CSV-export
-                      endpoint documented anywhere in the API docs shared so far — needs backend
-                      support before any of this can be wired to real numbers.
-                    */}
                 </div>
 
                 {/* Right Column */}
-                <div className="flex-1 space-y-4">
+                <div className="flex-1 space-y-4 min-w-0">
                     {/* Stats Cards Row */}
                     <div className="flex gap-4">
                         {/* Total User Card */}
@@ -184,13 +253,9 @@ export default function UsersPage() {
                             <div className="flex items-start justify-between">
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Total User</p>
-                                    <p className="text-3xl font-bold text-gray-900">800</p>
+                                    <p className="text-3xl font-bold text-gray-900">{totalUsers}</p>
                                     <div className="flex items-center gap-1 mt-2">
-                                        <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M7 14l5-5 5 5z" />
-                                        </svg>
-                                        <span className="text-xs text-green-500 font-semibold">8.5%</span>
-                                        <span className="text-xs text-gray-500">This Year</span>
+                                        <span className="text-xs text-gray-500">{plural(totalUsers, 'user')} registered</span>
                                     </div>
                                 </div>
                                 <div className="w-10 h-10 rounded-full bg-[#E8E9FF] flex items-center justify-center">
@@ -206,15 +271,11 @@ export default function UsersPage() {
                             <div className="flex items-start justify-between">
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Monthly User</p>
-                                    <p className="text-3xl font-bold text-gray-900">10</p>
+                                    <p className="text-3xl font-bold text-gray-900">{monthlyUsers}</p>
                                     <div className="flex items-center gap-1 mt-2">
-                                        <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M7 14l5-5 5 5z" />
-                                        </svg>
-                                        <span className="text-xs text-green-500 font-semibold">2.5%</span>
-                                        <select className="text-xs text-gray-500 bg-transparent border-none p-0 focus:ring-0">
-                                            <option>This Month</option>
-                                        </select>
+                                        <span className="text-xs text-gray-500">
+                                            {now.toLocaleDateString(undefined, { month: 'long' })} {plural(monthlyUsers, 'signup')}
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="w-10 h-10 rounded-full bg-[#E8E9FF] flex items-center justify-center">
@@ -226,16 +287,15 @@ export default function UsersPage() {
                         </div>
                     </div>
 
-                    {/* User Chart */}
+                    {/* User Chart — per-month signups for the current year */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
                         <h3 className="text-sm font-bold text-gray-900 mb-4">User Chart</h3>
                         <div className="relative h-40">
                             {/* Y-axis labels */}
                             <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs text-gray-400">
-                                <span>80</span>
-                                <span>60</span>
-                                <span>40</span>
-                                <span>20</span>
+                                <span>{Math.max(...chartSeries.map((m) => m.count), 1)}</span>
+                                <span>{Math.ceil(Math.max(...chartSeries.map((m) => m.count), 1) * 0.66)}</span>
+                                <span>{Math.ceil(Math.max(...chartSeries.map((m) => m.count), 1) * 0.33)}</span>
                                 <span>0</span>
                             </div>
                             {/* Chart area */}
@@ -246,26 +306,20 @@ export default function UsersPage() {
                                     <div className="border-t border-gray-100"></div>
                                     <div className="border-t border-gray-100"></div>
                                     <div className="border-t border-gray-100"></div>
-                                    <div className="border-t border-gray-100"></div>
                                 </div>
-                                {/* Line chart SVG */}
-                                <svg className="w-full h-[calc(100%-24px)]" viewBox="0 0 300 100" preserveAspectRatio="none">
-                                    <polyline
-                                        fill="none"
-                                        stroke="#4043FF"
-                                        strokeWidth="2"
-                                        points="0,80 50,60 100,70 150,30 200,50 250,20 300,40"
-                                    />
-                                </svg>
+                                {/* Bar chart built from the monthly series */}
+                                <div className="absolute inset-x-0 bottom-6 top-0 flex items-end justify-between px-1">
+                                    {chartSeries.map((month) => (
+                                        <div key={month.label} className="flex-1 flex flex-col items-center justify-end h-full">
+                                            <div className="w-2.5 bg-[#4043FF] rounded-t transition-all" style={{ height: month.count === 0 ? '2px' : `${Math.max((month.count / Math.max(...chartSeries.map((m) => m.count), 1)) * 100, 4)}%`, opacity: month.count === 0 ? 0.2 : 1 }} />
+                                        </div>
+                                    ))}
+                                </div>
                                 {/* X-axis labels */}
                                 <div className="flex justify-between text-xs text-gray-400 mt-2">
-                                    <span>Mar</span>
-                                    <span>Apr</span>
-                                    <span>May</span>
-                                    <span>Jun</span>
-                                    <span>Jul</span>
-                                    <span>Aug</span>
-                                    <span>Sept</span>
+                                    {chartSeries.map((month) => (
+                                        <span key={month.label}>{month.label}</span>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -292,7 +346,7 @@ export default function UsersPage() {
                                         onChange={(e) => setSelectedReportYear(e.target.value)}
                                         className="w-3 h-3 text-[#4043FF]"
                                     />
-                                    <span className="text-xs text-gray-600">This Year</span>
+                                    <span className="text-xs text-gray-600">This Year ({now.getFullYear()})</span>
                                 </label>
                                 <label className="flex items-center gap-1.5">
                                     <input
@@ -303,7 +357,7 @@ export default function UsersPage() {
                                         onChange={(e) => setSelectedReportYear(e.target.value)}
                                         className="w-3 h-3 text-[#4043FF]"
                                     />
-                                    <span className="text-xs text-gray-600">Last Year</span>
+                                    <span className="text-xs text-gray-600">Last Year ({now.getFullYear() - 1})</span>
                                 </label>
                                 <label className="flex items-center gap-1.5">
                                     <input
@@ -314,10 +368,10 @@ export default function UsersPage() {
                                         onChange={(e) => setSelectedReportYear(e.target.value)}
                                         className="w-3 h-3 text-[#4043FF]"
                                     />
-                                    <span className="text-xs text-gray-600">2 Years Ago</span>
+                                    <span className="text-xs text-gray-600">2 Years Ago ({now.getFullYear() - 2})</span>
                                 </label>
                             </div>
-                            <button className="bg-green-500 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            <button onClick={exportCsv} className="bg-green-500 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
                                 Download User Reports (CSV)
                             </button>
                         </div>
@@ -326,18 +380,15 @@ export default function UsersPage() {
                         <div className="w-40 bg-white border border-gray-200 rounded-xl p-4">
                             <p className="text-xs text-gray-500 mb-1">Active Users</p>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-2xl font-bold text-gray-900">13</span>
-                                <span className="text-xs text-green-500 font-semibold">+20%</span>
+                                <span className="text-2xl font-bold text-gray-900">{activeUsers}</span>
+                                <span className="text-xs text-green-500 font-semibold">
+                                    {totalUsers > 0 ? `${Math.round((activeUsers / totalUsers) * 100)}%` : '0%'}
+                                </span>
                             </div>
-                            {/* Mini chart */}
-                            <svg className="w-full h-8 mt-2" viewBox="0 0 100 30" preserveAspectRatio="none">
-                                <polyline
-                                    fill="none"
-                                    stroke="#EF4444"
-                                    strokeWidth="2"
-                                    points="0,25 20,20 40,15 60,18 80,10 100,5"
-                                />
-                            </svg>
+                            {/* Mini bar showing the verified share */}
+                            <div className="w-full h-2 mt-3 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-[#4043FF] rounded-full transition-all" style={{ width: totalUsers > 0 ? `${(activeUsers / totalUsers) * 100}%` : '0%' }} />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -355,7 +406,8 @@ export default function UsersPage() {
                     <p className="text-center text-gray-500 py-8">{error}</p>
                 ) : (
                     <>
-                        <table className="w-full">
+                        <div className="overflow-x-auto">
+                        <table className="w-full min-w-[480px]">
                             <thead>
                                 <tr className="border-b border-gray-200">
                                     <th className="text-left text-sm font-bold text-gray-900 pb-3 pl-4">Name</th>
@@ -381,6 +433,7 @@ export default function UsersPage() {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
 
                         {/* Pagination — real, driven by totalPages from the API */}
                         <div className="flex items-center justify-end gap-2 mt-4">
