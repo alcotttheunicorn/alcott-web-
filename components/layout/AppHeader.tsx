@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useProfile } from '@/hooks/use-profile'
-import { useAuth } from '@/hooks/use-auth'
 import { HeaderActions } from './HeaderActions'
 
 interface HeaderTitleConfig {
@@ -34,7 +33,6 @@ export function AppHeader({
     showSearch = true,
 }: AppHeaderProps) {
     const { displayName, profile } = useProfile()
-    const { logout } = useAuth()
     const [searchValue, setSearchValue] = useState('')
     const [isSearchFocused, setIsSearchFocused] = useState(false)
     const [recentSearches, setRecentSearches] = useState<string[]>([])

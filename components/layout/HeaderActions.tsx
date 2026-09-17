@@ -4,6 +4,16 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 
 interface HeaderActionsProps {
   showCurrencySelector?: boolean
@@ -31,6 +41,7 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
   const { logout } = useAuth()
   const [selectedCurrency, setSelectedCurrency] = useState('NGN')
   const [openMenu, setOpenMenu] = useState<'currency' | 'notifications' | 'profile' | null>(null)
+  const [logoutOpen, setLogoutOpen] = useState(false)
   const notificationsButtonRef = useRef<HTMLButtonElement>(null)
   const [notificationsPos, setNotificationsPos] = useState<{ top: number; right: number } | null>(null)
 
@@ -148,10 +159,27 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
             <div className="border-b border-gray-100 px-3 py-2"><p className="text-sm font-bold text-gray-900">{displayName ?? 'Guest'}</p><p className="truncate text-xs text-gray-500">{profile?.email ?? 'Manage your account'}</p></div>
             <button type="button" onClick={() => { closeMenu(); router.push('/profile-setup') }} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50">Edit profile</button>
             <button type="button" onClick={() => { closeMenu(); router.push('/settings') }} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50">Settings</button>
-            <button type="button" onClick={logout} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50">Log out</button>
+            <button type="button" onClick={() => { closeMenu(); setLogoutOpen(true) }} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50">Log out</button>
           </div>
         )}
       </div>
+
+      <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Log out of Alcott?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to log out? You can sign back in anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={logout} className="bg-red-600 hover:bg-red-700 text-white">
+              Log out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

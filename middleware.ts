@@ -12,14 +12,6 @@ const publicRoutes = [
   '/(auth)',
 ]
 
-// Auth routes that redirect authenticated users to home
-const authRoutes = [
-  '/lets-get-you-in',
-  '/sign-in',
-  '/register',
-  '/(auth)',
-]
-
 // Admin routes that require admin role
 const adminRoutes = [
   '/admin',
@@ -44,16 +36,8 @@ export function middleware(request: NextRequest) {
   // Check if the path is a public route
   const isPublicRoute = publicRoutes.some(route => matchesRoute(pathname, route))
 
-  // Check if the path is an auth route (should redirect authenticated users)
-  const isAuthRoute = authRoutes.some(route => matchesRoute(pathname, route))
-
   // Check if the path is an admin route
   const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
-
-  // Redirect authenticated users away from auth pages
-  if (isAuthRoute && token) {
-    return NextResponse.redirect(new URL('/home', request.url))
-  }
 
   // Protect non-public routes
   if (!isPublicRoute && !token) {
