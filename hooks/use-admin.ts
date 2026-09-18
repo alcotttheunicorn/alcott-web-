@@ -37,6 +37,30 @@ export function useAdminUsers(params?: { page?: number; limit?: number }) {
   })
 }
 
+// Fetches every user by walking all pages of /admin/users so the dashboard
+// stats (total, per-month, new-this-month, active, CSV) can be computed from
+// the same source of truth instead of the hardcoded mock numbers.
+export function useAdminAllUsers() {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: [...queryKeys.admin.users, 'all'],
+    queryFn: async () => {
+      const pageSize = 50
+      const first = await getAdminUsers({ page: 1, limit: pageSize })
+      const all = [...(first.data?.users ?? [])]
+      const totalPages = first.totalPages ?? 1
+      for (let page = 2; page <= totalPages; page += 1) {
+        const res = await getAdminUsers({ page, limit: pageSize })
+        all.push(...(res.data?.users ?? []))
+      }
+      return { users: all, totalItems: first.totalItems ?? all.length }
+    },
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
 export function useAdminShipments(params?: {
   status?: string
   user_id?: string

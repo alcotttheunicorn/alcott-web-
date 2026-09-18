@@ -62,10 +62,10 @@ export default function OrdersPage() {
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex gap-3 mb-6 overflow-x-auto">
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
           <button
             onClick={() => setActiveStatus('all')}
-            className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
+            className={`px-4 sm:px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
               activeStatus === 'all'
                 ? 'bg-[#4043FF] text-white'
                 : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4043FF] hover:text-[#4043FF]'
@@ -76,7 +76,7 @@ export default function OrdersPage() {
           </button>
           <button
             onClick={() => setActiveStatus('pending')}
-            className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
+            className={`px-4 sm:px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
               activeStatus === 'pending'
                 ? 'bg-[#4043FF] text-white'
                 : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4043FF] hover:text-[#4043FF]'
@@ -87,7 +87,7 @@ export default function OrdersPage() {
           </button>
           <button
             onClick={() => setActiveStatus('onprocess')}
-            className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
+            className={`px-4 sm:px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
               activeStatus === 'onprocess'
                 ? 'bg-[#4043FF] text-white'
                 : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4043FF] hover:text-[#4043FF]'
@@ -98,7 +98,7 @@ export default function OrdersPage() {
           </button>
           <button
             onClick={() => setActiveStatus('delivered')}
-            className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
+            className={`px-4 sm:px-6 py-2.5 rounded-full font-semibold text-sm transition-colors whitespace-nowrap ${
               activeStatus === 'delivered'
                 ? 'bg-[#4043FF] text-white'
                 : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4043FF] hover:text-[#4043FF]'
@@ -127,8 +127,8 @@ export default function OrdersPage() {
             >
               <div className="flex items-center justify-between gap-4">
                 {/* Left: Icon and Order Info */}
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#E8E9FF]">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#E8E9FF] shrink-0">
                     {order.status === 'onprocess' ? (
                       <svg className="w-6 h-6 text-[#4043FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -139,18 +139,18 @@ export default function OrdersPage() {
                       </svg>
                     )}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-gray-900 truncate" style={{ fontFamily: "'Urbanist', sans-serif" }}>
                       {order.trackingNumber}
                     </h3>
-                    <p className="text-sm text-gray-500" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                    <p className="text-sm text-gray-500 truncate" style={{ fontFamily: "'Urbanist', sans-serif" }}>
                       {order.statusText}
                     </p>
                   </div>
                 </div>
 
                 {/* Right: Status Badge */}
-                <div>
+                <div className="shrink-0">
                   <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${order.statusColor}`} style={{ fontFamily: "'Urbanist', sans-serif" }}>
                     {order.statusLabel}
                   </span>

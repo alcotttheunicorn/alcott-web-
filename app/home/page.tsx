@@ -58,6 +58,8 @@ function HomeContent() {
   const { data: recentTransactions = [], isLoading: transactionsLoading } = useTransactions(1, 4)
 
   const [greeting, setGreeting] = useState('Hello')
+  const [selectedCurrency, setSelectedCurrency] = useState('USD')
+  const [currencyOpen, setCurrencyOpen] = useState(false)
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -157,20 +159,46 @@ function HomeContent() {
               {profile ? `${profile.first_name} ${profile.last_name}` : ''}
             </h2>
           </div>
-          <label className="md:hidden relative shrink-0">
-            <span className="sr-only">Currency</span>
-            <select
-              defaultValue="USD"
-              className="appearance-none bg-white border border-gray-200 rounded px-2 py-1 pr-6 text-[10px] text-gray-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-[#4043FF]"
+          <div className="md:hidden relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setCurrencyOpen((o) => !o)}
+              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
               style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
             >
-              <option value="NGN">NGN</option>
-              <option value="USD">USD</option>
-            </select>
-            <svg className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </label>
+              {selectedCurrency === 'NGN' ? '₦ NGN' : '$ USD'}
+              <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {currencyOpen && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
+                {[
+                  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+                  { code: 'USD', symbol: '$', name: 'US Dollar' },
+                ].map((currency) => (
+                  <button
+                    key={currency.code}
+                    type="button"
+                    onClick={() => { setSelectedCurrency(currency.code); setCurrencyOpen(false) }}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[#F0F0FF] ${selectedCurrency === currency.code ? 'font-bold text-[#4043FF]' : 'text-gray-700'}`}
+                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E0E0FF] text-xs font-bold text-[#4043FF]">
+                        {currency.symbol}
+                      </span>
+                      <span className="flex flex-col leading-tight">
+                        <span className="text-sm font-semibold">{currency.code}</span>
+                        <span className="text-[10px] font-normal text-gray-400">{currency.name}</span>
+                      </span>
+                    </span>
+                    {selectedCurrency === currency.code && (
+                      <svg className="h-4 w-4 text-[#4043FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="relative w-full overflow-hidden rounded-2xl lg:rounded-3xl">
           {balanceLoading ? (
@@ -178,23 +206,23 @@ function HomeContent() {
           ) : (
             <>
               <img src="/home_card.png" alt="Balance card background" className="w-full h-auto" />
-              <div className="absolute inset-0 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 lg:px-10 py-4 sm:py-6">
-                <div>
+              <div className="absolute inset-0 flex items-center justify-between gap-x-3 sm:flex-col sm:items-start sm:justify-center sm:gap-y-6 px-4 sm:px-10 lg:px-14 py-2 sm:py-6">
+                <div className="min-w-0">
                   <p className="text-white/90 text-xs sm:text-sm font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Your balance</p>
-                  <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                  <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-5 truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                     {balance != null ? `${balance.toLocaleString()}.00NGN` : '---'}
                   </h3>
-                  <button
-                    onClick={() => router.push('/topup')}
-                    className="mt-2 sm:mt-4 bg-white text-[#4043FF] hover:bg-gray-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold shadow transition-colors flex items-center gap-1"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
-                  >
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M7 14l5-5 5 5z" />
-                    </svg>
-                    Top Up
-                  </button>
                 </div>
+                <button
+                  onClick={() => router.push('/topup')}
+                  className="shrink-0 bg-white text-[#4043FF] hover:bg-gray-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold shadow transition-colors flex items-center gap-1"
+                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                >
+                  <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.69175 3.9921V0.651254C7.69175 0.296024 7.97508 0 8.33342 0C8.65425 0 8.92607 0.248743 8.96914 0.563817L8.97508 0.651254V3.9921L12.9583 3.99235C14.9417 3.99235 16.5711 5.61648 16.6626 7.64201L16.6667 7.82174V12.0212C16.6667 14.0609 15.0939 15.7352 13.14 15.8292L12.9667 15.8333H3.7C1.71667 15.8333 0.0950748 14.2173 0.00403149 12.1844L0 12.0039L0 7.81314C0 5.77342 1.56492 4.09101 3.51833 3.99654L3.69167 3.99235H7.69167V9.32768L6.35833 7.95082C6.10833 7.69266 5.7 7.69266 5.45 7.95082C5.325 8.0799 5.26667 8.25201 5.26667 8.42412C5.26667 8.55492 5.304 8.69123 5.38293 8.80661L5.45 8.88881L7.875 11.4016C7.99167 11.5307 8.15833 11.5995 8.33333 11.5995C8.47222 11.5995 8.61111 11.5517 8.72106 11.4611L8.78333 11.4016L11.2083 8.88881C11.4583 8.63064 11.4583 8.20898 11.2083 7.95082C10.9811 7.71613 10.6229 7.69479 10.3719 7.88681L10.3 7.95082L8.975 9.32768V3.99235L7.69175 3.9921Z" fill="#4043FF"/>
+                  </svg>
+                  Top Up
+                </button>
               </div>
             </>
           )}
