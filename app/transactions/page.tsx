@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { useTransactionsInfinite } from '@/hooks/use-wallet'
+import { formatDateTime } from '@/lib/utils'
 
 export default function TransactionHistoryPage() {
 
@@ -86,7 +87,7 @@ export default function TransactionHistoryPage() {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="text-sm text-[#4043FF] font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', color: '#4043FF' }}>
-                  {transaction.created_at ?? ''}
+                  {formatDateTime(transaction.created_at)}
                 </span>
                 <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
               </div>

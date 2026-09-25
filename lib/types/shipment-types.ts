@@ -37,6 +37,7 @@ export interface ShipmentContact {
   email: string
   city: string
   address: string
+  countryCode: string
 }
 
 export type ShipmentWeightUnit = 'kg' | 'lb'

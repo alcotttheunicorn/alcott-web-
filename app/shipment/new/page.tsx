@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react'
 import type { SVGProps } from 'react'
@@ -15,6 +15,8 @@ import { FormSection } from '@/components/shipment/FormSection'
 import { ContinueButton } from '@/components/shipment/ContinueButton'
 import { InputRow } from '@/components/shipment/InputRow'
 import { TextareaRow } from '@/components/shipment/TextareaRow'
+import { CountryCodeSelect } from '@/components/shipment/CountryCodeSelect'
+import { getDialCode, validatePhoneNumber } from '@/lib/countries'
 import { useShipmentWizard } from '@/hooks/use-shipment-wizard'
 import type {
   ShipmentContact,
@@ -54,6 +56,7 @@ const initialContact: ShipmentContact = {
   email: '',
   city: '',
   address: '',
+  countryCode: 'NG',
 }
 
 const initialPackage: ShipmentPackage = {
@@ -124,7 +127,7 @@ export default function NewShipmentPage() {
   } = useShipmentWizard({
     steps,
     initialSender: initialContact,
-    initialReceiver: initialContact,
+    initialReceiver: { ...initialContact, countryCode: 'US' },
     initialPackage,
     initialPayment,
   })
@@ -143,6 +146,11 @@ export default function NewShipmentPage() {
     () => shippingOptions.find((opt) => opt.id === pkg.shippingOption) || shippingOptions[0],
     [pkg.shippingOption]
   )
+
+  const senderPhoneValidation = validatePhoneNumber(sender.phone, sender.countryCode)
+  const receiverPhoneValidation = validatePhoneNumber(receiver.phone, receiver.countryCode)
+  const senderCanContinue = canMoveForward && senderPhoneValidation.valid
+  const receiverCanContinue = canMoveForward && receiverPhoneValidation.valid
 
   const handleConfirmShipment = async () => {
     if (typeof window === 'undefined') return
@@ -168,12 +176,12 @@ export default function NewShipmentPage() {
 
     const payload: CreateShipmentRequest = {
       sender_name: sender.name.trim(),
-      sender_phone_number: ensureIntlPhone(sender.phone, '+234'),
+      sender_phone_number: ensureIntlPhone(sender.phone, getDialCode(sender.countryCode)),
       sender_email: sender.email.trim(),
       sender_city: sender.city.trim(),
       sender_address: sender.address.trim(),
       receiver_name: receiver.name.trim(),
-      receiver_phone_number: ensureIntlPhone(receiver.phone, '+1'),
+      receiver_phone_number: ensureIntlPhone(receiver.phone, getDialCode(receiver.countryCode)),
       receiver_email: receiver.email.trim(),
       receiver_city: receiver.city.trim(),
       receiver_address: receiver.address.trim(),
@@ -233,8 +241,9 @@ export default function NewShipmentPage() {
                 data={sender}
                 onChange={setSender}
                 onContinue={moveToNext}
-                canContinue={canMoveForward}
+                canContinue={senderCanContinue}
                 sanitizePhone={sanitizePhoneInput}
+                phoneError={senderPhoneValidation.valid ? undefined : senderPhoneValidation.message}
               />
             )}
             {currentStep === 'receiver' && (
@@ -242,8 +251,9 @@ export default function NewShipmentPage() {
                 data={receiver}
                 onChange={setReceiver}
                 onContinue={moveToNext}
-                canContinue={canMoveForward}
+                canContinue={receiverCanContinue}
                 sanitizePhone={sanitizePhoneInput}
+                phoneError={receiverPhoneValidation.valid ? undefined : receiverPhoneValidation.message}
               />
             )}
             {currentStep === 'package' && (
@@ -290,19 +300,27 @@ function SenderForm({
   onContinue,
   canContinue,
   sanitizePhone,
+  phoneError,
 }: {
   data: ShipmentContact
   onChange: (value: ShipmentContact) => void
   onContinue: () => void
   canContinue: boolean
   sanitizePhone: (value: string) => string
+  phoneError?: string
 }) {
   return (
     <FormSection title="Sender Details" subtitle="Who is sending this package?">
-      <InputRow label="Sender Name" placeholder="Sender Name" value={data.name} onChange={(value) => onChange({ ...data, name: value })} />
+      <InputRow 
+        label="Sender Name" 
+        placeholder="Sender Name" 
+        value={data.name} 
+        onChange={(value) => onChange({ ...data, name: value })}
+        prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>}
+      />
       <InputRow
         label="Phone Number"
-        placeholder="Phone Number"
+        placeholder={getDialCode(data.countryCode)}
         value={data.phone}
         onChange={(value) => onChange({ ...data, phone: value })}
         type="tel"
@@ -311,10 +329,35 @@ function SenderForm({
         maxLength={20}
         pattern="[0-9+]*"
         transform={sanitizePhone}
+        error={phoneError}
+        prefix={
+          <CountryCodeSelect
+            value={data.countryCode}
+            onChange={(code) => onChange({ ...data, countryCode: code })}
+          />
+        }
       />
-      <InputRow label="Email" placeholder="Email" type="email" value={data.email} onChange={(value) => onChange({ ...data, email: value })} />
-      <InputRow label="City / Province" placeholder="City / Province" value={data.city} onChange={(value) => onChange({ ...data, city: value })} />
-      <TextareaRow label="Address Details" placeholder="Address Details" value={data.address} onChange={(value) => onChange({ ...data, address: value })} />
+      <InputRow 
+        label="Email" 
+        placeholder="Email" 
+        type="email" 
+        value={data.email} 
+        onChange={(value) => onChange({ ...data, email: value })}
+        prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>}
+      />
+      <InputRow 
+        label="City / Province" 
+        placeholder="City / Province" 
+        value={data.city} 
+        onChange={(value) => onChange({ ...data, city: value })}
+        prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
+      />
+      <TextareaRow 
+        label="Address Details" 
+        placeholder="Address Details" 
+        value={data.address} 
+        onChange={(value) => onChange({ ...data, address: value })}
+      />
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
     </FormSection>
   )
@@ -326,19 +369,27 @@ function ReceiverForm({
   onContinue,
   canContinue,
   sanitizePhone,
+  phoneError,
 }: {
   data: ShipmentContact
   onChange: (value: ShipmentContact) => void
   onContinue: () => void
   canContinue: boolean
   sanitizePhone: (value: string) => string
+  phoneError?: string
 }) {
   return (
     <FormSection title="Receiver Details" subtitle="Who will receive this package?">
-      <InputRow label="Receiver Name" placeholder="Receiver Name" value={data.name} onChange={(value) => onChange({ ...data, name: value })} />
+      <InputRow 
+        label="Receiver Name" 
+        placeholder="Receiver Name" 
+        value={data.name} 
+        onChange={(value) => onChange({ ...data, name: value })}
+        prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>}
+      />
       <InputRow
         label="Phone Number"
-        placeholder="Phone Number"
+        placeholder={getDialCode(data.countryCode)}
         value={data.phone}
         onChange={(value) => onChange({ ...data, phone: value })}
         type="tel"
@@ -347,10 +398,35 @@ function ReceiverForm({
         maxLength={20}
         pattern="[0-9+]*"
         transform={sanitizePhone}
+        error={phoneError}
+        prefix={
+          <CountryCodeSelect
+            value={data.countryCode}
+            onChange={(code) => onChange({ ...data, countryCode: code })}
+          />
+        }
       />
-      <InputRow label="Email" placeholder="Email" type="email" value={data.email} onChange={(value) => onChange({ ...data, email: value })} />
-      <InputRow label="City / Province" placeholder="City / Province" value={data.city} onChange={(value) => onChange({ ...data, city: value })} />
-      <TextareaRow label="Address Details" placeholder="Address Details" value={data.address} onChange={(value) => onChange({ ...data, address: value })} />
+      <InputRow 
+        label="Email" 
+        placeholder="Email" 
+        type="email" 
+        value={data.email} 
+        onChange={(value) => onChange({ ...data, email: value })}
+        prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>}
+      />
+      <InputRow 
+        label="City / Province" 
+        placeholder="City / Province" 
+        value={data.city} 
+        onChange={(value) => onChange({ ...data, city: value })}
+        prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
+      />
+      <TextareaRow 
+        label="Address Details" 
+        placeholder="Address Details" 
+        value={data.address} 
+        onChange={(value) => onChange({ ...data, address: value })}
+      />
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
     </FormSection>
   )
@@ -598,13 +674,13 @@ function ReviewSummary({
       <div className="space-y-4">
         <SummaryCard title="Sender" items={[
           ['Name', sender.name],
-          ['Phone', sender.phone],
+          ['Phone', sender.phone.startsWith('+') ? sender.phone : `${getDialCode(sender.countryCode)} ${sender.phone}`],
           ['Email', sender.email],
           ['Address', sender.address],
         ]} />
         <SummaryCard title="Receiver" items={[
           ['Name', receiver.name],
-          ['Phone', receiver.phone],
+          ['Phone', receiver.phone.startsWith('+') ? receiver.phone : `${getDialCode(receiver.countryCode)} ${receiver.phone}`],
           ['Email', receiver.email],
           ['Address', receiver.address],
         ]} />

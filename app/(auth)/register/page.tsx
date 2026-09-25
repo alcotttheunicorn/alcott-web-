@@ -108,14 +108,14 @@ export default function RegisterPage() {
                     : 'bg-gray-100 border-2 border-transparent hover:bg-gray-50'
                 }`}>
                   <svg className={`w-5 h-5 mr-3 shrink-0 transition-colors duration-300 ${
-                    emailFocused ? 'text-[#4043FF]' : 'text-gray-500'
-                  }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    emailFocused ? 'text-[#4043FF]' : email ? 'text-gray-900' : 'text-gray-400'
+                  }`} viewBox="0 0 17 15">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M12.4492 0C13.5667 0 14.6417 0.441667 15.4325 1.23417C16.2242 2.025 16.6667 3.09167 16.6667 4.20833V10.7917C16.6667 13.1167 14.775 15 12.4492 15H4.21667C1.89083 15 0 13.1167 0 10.7917V4.20833C0 1.88333 1.8825 0 4.21667 0H12.4492ZM13.775 5.45L13.8417 5.38333C14.0408 5.14167 14.0408 4.79167 13.8325 4.55C13.7167 4.42583 13.5575 4.35 13.3917 4.33333C13.2167 4.32417 13.05 4.38333 12.9242 4.5L9.16667 7.5C8.68333 7.90083 7.99083 7.90083 7.5 7.5L3.75 4.5C3.49083 4.30833 3.1325 4.33333 2.91667 4.55833C2.69167 4.78333 2.66667 5.14167 2.8575 5.39167L2.96667 5.5L6.75833 8.45833C7.225 8.825 7.79083 9.025 8.38333 9.025C8.97417 9.025 9.55 8.825 10.0158 8.45833L13.775 5.45Z" fill="currentColor" />
                   </svg>
                   <Input
                     type="email"
                     placeholder="info@alcott.com.ng"
-                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
+                    className="border-0 bg-transparent p-0 focus:ring-0 focus-visible:ring-0 focus-visible:border-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                     onFocus={() => setEmailFocused(true)}
                     onBlur={() => setEmailFocused(false)}
                     value={email}
@@ -133,14 +133,14 @@ export default function RegisterPage() {
                     : 'bg-gray-100 border-2 border-transparent hover:bg-gray-50'
                 }`}>
                   <svg className={`w-5 h-5 mr-3 shrink-0 transition-colors duration-300 ${
-                    passwordFocused ? 'text-[#4043FF]' : 'text-gray-500'
-                  }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    passwordFocused ? 'text-[#4043FF]' : password ? 'text-gray-900' : 'text-gray-400'
+                  }`} viewBox="0 0 15 17">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M11.6856 4.49667V5.77445C13.1209 6.22247 14.1667 7.52178 14.1667 9.07367V13.1878C14.1667 15.109 12.5739 16.6667 10.6102 16.6667H3.55733C1.5928 16.6667 0 15.109 0 13.1878V9.07367C0 7.52178 1.04662 6.22247 2.48107 5.77445V4.49667C2.48954 2.01232 4.54722 0 7.07063 0C9.62791 0 11.6856 2.01232 11.6856 4.49667ZM7.08757 1.4492C8.80653 1.4492 10.2037 2.8156 10.2037 4.49667V5.59475H3.96294V4.48011C3.97141 2.80731 5.3686 1.4492 7.08757 1.4492ZM7.82427 12.0458C7.82427 12.4516 7.49402 12.7745 7.0791 12.7745C6.67264 12.7745 6.3424 12.4516 6.3424 12.0458V10.2074C6.3424 9.80986 6.67264 9.4869 7.0791 9.4869C7.49402 9.4869 7.82427 9.80986 7.82427 10.2074V12.0458Z" fill="currentColor" />
                   </svg>
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
-                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
+                    className="border-0 bg-transparent p-0 focus:ring-0 focus-visible:ring-0 focus-visible:border-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
                     value={password}
