@@ -12,10 +12,10 @@ import Link from 'next/link'
 
 type OrderStatus = 'all' | 'pending' | 'on_process' | 'delivered'
 
-const statusToApiValue: Record<Exclude<OrderStatus, 'all'>, string> = {
-    pending: 'PENDING',
-    on_process: 'ON_PROCESS',
-    delivered: 'DELIVERED',
+const statusToApiValue: Record<Exclude<OrderStatus, 'all'>, string[]> = {
+    pending: ['SUBMITTED', 'UNPAID'],
+    on_process: ['ON_PROCESS'],
+    delivered: ['DELIVERED'],
 }
 
 function mapShipmentStatus(status: string): Exclude<OrderStatus, 'all'> {
