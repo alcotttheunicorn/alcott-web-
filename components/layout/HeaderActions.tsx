@@ -128,7 +128,7 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
               <div className="flex items-center gap-2"><button type="button" onClick={closeMenu} aria-label="Close notifications" className="text-gray-500 hover:text-gray-900">←</button><h2 className="text-sm font-bold text-gray-900">Notification</h2></div>
               <button type="button" onClick={closeMenu} aria-label="Close notifications" className="text-gray-400 hover:text-gray-700">×</button>
             </div>
-            <div className="max-h-88 space-y-4 overflow-y-auto p-3">
+            <div className="max-h-88 space-y-4 overflow-y-auto p-3 scrollbar-hidden">
               {notifications.map(([group, title, description, color], index) => (
                 <div key={`${title}-${index}`}>
                   {(index === 0 || group !== notifications[index - 1][0]) && <p className="mb-2 text-[10px] font-semibold text-gray-700">{group}</p>}

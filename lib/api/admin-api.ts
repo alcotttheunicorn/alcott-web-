@@ -71,7 +71,7 @@ export async function getAdminUsers(
 
 export async function getAdminShipments(
   params?: { status?: string; user_id?: string; page?: number; limit?: number },
-): Promise<PaginatedResponse<ShipmentData[]>> {
+): Promise<PaginatedResponse<{ shipments: ShipmentData[] }>> {
   const { data } = await apiClient.get('/admin/shipments', { params })
   return data
 }

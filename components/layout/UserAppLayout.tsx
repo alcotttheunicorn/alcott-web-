@@ -10,6 +10,7 @@ import { DesktopSidebar } from './DesktopSidebar'
 import { MobileSidebar } from './MobileSidebar'
 import { MobileBottomNav } from './MobileBottomNav'
 import { AppHeader } from './AppHeader'
+import { VerifyPaymentHandler } from '@/components/wallet/verify-payment-handler'
 
 interface HeaderTitleConfig {
   title: string
@@ -66,6 +67,7 @@ function UserAppLayoutInner({
 
   return (
     <div className={`min-h-screen ${contentBgClass} flex flex-col`} style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+      <VerifyPaymentHandler />
       <div className="flex flex-1 min-h-0">
         <DesktopSidebar activeNav={resolvedActiveNav} inboxBadge={inboxBadge} />
         {mobileMenuOpen && (

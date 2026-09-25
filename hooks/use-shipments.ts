@@ -23,7 +23,7 @@ export function useShipments(params?: { status?: string; page?: number; limit?: 
   return useQuery({
     queryKey: [...queryKeys.shipments.all, params?.status, params?.page, params?.limit],
     queryFn: () =>
-      getShipments(params).then((res) => (Array.isArray(res.data) ? res.data : [])),
+      getShipments(params).then((res) => res.data?.shipments ?? []),
     enabled: isAuthenticated,
   })
 }
