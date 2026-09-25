@@ -54,21 +54,14 @@ export function SuccessModal({
         {/* Success Animation */}
         <div className="flex justify-center mb-6">
           <div className="relative">
-            {/* Decorative dots */}
-            <div className="absolute -top-4 -left-4 w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
-            <div className="absolute -top-2 -right-6 w-2 h-2 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-            <div className="absolute -bottom-4 -left-6 w-2 h-2 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-            <div className="absolute -bottom-2 -right-4 w-3 h-3 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-            <div className="absolute top-2 -left-8 w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-            <div className="absolute top-6 -right-8 w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '2.5s' }}></div>
-            <div className="absolute -bottom-6 right-2 w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" style={{ animationDelay: '3s' }}></div>
-            
-            {/* Main icon circle */}
-            <div className="w-20 h-20 bg-[#4043FF] rounded-full flex items-center justify-center relative">
+            {/* Main icon */}
+            <div className="w-24 h-24 flex items-center justify-center relative">
               {icon || (
-                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-                </svg>
+                <img 
+                  src="/icons/success-icon.svg" 
+                  alt="Success" 
+                  className="w-full h-full object-contain"
+                />
               )}
             </div>
           </div>

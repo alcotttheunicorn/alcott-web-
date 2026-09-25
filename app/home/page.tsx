@@ -6,6 +6,7 @@ import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { useProfile } from '@/hooks/use-profile'
 import { useWalletBalance, useTransactions } from '@/hooks/use-wallet'
 import { BalanceSkeleton, TransactionHistorySkeleton } from '@/components/shared/skeletons'
+import { formatDateTime } from '@/lib/utils'
 import type { Transaction } from '@/lib/api/types'
 
 const TRANSACTION_COLORS: Record<string, string> = {
@@ -45,7 +46,7 @@ function TransactionCard({ item, index }: { item: Transaction; index: number }) 
         </div>
       </div>
       <span className="text-xs text-gray-500 mt-1 shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
-        {item.created_at ?? ''}
+        {formatDateTime(item.created_at)}
       </span>
     </div>
   )

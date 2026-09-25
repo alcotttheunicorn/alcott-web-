@@ -185,9 +185,6 @@ function TopUpContent() {
         {currentStep === 2 && (
           <div className="space-y-8">
             <div className="text-center">
-              <p className="text-gray-400 text-sm mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                Auto Layout Vertical
-              </p>
               <p className="text-gray-600 mb-8 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                 Select the top up method you want to use
               </p>

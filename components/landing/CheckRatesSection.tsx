@@ -208,7 +208,7 @@ export function CheckRatesSection({
                                             <div className="rounded-xl bg-[#F0F0FF] px-4 py-4 text-center">
                                                 {'price' in pricingResult && pricingResult.price ? (
                                                     <div>
-                                                        <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p>
+                                                        {/* <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p> */}
                                                         <p className="text-2xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
                                                             {pricingResult.price.currency === 'NGN' ? '₦' : `${pricingResult.price.currency} `}
                                                             {pricingResult.price.amount.toLocaleString()}
@@ -216,7 +216,7 @@ export function CheckRatesSection({
                                                     </div>
                                                 ) : pricingResult.export_price ? (
                                                     <div className="space-y-1">
-                                                        <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p>
+                                                        {/* <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p> */}
                                                         <div className="flex items-center justify-center gap-4">
                                                             <div>
                                                                 <p className="text-[10px] font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Export</p>

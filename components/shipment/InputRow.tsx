@@ -19,6 +19,7 @@ interface InputRowProps {
   containerClassName?: string
   inputClassName?: string
   suffixClassName?: string
+  error?: string
 }
 
 export function InputRow({
@@ -37,6 +38,7 @@ export function InputRow({
   containerClassName,
   inputClassName,
   suffixClassName,
+  error,
 }: InputRowProps) {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const rawValue = event.target.value
@@ -46,10 +48,10 @@ export function InputRow({
 
   return (
     <div className={`space-y-1.5 ${containerClassName ?? ''}`}>
-      <label className="text-sm font-semibold text-gray-700">{label}</label>
-      <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 focus-within:bg-white transition-colors">
+      <label className="text-sm font-bold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>{label}</label>
+      <div className="flex items-center rounded-xl bg-[#F9F9F9] border border-gray-200 focus-within:ring-2 focus-within:ring-[#4043FF]/20 transition-all focus-within:border-[#4043FF]/30 focus-within:bg-white">
         {prefix && (
-          <div className="pl-3 pr-3 flex items-center gap-2 text-sm text-gray-500 border-r border-gray-200">{/* Divider between prefix & input */}
+          <div className="pl-4 pr-1 flex items-center justify-center text-gray-500">
             {prefix}
           </div>
         )}
@@ -58,14 +60,16 @@ export function InputRow({
           value={value}
           placeholder={placeholder}
           onChange={handleChange}
-          className={`h-12 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 flex-1 px-4 min-w-0 ${inputClassName ?? ''}`}
+          className={`h-12 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 flex-1 px-4 min-w-0 shadow-none text-[15px] font-medium placeholder:text-gray-400 placeholder:font-normal ${prefix ? 'pl-2' : ''} ${inputClassName ?? ''}`}
+          style={{ fontFamily: "'Urbanist', sans-serif" }}
           inputMode={inputMode}
           autoComplete={autoComplete}
           maxLength={maxLength}
           pattern={pattern}
         />
-        {suffix && <div className={`pr-3 text-sm text-gray-500 ${suffixClassName ?? ''}`}>{suffix}</div>}
+        {suffix && <div className={`pr-4 flex items-center text-gray-500 ${suffixClassName ?? ''}`}>{suffix}</div>}
       </div>
+      {error && <p className="text-xs font-medium text-red-500">{error}</p>}
     </div>
   )
 }
