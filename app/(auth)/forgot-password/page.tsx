@@ -167,7 +167,7 @@ export default function ForgotPasswordPage() {
                       placeholder="Enter phone number (e.g., +234 812 345 6789)"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="w-full"
+                      className="w-full focus-visible:ring-[#4043FF]/30 focus-visible:border-[#4043FF] focus:ring-[#4043FF]/30 focus:border-[#4043FF]"
                     />
                   </div>
                 )}
@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
                       placeholder="Enter email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full"
+                      className="w-full focus-visible:ring-[#4043FF]/30 focus-visible:border-[#4043FF] focus:ring-[#4043FF]/30 focus:border-[#4043FF]"
                     />
                   </div>
                 )}
