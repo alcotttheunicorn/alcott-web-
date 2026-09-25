@@ -40,7 +40,7 @@ export function ZoneCard({ zone, index, onEdit }: ZoneCardProps) {
                             key={i}
                             className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200"
                         >
-                            {country.name ?? country.code ?? '—'}
+                            {country}
                         </span>
                     ))}
                 </div>

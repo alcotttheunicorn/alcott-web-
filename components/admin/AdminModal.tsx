@@ -19,7 +19,7 @@ export function AdminModal({ isOpen, onClose, title, children, maxWidth = 'max-w
                 className="absolute inset-0 bg-black/30"
                 onClick={onClose}
             />
-            <div className={`relative bg-white rounded-lg shadow-xl w-full ${maxWidth} overflow-hidden max-h-[90vh] overflow-y-auto`}>
+            <div className={`relative bg-white rounded-lg shadow-xl w-full ${maxWidth} overflow-hidden max-h-[90vh] overflow-y-auto scrollbar-hidden`}>
                 <div className="bg-[#4043FF] px-4 py-3 flex items-center justify-between sticky top-0">
                     <h2 className="text-white font-semibold text-sm lg:text-base">{title}</h2>
                     <button

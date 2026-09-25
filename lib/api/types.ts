@@ -154,7 +154,7 @@ export interface ZoneSlab {
 export interface ZonePricing {
   zone_code?: number
   base_country_code?: string
-  destination_country_codes?: ZoneCountry[]
+  destination_country_codes?: string[]
   import_slabs?: ZoneSlab[]
   export_slabs?: ZoneSlab[]
   [key: string]: unknown
