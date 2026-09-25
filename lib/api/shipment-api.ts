@@ -57,7 +57,7 @@ export async function updateShipment(
 
 export async function getShipments(
   params?: { status?: string; page?: number; limit?: number },
-): Promise<PaginatedResponse<ShipmentData[]>> {
+): Promise<PaginatedResponse<{ shipments: ShipmentData[] }>> {
   const { data } = await apiClient.get('/shipments', { params })
   return data
 }

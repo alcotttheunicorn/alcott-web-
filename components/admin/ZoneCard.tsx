@@ -1,11 +1,16 @@
 'use client'
 
 import type { ZonePricing } from '@/lib/api/types'
+import { getCountryName } from '@/lib/countries'
 
 interface ZoneCardProps {
     zone: ZonePricing
     index: number
     onEdit: (zone: ZonePricing) => void
+}
+
+function countryName(code?: string): string {
+    return getCountryName(code ?? '')
 }
 
 export function ZoneCard({ zone, index, onEdit }: ZoneCardProps) {
@@ -26,7 +31,7 @@ export function ZoneCard({ zone, index, onEdit }: ZoneCardProps) {
             <div className="mb-4">
                 <p className="text-xs text-gray-500 mb-2">Base Country</p>
                 <span className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200">
-                    {zone.base_country_code ?? '—'}
+                    {countryName(zone.base_country_code)}
                 </span>
             </div>
 
@@ -40,7 +45,7 @@ export function ZoneCard({ zone, index, onEdit }: ZoneCardProps) {
                             key={i}
                             className="px-2 py-1 text-xs text-gray-700 bg-gray-100 rounded border border-gray-200"
                         >
-                            {country.name ?? country.code ?? '—'}
+                            {countryName(country)}
                         </span>
                     ))}
                 </div>

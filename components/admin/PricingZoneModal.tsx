@@ -18,8 +18,8 @@ function emptySlab(): Slab {
 
 function slabsToPayload(slabs: Slab[]) {
     return slabs.map((s) => ({
-        from_weight: Number(s.from_weight),
-        to_weight: Number(s.to_weight),
+        min_weight: Number(s.from_weight),
+        max_weight: Number(s.to_weight),
         price: Number(s.price),
     }))
 }
@@ -28,8 +28,8 @@ function payloadToSlabs(raw: Record<string, unknown>[] | undefined): Slab[] {
     if (!raw || raw.length === 0) return [emptySlab()]
     return raw.map((s) => ({
         id: Date.now() + Math.random(),
-        from_weight: String(s.from_weight ?? '0'),
-        to_weight: String(s.to_weight ?? '0'),
+        from_weight: String(s.min_weight ?? s.from_weight ?? '0'),
+        to_weight: String(s.max_weight ?? s.to_weight ?? '0'),
         price: String(s.price ?? '0'),
     }))
 }
@@ -42,8 +42,8 @@ interface PricingZoneModalProps {
         zone_code: number
         base_country_code: string
         destination_country_codes: string[]
-        import_slabs: { from_weight: number; to_weight: number; price: number }[]
-        export_slabs: { from_weight: number; to_weight: number; price: number }[]
+        import_slabs: { min_weight: number; max_weight: number; price: number }[]
+        export_slabs: { min_weight: number; max_weight: number; price: number }[]
     }, mode: 'update' | 'replace') => void
     isSaving: boolean
     formError: string

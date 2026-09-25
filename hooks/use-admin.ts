@@ -73,7 +73,7 @@ export function useAdminShipments(params?: {
   return useQuery({
     queryKey: [...queryKeys.admin.shipments, params?.status, params?.user_id, params?.page, params?.limit],
     queryFn: () =>
-      getAdminShipments(params).then((res) => (Array.isArray(res.data) ? res.data : [])),
+      getAdminShipments(params).then((res) => res.data?.shipments ?? []),
     enabled: isAuthenticated && hasAdminAccess,
   })
 }

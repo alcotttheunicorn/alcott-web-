@@ -25,11 +25,9 @@ export default function HelpCenterPage() {
     {
       id: 'what-is-alcott',
       question: 'What is Alcott?',
-      answer: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      answer: 'Alcott is a shipping platform that lets you send, track and receive packages across Nigeria and internationally. Create your own shipment, compare rates, and manage everything from one dashboard.',
       category: 'general',
     },
-
-    
     {
       id: 'create-shipping',
       question: 'Can I create my own shipping?',
@@ -42,7 +40,6 @@ export default function HelpCenterPage() {
       answer: 'To use Alcott, simply create an account, add your shipping details, and start creating shipments. You can track your packages in real-time and manage all your shipping needs from one dashboard.',
       category: 'general',
     },
-    
     {
       id: 'is-free',
       question: 'Is Alcott free to use?',
@@ -60,12 +57,6 @@ export default function HelpCenterPage() {
       question: 'Can I get free shipping?',
       answer: 'Free shipping may be available for certain promotions or subscription plans. Check our current offers and subscription benefits for more details.',
       category: 'cost',
-    },
-    {
-      id: 'question',
-      question: 'Question',
-      answer: 'This is a placeholder question. Please contact support for more information.',
-      category: 'general',
     },
   ]
 
