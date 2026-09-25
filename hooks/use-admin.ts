@@ -24,6 +24,7 @@ import {
   type AdminEvent,
   type RateCheck,
 } from '@/lib/api/admin-api'
+import type { ShipmentData, PaginatedResponse } from '@/lib/api/types'
 import { queryKeys } from '@/components/providers/query-provider'
 
 export function useAdminUsers(params?: { page?: number; limit?: number }) {
@@ -62,7 +63,7 @@ export function useAdminAllUsers() {
 }
 
 export function useAdminShipments(params?: {
-  status?: string
+  status?: string | string[]
   user_id?: string
   page?: number
   limit?: number
@@ -70,12 +71,49 @@ export function useAdminShipments(params?: {
   const { isAuthenticated, user } = useAuth()
   const hasAdminAccess = isAdmin(user?.role)
 
+  const statuses: string[] | undefined = Array.isArray(params?.status) && params.status.length > 0
+    ? params.status
+    : typeof params?.status === 'string'
+      ? [params.status]
+      : undefined
+
   return useQuery({
-    queryKey: [...queryKeys.admin.shipments, params?.status, params?.user_id, params?.page, params?.limit],
-    queryFn: () =>
-      getAdminShipments(params).then((res) => res.data?.shipments ?? []),
+    queryKey: [...queryKeys.admin.shipments, JSON.stringify(statuses), params?.user_id, params?.page, params?.limit],
+    queryFn: async () => {
+      if (!statuses) {
+        const res = await getAdminShipments({ user_id: params?.user_id, page: params?.page, limit: params?.limit })
+        return extractShipments(res)
+      }
+      const results = await Promise.all(
+        statuses.map((s) => getAdminShipments({
+          user_id: params?.user_id,
+          page: params?.page,
+          limit: params?.limit,
+          status: s,
+        })),
+      )
+      const seen = new Set<string>()
+      const merged: ShipmentData[] = []
+      for (const res of results) {
+        for (const shipment of extractShipments(res)) {
+          if (shipment.id && !seen.has(shipment.id)) {
+            seen.add(shipment.id)
+            merged.push(shipment)
+          }
+        }
+      }
+      return merged
+    },
     enabled: isAuthenticated && hasAdminAccess,
   })
+}
+
+function extractShipments(res: PaginatedResponse<{ shipments: ShipmentData[] }>): ShipmentData[] {
+  const body = res?.data as unknown
+  if (Array.isArray(body)) return body as ShipmentData[]
+  return Array.isArray((body as { shipments?: ShipmentData[] } | null)?.shipments)
+    ? (body as { shipments: ShipmentData[] }).shipments
+    : []
 }
 
 export function useAdminShipment(id: string) {
