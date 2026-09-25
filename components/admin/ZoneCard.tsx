@@ -22,7 +22,7 @@ export function ZoneCard({ zone, index, onEdit }: ZoneCardProps) {
                 </h3>
                 <button
                     onClick={() => onEdit(zone)}
-                    className="px-3 py-1 text-xs font-medium text-[#4043FF] border border-[#4043FF] rounded hover:bg-[#4043FF] hover:text-white transition-colors"
+                    className="px-3 py-1 text-xs font-medium text-[#4043FF] border border-[#4043FF] rounded hover:bg-[#4043FF] hover:text-white transition-colors cursor-pointer"
                 >
                     EDIT
                 </button>

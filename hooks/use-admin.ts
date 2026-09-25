@@ -12,6 +12,7 @@ import {
   getAdminEvents,
   getAdminRateChecks,
   completeAdminShipment,
+  updateAdminShipment,
   cancelAdminShipment,
   startProcessingShipment,
   deliverShipment,
@@ -177,6 +178,29 @@ export function useAdminActivityLogs(params?: {
     queryKey: [...queryKeys.admin.activityLogs, params?.user_id, params?.action, params?.page, params?.limit],
     queryFn: () => getAdminActivityLogs(params),
     enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function useUpdateAdminShipment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...payload
+    }: {
+      id: string
+      min_delivery_days?: number
+      max_delivery_days?: number
+      payment_method?: string
+      payment_status?: string
+      price?: number
+    }) => updateAdminShipment(id, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipments })
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipmentDetail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipmentEvents(variables.id) })
+    },
   })
 }
 

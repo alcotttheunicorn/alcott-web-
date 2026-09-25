@@ -118,7 +118,7 @@ export function PricingZoneModal({ isOpen, onClose, editingZone, onSave, isSavin
                         <button
                             type="button"
                             onClick={() => setCurrentSlabs([...currentSlabs, emptySlab()])}
-                            className="p-1 bg-[#4043FF] rounded-full text-white hover:bg-[#3333CC] transition-colors"
+                            className="p-1 bg-[#4043FF] rounded-full text-white hover:bg-[#3333CC] transition-colors cursor-pointer"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -127,14 +127,14 @@ export function PricingZoneModal({ isOpen, onClose, editingZone, onSave, isSavin
                         <button
                             type="button"
                             onClick={() => setActiveTab('import')}
-                            className={`text-xs font-medium ${activeTab === 'import' ? 'text-[#4043FF]' : 'text-gray-500'}`}
+                            className={`text-xs font-medium cursor-pointer ${activeTab === 'import' ? 'text-[#4043FF]' : 'text-gray-500'}`}
                         >
                             IMPORT
                         </button>
                         <button
                             type="button"
                             onClick={() => setActiveTab('export')}
-                            className={`text-xs font-medium ${activeTab === 'export' ? 'text-[#4043FF]' : 'text-gray-500'}`}
+                            className={`text-xs font-medium cursor-pointer ${activeTab === 'export' ? 'text-[#4043FF]' : 'text-gray-500'}`}
                         >
                             EXPORT
                         </button>
@@ -159,7 +159,7 @@ export function PricingZoneModal({ isOpen, onClose, editingZone, onSave, isSavin
                 <button
                     type="submit"
                     disabled={isSaving}
-                    className="w-full py-3 bg-[#4043FF] text-white font-semibold rounded-full hover:bg-[#3333CC] transition-colors text-sm disabled:opacity-60"
+                    className="w-full py-3 bg-[#4043FF] text-white font-semibold rounded-full hover:bg-[#3333CC] transition-colors text-sm disabled:opacity-60 cursor-pointer"
                 >
                     {isSaving ? 'SAVING...' : 'SUBMIT'}
                 </button>

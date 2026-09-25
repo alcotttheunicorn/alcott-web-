@@ -21,7 +21,7 @@ export function StatusFilterTabs({ activeTab, onTabChange }: StatusFilterTabsPro
                 <button
                     key={tab.key}
                     onClick={() => onTabChange(tab.key)}
-                    className={`px-4 lg:px-6 py-2 lg:py-2.5 rounded-full font-semibold text-xs lg:text-sm transition-colors whitespace-nowrap ${activeTab === tab.key
+                    className={`px-4 lg:px-6 py-2 lg:py-2.5 rounded-full font-semibold text-xs lg:text-sm transition-colors whitespace-nowrap cursor-pointer ${activeTab === tab.key
                         ? 'bg-[#4043FF] text-white'
                         : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4043FF] hover:text-[#4043FF]'
                         }`}

@@ -115,7 +115,7 @@ export default function PricingRegionsPage() {
     return (
         <div className="p-4 lg:p-6 w-full overflow-x-hidden">
             <AdminPageHeader title="PRICING REGIONS" backHref="/admin/users">
-                <button onClick={startCreating} className="flex items-center gap-2 text-[#4043FF] hover:text-[#3333CC] transition-colors">
+                <button onClick={startCreating} className="flex items-center gap-2 text-[#4043FF] hover:text-[#3333CC] transition-colors cursor-pointer">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
@@ -139,8 +139,8 @@ export default function PricingRegionsPage() {
                             <input value={regionName} onChange={(event) => setRegionName(event.target.value)} placeholder="Region name" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                             <input value={regionStates} onChange={(event) => setRegionStates(event.target.value)} placeholder="States, comma-separated" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                             <div className="flex gap-2">
-                                <button type="submit" disabled={createMutation.isPending} className="rounded bg-[#4043FF] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">{createMutation.isPending ? 'SAVING...' : 'SAVE'}</button>
-                                <button type="button" onClick={cancelForm} className="rounded border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700">CANCEL</button>
+                                <button type="submit" disabled={createMutation.isPending} className="rounded bg-[#4043FF] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60 cursor-pointer">{createMutation.isPending ? 'SAVING...' : 'SAVE'}</button>
+                                <button type="button" onClick={cancelForm} className="rounded border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 cursor-pointer">CANCEL</button>
                             </div>
                         </div>
                     </form>
@@ -166,8 +166,8 @@ export default function PricingRegionsPage() {
                                             <input value={regionName} onChange={(event) => setRegionName(event.target.value)} placeholder="Region name" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                                             <input value={regionStates} onChange={(event) => setRegionStates(event.target.value)} placeholder="States, comma-separated" className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
                                             <div className="flex gap-2">
-                                                <button type="submit" disabled={updateMutation.isPending} className="rounded bg-[#4043FF] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">{updateMutation.isPending ? 'SAVING...' : 'SAVE'}</button>
-                                                <button type="button" onClick={() => setEditingRegionId(null)} className="rounded border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700">CANCEL</button>
+                                                <button type="submit" disabled={updateMutation.isPending} className="rounded bg-[#4043FF] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60 cursor-pointer">{updateMutation.isPending ? 'SAVING...' : 'SAVE'}</button>
+                                                <button type="button" onClick={() => setEditingRegionId(null)} className="rounded border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 cursor-pointer">CANCEL</button>
                                             </div>
                                         </form>
                                     ) : (
@@ -184,7 +184,7 @@ export default function PricingRegionsPage() {
                                                     </dd>
                                                 </div>
                                             </dl>
-                                            <button type="button" onClick={() => startEditing(region)} className="mt-4 text-xs font-semibold text-[#4043FF]">EDIT REGION</button>
+                                            <button type="button" onClick={() => startEditing(region)} className="mt-4 text-xs font-semibold text-[#4043FF] cursor-pointer">EDIT REGION</button>
                                         </>
                                     )}
                                 </div>

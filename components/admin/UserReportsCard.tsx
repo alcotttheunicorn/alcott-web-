@@ -50,7 +50,7 @@ export function UserReportsCard({ selectedYear, onYearChange }: UserReportsCardP
                     <span className="text-xs text-gray-600">2 Years Ago</span>
                 </label>
             </div>
-            <button className="bg-green-500 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+            <button className="bg-green-500 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition-colors cursor-pointer">
                 Download User Reports (CSV)
             </button>
         </div>

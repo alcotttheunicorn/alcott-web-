@@ -40,7 +40,7 @@ export function ActionsCard({ status, disabled, onStartProcessing, onDeliver, on
             <button
               disabled={disabled}
               onClick={onStartProcessing}
-              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <span className="text-sm font-medium text-gray-700">Start Processing</span>
               <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@ export function ActionsCard({ status, disabled, onStartProcessing, onDeliver, on
             <button
               disabled={disabled}
               onClick={onDeliver}
-              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <span className="text-sm font-medium text-gray-700">Mark as Delivered</span>
               <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +68,7 @@ export function ActionsCard({ status, disabled, onStartProcessing, onDeliver, on
               <button
                 disabled={disabled}
                 onClick={() => setCompleteOpen((prev) => !prev)}
-                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <span className="text-sm font-medium text-gray-700">Complete Order</span>
                 <svg className={`w-5 h-5 text-[#4043FF] transition-transform ${completeOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@ export function ActionsCard({ status, disabled, onStartProcessing, onDeliver, on
                         setCompleteOpen(false)
                         onComplete?.(method.value)
                       }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-600 rounded hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      className="w-full text-left px-3 py-2 text-sm text-gray-600 rounded hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       {method.label}
                     </button>
@@ -99,7 +99,7 @@ export function ActionsCard({ status, disabled, onStartProcessing, onDeliver, on
             <button
               disabled={disabled}
               onClick={onCancel}
-              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <span className="text-sm font-medium text-gray-700">Cancel Order</span>
               <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
