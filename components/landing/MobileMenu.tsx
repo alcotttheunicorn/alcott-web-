@@ -46,7 +46,7 @@ export function MobileMenu() {
     }, []);
 
     return (
-        <div className="md:hidden fixed inset-0 z-50 bg-black bg-opacity-50 hidden transition-opacity duration-300 ease-in-out" id="mobile-menu-overlay">
+        <div className="md:hidden fixed inset-0 z-50 bg-black/50 hidden transition-opacity duration-300 ease-in-out" id="mobile-menu-overlay">
             <div className="absolute right-0 top-0 h-full w-2/3 bg-white shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out" id="mobile-menu-panel">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <div className="flex items-center">

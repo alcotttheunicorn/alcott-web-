@@ -97,7 +97,7 @@ export default function VerifyEmailPage() {
                 <Input
                   type="email"
                   placeholder="info@alcott.com.ng"
-                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
+                  className="border-0 bg-transparent p-0 focus:ring-0 focus-visible:ring-0 focus-visible:border-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1"
                   onFocus={() => setEmailFocused(true)}
                   onBlur={() => setEmailFocused(false)}
                   value={email}
