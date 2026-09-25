@@ -16,7 +16,7 @@ export function EventLogCard({ events, onNewEvent }: EventLogCardProps) {
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-gray-900">Event Log</h3>
                 {onNewEvent && (
-                    <button onClick={onNewEvent} className="text-green-600 text-xs font-semibold flex items-center gap-1">
+                    <button onClick={onNewEvent} className="text-green-600 text-xs font-semibold flex items-center gap-1 cursor-pointer">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>

@@ -90,7 +90,7 @@ export async function getAdminShipment(id: string): Promise<ApiResponse<AdminShi
 
 export async function updateAdminShipment(
   id: string,
-  payload: Partial<ShipmentData> & { min_delivery_days?: number; max_delivery_days?: number },
+  payload: Partial<ShipmentData> & { min_delivery_days?: number; max_delivery_days?: number; payment_status?: string },
 ): Promise<ApiResponse<AdminShipmentDetail>> {
   const { data } = await apiClient.patch(`/admin/shipments/${id}`, payload)
   return data

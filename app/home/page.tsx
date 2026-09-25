@@ -211,7 +211,7 @@ function HomeContent() {
                 <div className="min-w-0">
                   <p className="text-white/90 text-xs sm:text-sm font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Your balance</p>
                   <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-5 truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    {balance != null ? `${balance.toLocaleString()}.00NGN` : '---'}
+                    {balance != null ? `${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}NGN` : '---'}
                   </h3>
                 </div>
                 <button

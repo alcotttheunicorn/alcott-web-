@@ -55,7 +55,7 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
             <li>
                 <button
                     onClick={() => setSettingsOpen(!settingsOpen)}
-                    className={`w-full flex items-center justify-between gap-3 px-5 py-3 text-sm font-semibold transition-colors text-white/80 hover:bg-white/10 hover:text-white`}
+                    className={`w-full flex items-center justify-between gap-3 px-5 py-3 text-sm font-semibold transition-colors text-white/80 hover:bg-white/10 hover:text-white cursor-pointer`}
                 >
                     <span className="flex items-center gap-3">
                         <SidebarIcon type="settings" />
@@ -95,7 +95,7 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
                         <li>
                             <button
                                 onClick={() => setPricingOpen(!pricingOpen)}
-                                className={`w-full flex items-center justify-between gap-3 px-5 py-2 text-sm font-medium transition-colors text-white/70 hover:bg-white/10 hover:text-white`}
+                                className={`w-full flex items-center justify-between gap-3 px-5 py-2 text-sm font-medium transition-colors text-white/70 hover:bg-white/10 hover:text-white cursor-pointer`}
                             >
                                 <span className="flex items-center gap-3">
                                     <SidebarIcon type="pricing" />
@@ -190,7 +190,7 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
                     <aside className="absolute left-0 top-0 bottom-0 w-64 bg-[#4043FF] text-white flex flex-col">
                         <div className="p-5 border-b border-[#5A5DFF] flex items-center justify-between">
                             <img src="/alcott-white-logo-sidebar-home.png" alt="Alcott Logo" className="h-8 w-auto" />
-                            <button onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-white">
+                            <button onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-white cursor-pointer">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>

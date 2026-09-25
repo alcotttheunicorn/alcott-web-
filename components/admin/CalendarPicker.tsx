@@ -48,15 +48,15 @@ export function CalendarPicker({ currentYear, currentMonthIndex, selectedDay, is
 
     return (
         <div className="relative flex items-center gap-2 mb-6 lg:mb-8">
-            <button onClick={onPrevMonth} className="text-[#4043FF] hover:text-[#3333CC] transition-colors">
+            <button onClick={onPrevMonth} className="text-[#4043FF] hover:text-[#3333CC] transition-colors cursor-pointer">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <button onClick={onToggle} className="text-[#4043FF] font-semibold text-sm hover:underline">
+            <button onClick={onToggle} className="text-[#4043FF] font-semibold text-sm hover:underline cursor-pointer">
                 {currentMonth}
             </button>
-            <button onClick={onNextMonth} className="text-[#4043FF] hover:text-[#3333CC] transition-colors">
+            <button onClick={onNextMonth} className="text-[#4043FF] hover:text-[#3333CC] transition-colors cursor-pointer">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -66,13 +66,13 @@ export function CalendarPicker({ currentYear, currentMonthIndex, selectedDay, is
                 <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 w-64">
                     <h3 className="text-sm font-semibold text-gray-900 mb-3">Calendar</h3>
                     <div className="flex items-center justify-between mb-3">
-                        <button onClick={onPrevMonth} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <button onClick={onPrevMonth} className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
                         <span className="text-[#4043FF] font-semibold text-sm">{calendarMonth}</span>
-                        <button onClick={onNextMonth} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <button onClick={onNextMonth} className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
@@ -88,7 +88,7 @@ export function CalendarPicker({ currentYear, currentMonthIndex, selectedDay, is
                             <button
                                 key={index}
                                 onClick={() => onDayClick(item.day, item.isCurrentMonth)}
-                                className={`text-center text-sm py-1.5 rounded transition-colors ${item.isCurrentMonth
+                                className={`text-center text-sm py-1.5 rounded transition-colors cursor-pointer ${item.isCurrentMonth
                                     ? item.day === selectedDay
                                         ? 'bg-[#4043FF] text-white'
                                         : 'text-gray-900 hover:bg-gray-100'

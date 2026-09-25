@@ -22,6 +22,7 @@ import {
   useDeliverShipment,
   useCancelAdminShipment,
   useAppendShipmentEvent,
+  useUpdateAdminShipment,
 } from '@/hooks/use-admin'
 
 function mapStatusToBadge(status: string | undefined): string {
@@ -69,6 +70,7 @@ export default function OrderDetailsPage() {
   const cancelOrder = useCancelAdminShipment()
   const completeOrder = useCompleteAdminShipment()
   const appendEvent = useAppendShipmentEvent()
+  const updateShipment = useUpdateAdminShipment()
 
   const [showEventForm, setShowEventForm] = useState(false)
   const [selectedEventId, setSelectedEventId] = useState('')
@@ -79,7 +81,8 @@ export default function OrderDetailsPage() {
     markDelivered.isPending ||
     cancelOrder.isPending ||
     completeOrder.isPending ||
-    appendEvent.isPending
+    appendEvent.isPending ||
+    updateShipment.isPending
 
   const handleError = (err: unknown) => {
     const e = err as { response?: { data?: { message?: string } }; message?: string }
@@ -143,6 +146,33 @@ export default function OrderDetailsPage() {
     }
   }
 
+  const handleSaveDelivery = async (values: { minDays: number; maxDays: number }) => {
+    try {
+      await updateShipment.mutateAsync({
+        id: orderId,
+        min_delivery_days: values.minDays,
+        max_delivery_days: values.maxDays,
+      })
+      toast({ title: 'Delivery updated', description: 'Estimated delivery window saved.' })
+    } catch (err) {
+      handleError(err)
+    }
+  }
+
+  const handleSaveFinance = async (values: { amountPaid: number; paymentMethod: string; paymentStatus: string }) => {
+    try {
+      await updateShipment.mutateAsync({
+        id: orderId,
+        price: values.amountPaid,
+        payment_method: values.paymentMethod,
+        payment_status: values.paymentStatus,
+      })
+      toast({ title: 'Finance updated', description: 'Payment details saved.' })
+    } catch (err) {
+      handleError(err)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -182,6 +212,8 @@ export default function OrderDetailsPage() {
     typeof shipment.package_width === 'number' ? `${shipment.package_width}cm` : null,
     typeof shipment.package_height === 'number' ? `${shipment.package_height}cm` : null,
   ].filter(Boolean).join(' × ')
+
+  const paymentMethod = str(shipment.payment_method, '')
 
   const eventLog = events.map((e) => ({
     event: str(e.event_name, str(e.event_id)),
@@ -232,7 +264,13 @@ export default function OrderDetailsPage() {
             onCancel={handleCancel}
             onComplete={handleComplete}
           />
-          <DeliveryInfoCard estDays={maxDays || minDays || 0} estDate="—" />
+          <DeliveryInfoCard
+            estDays={maxDays || minDays || 0}
+            estDate="—"
+            editable
+            disabled={busy}
+            onSave={handleSaveDelivery}
+          />
           <EventLogCard events={eventLog} onNewEvent={() => setShowEventForm((prev) => !prev)} />
 
           {showEventForm && (
@@ -268,11 +306,14 @@ export default function OrderDetailsPage() {
 
           <FinanceCard
             amountPaid={paid && typeof shipment.price === 'number' ? shipment.price : 0}
-            paymentMethod={str(shipment.payment_method, '—')}
+            paymentMethod={paymentMethod}
             paymentStatus={paymentStatus.toUpperCase()}
             expenses={0}
             profit={0}
             currency="NGN"
+            editable
+            disabled={busy}
+            onSave={handleSaveFinance}
           />
         </div>
       </div>

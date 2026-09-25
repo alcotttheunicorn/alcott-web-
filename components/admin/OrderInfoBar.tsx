@@ -13,7 +13,7 @@ interface OrderInfoBarProps {
 }
 
 function formatCurrency(amount: number, currency: string) {
-    return `${currency} ${amount.toLocaleString()}.00`
+    return `${currency} ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export function OrderInfoBar({ charge, currency, orderId, status, submittedAt, processingStart, processingEnd }: OrderInfoBarProps) {
@@ -31,7 +31,7 @@ export function OrderInfoBar({ charge, currency, orderId, status, submittedAt, p
                     <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                         {orderId || 'N/A'}
                         {orderId && (
-                            <button className="text-gray-400 hover:text-gray-600">
+                            <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
