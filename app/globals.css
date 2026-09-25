@@ -125,3 +125,28 @@
     font-family: 'Urbanist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 }
+
+/* Pulse animation for Leaflet divIcon markers on the locations map */
+@keyframes locmap-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+.leaflet-div-icon {
+  background: transparent;
+  border: none;
+}
+
+/* Hide native scrollbars on modal bodies while keeping scroll ability */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
