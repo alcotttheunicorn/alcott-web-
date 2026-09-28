@@ -14,7 +14,7 @@ const settings = [
   { label: 'Payment', Icon: CreditCard }, 
   { label: 'Security', Icon: Shield }, 
   { label: 'Language', Icon: Languages, subtitle: 'English (US)' }, 
-  { label: 'Privacy Policy', Icon: Lock }, 
+  { label: 'Privacy Policy', Icon: Lock, href: '/policies' }, 
   { label: 'Invite Friends', Icon: Users },
 ]
 

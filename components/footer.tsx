@@ -45,7 +45,7 @@ export function Footer() {
                 <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Customer Support</a></li>
                 <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Delivery Details</a></li>
                 <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Terms & Conditions</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Privacy Policy</a></li>
+                <li><a href="/policies" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Privacy Policy</a></li>
               </ul>
             </div>
 
@@ -92,7 +92,7 @@ export function Footer() {
 
             {/* Legal Links */}
             <div className="flex space-x-6">
-              <a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Privacy Policy</a>
+              <a href="/policies" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Privacy Policy</a>
               <a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Terms & Conditions</a>
               <a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Support</a>
             </div>

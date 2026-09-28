@@ -25,6 +25,13 @@ import {
   type AdminEvent,
   type RateCheck,
 } from '@/lib/api/admin-api'
+import {
+  getAdminPolicies,
+  createAdminPolicy,
+  updateAdminPolicy,
+  deleteAdminPolicy,
+  type PrivacyPolicy,
+} from '@/lib/api/policies-api'
 import type { ShipmentData, PaginatedResponse } from '@/lib/api/types'
 import { queryKeys } from '@/components/providers/query-provider'
 
@@ -313,9 +320,55 @@ export function useDeleteAdminEvent() {
   })
 }
 
+export function useAdminPolicies(params?: { page?: number; limit?: number }) {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: ['admin', 'privacy-policies', params?.page, params?.limit],
+    queryFn: () => getAdminPolicies(params),
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function useCreateAdminPolicy() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: { title: string; content: string; version?: string; effective_date?: string; is_active?: boolean }) =>
+      createAdminPolicy(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'privacy-policies'] })
+    },
+  })
+}
+
+export function useUpdateAdminPolicy() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Partial<{ title: string; content: string; version?: string; effective_date?: string; is_active?: boolean }>) =>
+      updateAdminPolicy(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'privacy-policies'] })
+    },
+  })
+}
+
+export function useDeleteAdminPolicy() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteAdminPolicy(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'privacy-policies'] })
+    },
+  })
+}
+
 export function displayAdminName(user: AdminUser) {
   const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
   return name || user.email
 }
 
-export type { AdminShipmentEvent, AdminEvent, RateCheck }
+export type { AdminShipmentEvent, AdminEvent, RateCheck, PrivacyPolicy }
