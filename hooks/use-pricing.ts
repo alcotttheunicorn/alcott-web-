@@ -63,13 +63,9 @@ export function useCheckPricingAuth() {
 }
 
 export function useExchangeRate() {
-  const { isAuthenticated, user } = useAuth()
-  const hasAdminAccess = isAdmin(user?.role)
-
   return useQuery({
     queryKey: queryKeys.pricing.exchangeRate,
     queryFn: () => getExchangeRate().then((res) => res.data),
-    enabled: isAuthenticated && hasAdminAccess,
   })
 }
 

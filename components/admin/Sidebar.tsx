@@ -173,7 +173,9 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex w-56 bg-[#4043FF] text-white flex-col fixed h-full z-40">
                 <div className="p-5 border-b border-[#5A5DFF]">
-                    <img src="/alcott-white-logo-sidebar-home.png" alt="Alcott Logo" className="h-8 w-auto" />
+                    <Link href="/" aria-label="Alcott home">
+                        <img src="/alcott-white-logo-sidebar-home.png" alt="Alcott Logo" className="h-8 w-auto" />
+                    </Link>
                 </div>
                 <nav className="flex-1 py-4">
                     <NavContent />
@@ -189,7 +191,9 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
                     />
                     <aside className="absolute left-0 top-0 bottom-0 w-64 bg-[#4043FF] text-white flex flex-col">
                         <div className="p-5 border-b border-[#5A5DFF] flex items-center justify-between">
-                            <img src="/alcott-white-logo-sidebar-home.png" alt="Alcott Logo" className="h-8 w-auto" />
+                            <Link href="/" aria-label="Alcott home" onClick={() => setMobileMenuOpen(false)}>
+                                <img src="/alcott-white-logo-sidebar-home.png" alt="Alcott Logo" className="h-8 w-auto" />
+                            </Link>
                             <button onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-white cursor-pointer">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

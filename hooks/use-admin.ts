@@ -30,7 +30,12 @@ import {
   createAdminPolicy,
   updateAdminPolicy,
   deleteAdminPolicy,
+  getAdminTermsOfUse,
+  createAdminTermOfUse,
+  updateAdminTermOfUse,
+  deleteAdminTermOfUse,
   type PrivacyPolicy,
+  type PrivacyPolicyPayload,
 } from '@/lib/api/policies-api'
 import type { ShipmentData, PaginatedResponse } from '@/lib/api/types'
 import { queryKeys } from '@/components/providers/query-provider'
@@ -111,6 +116,27 @@ export function useAdminShipments(params?: {
         }
       }
       return merged
+    },
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function useAdminAllShipments() {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: [...queryKeys.admin.shipments, 'all'],
+    queryFn: async () => {
+      const pageSize = 50
+      const first = await getAdminShipments({ page: 1, limit: pageSize })
+      const all = [...extractShipments(first)]
+      const totalPages = first.totalPages ?? 1
+      for (let page = 2; page <= totalPages; page += 1) {
+        const response = await getAdminShipments({ page, limit: pageSize })
+        all.push(...extractShipments(response))
+      }
+      return all
     },
     enabled: isAuthenticated && hasAdminAccess,
   })
@@ -197,11 +223,11 @@ export function useUpdateAdminShipment() {
       ...payload
     }: {
       id: string
-      min_delivery_days?: number
-      max_delivery_days?: number
+      estimated_delivery_date?: string
       payment_method?: string
       payment_status?: string
       price?: number
+      cost?: number
     }) => updateAdminShipment(id, payload),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipments })
@@ -320,14 +346,25 @@ export function useDeleteAdminEvent() {
   })
 }
 
-export function useAdminPolicies(params?: { page?: number; limit?: number }) {
+export function useAdminPolicies(params?: { page?: number; limit?: number; enabled?: boolean }) {
   const { isAuthenticated, user } = useAuth()
   const hasAdminAccess = isAdmin(user?.role)
 
   return useQuery({
     queryKey: ['admin', 'privacy-policies', params?.page, params?.limit],
     queryFn: () => getAdminPolicies(params),
-    enabled: isAuthenticated && hasAdminAccess,
+    enabled: isAuthenticated && hasAdminAccess && params?.enabled !== false,
+  })
+}
+
+export function useAdminTermsOfUse(params?: { page?: number; limit?: number; enabled?: boolean }) {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: ['admin', 'terms-of-use', params?.page, params?.limit],
+    queryFn: () => getAdminTermsOfUse(params),
+    enabled: isAuthenticated && hasAdminAccess && params?.enabled !== false,
   })
 }
 
@@ -363,6 +400,34 @@ export function useDeleteAdminPolicy() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'privacy-policies'] })
     },
+  })
+}
+
+export function useCreateAdminTermOfUse() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: PrivacyPolicyPayload) => createAdminTermOfUse(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'terms-of-use'] }),
+  })
+}
+
+export function useUpdateAdminTermOfUse() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: string } & Partial<PrivacyPolicyPayload>) =>
+      updateAdminTermOfUse(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'terms-of-use'] }),
+  })
+}
+
+export function useDeleteAdminTermOfUse() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteAdminTermOfUse(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'terms-of-use'] }),
   })
 }
 

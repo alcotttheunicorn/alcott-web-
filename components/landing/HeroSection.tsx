@@ -1,9 +1,31 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/hooks/use-auth'
 
 export function HeroSection() {
+    const router = useRouter()
+    const { isAuthenticated } = useAuth()
+    const [trackingCode, setTrackingCode] = useState('')
+
+    const handleTrack = () => {
+        const query = trackingCode.trim()
+        if (!query) return
+        router.push(`/search?q=${encodeURIComponent(query)}`)
+    }
+
+    const handleRequestDelivery = () => {
+        if (isAuthenticated) {
+            router.push('/shipment/new')
+            return
+        }
+
+        router.push('/lets-get-you-in')
+    }
+
     return (
         <main className="flex-1 flex flex-col lg:flex-row items-center justify-between max-w-8xl mx-auto w-full px-4 lg:px-12 py-8">
             <section className="hidden lg:flex flex-1 flex-col items-start justify-center max-w-2xl lg:pr-12">
@@ -22,13 +44,21 @@ export function HeroSection() {
                 <div className="flex w-full max-w-lg mb-6">
                     <div className="flex-1 relative">
                         <Input
+                            value={trackingCode}
+                            onChange={(event) => setTrackingCode(event.target.value)}
                             placeholder="Enter tracking number"
                             className="w-full h-12 bg-white border-2 border-gray-200 px-6 text-base text-gray-900 placeholder:text-gray-500 rounded-l-full rounded-r-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent border-r-0"
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault()
+                                    handleTrack()
+                                }
+                            }}
                         />
                     </div>
                     <Button
                         className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 text-base font-semibold rounded-r-full rounded-l-none h-12 border-2 border-[#4043FF] border-l-0"
-                        onClick={() => alert('Track functionality coming soon!')}
+                        onClick={handleTrack}
                     >
                         Track
                     </Button>
@@ -37,7 +67,7 @@ export function HeroSection() {
                 <Button
                     className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 text-base font-semibold rounded-full w-full max-w-lg h-12"
                     style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
-                    onClick={() => alert('Request a delivery functionality coming soon!')}
+                    onClick={handleRequestDelivery}
                 >
                     Request a delivery
                 </Button>
@@ -61,13 +91,21 @@ export function HeroSection() {
                 <div className="flex w-full max-w-sm mx-auto mb-6">
                     <div className="flex-1 relative">
                         <Input
+                            value={trackingCode}
+                            onChange={(event) => setTrackingCode(event.target.value)}
                             placeholder="Enter tracking number"
                             className="w-full h-12 bg-white border-2 border-gray-200 px-4 text-base text-gray-900 placeholder:text-gray-500 rounded-l-full rounded-r-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent border-r-0"
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault()
+                                    handleTrack()
+                                }
+                            }}
                         />
                     </div>
                     <Button
                         className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-6 py-3 text-base font-semibold rounded-r-full rounded-l-none h-12 border-2 border-[#4043FF] border-l-0"
-                        onClick={() => alert('Track functionality coming soon!')}
+                        onClick={handleTrack}
                     >
                         Track
                     </Button>
@@ -76,7 +114,7 @@ export function HeroSection() {
                 <Button
                     className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-6 py-3 text-base font-semibold rounded-full w-full max-w-sm h-12"
                     style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
-                    onClick={() => alert('Request a delivery functionality coming soon!')}
+                    onClick={handleRequestDelivery}
                 >
                     Request a delivery
                 </Button>

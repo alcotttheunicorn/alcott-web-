@@ -2,6 +2,7 @@
 
 import type { ChangeEvent, InputHTMLAttributes, ReactNode } from 'react'
 import { Input } from '@/components/ui/input'
+import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 
 interface InputRowProps {
   label: string
@@ -16,6 +17,8 @@ interface InputRowProps {
   maxLength?: number
   pattern?: string
   transform?: (value: string) => string
+  locationAutocomplete?: boolean
+  country?: string
   containerClassName?: string
   inputClassName?: string
   suffixClassName?: string
@@ -35,6 +38,8 @@ export function InputRow({
   maxLength,
   pattern,
   transform,
+  locationAutocomplete,
+  country,
   containerClassName,
   inputClassName,
   suffixClassName,
@@ -46,6 +51,8 @@ export function InputRow({
     onChange(nextValue)
   }
 
+  const commonInputClasses = `h-12 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 flex-1 min-w-0 px-4 shadow-none text-[15px] font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none ${prefix ? 'pl-2' : ''} ${inputClassName ?? ''}`
+
   return (
     <div className={`space-y-1.5 ${containerClassName ?? ''}`}>
       <label className="text-sm font-bold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>{label}</label>
@@ -55,18 +62,32 @@ export function InputRow({
             {prefix}
           </div>
         )}
-        <Input
-          type={type}
-          value={value}
-          placeholder={placeholder}
-          onChange={handleChange}
-          className={`h-12 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 flex-1 px-4 min-w-0 shadow-none text-[15px] font-medium placeholder:text-gray-400 placeholder:font-normal ${prefix ? 'pl-2' : ''} ${inputClassName ?? ''}`}
-          style={{ fontFamily: "'Urbanist', sans-serif" }}
-          inputMode={inputMode}
-          autoComplete={autoComplete}
-          maxLength={maxLength}
-          pattern={pattern}
-        />
+
+        {locationAutocomplete ? (
+          <LocationAutocompleteInput
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            country={country}
+            containerClassName="flex-1 min-w-0"
+            className={commonInputClasses}
+            style={{ fontFamily: "'Urbanist', sans-serif" }}
+          />
+        ) : (
+          <Input
+            type={type}
+            value={value}
+            placeholder={placeholder}
+            onChange={handleChange}
+            className={commonInputClasses}
+            style={{ fontFamily: "'Urbanist', sans-serif" }}
+            inputMode={inputMode}
+            autoComplete={autoComplete}
+            maxLength={maxLength}
+            pattern={pattern}
+          />
+        )}
+
         {suffix && <div className={`pr-4 flex items-center text-gray-500 ${suffixClassName ?? ''}`}>{suffix}</div>}
       </div>
       {error && <p className="text-xs font-medium text-red-500">{error}</p>}
