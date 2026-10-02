@@ -18,7 +18,9 @@ apiClient.interceptors.response.use(
   res => res,
   err => {
     const status = err.response?.status;
-    if (status === 401) {
+    const isPublicTrackingRequest = typeof err.config?.url === 'string'
+      && err.config.url.includes('/shipments/tracking/')
+    if (status === 401 && !isPublicTrackingRequest) {
       clearSession();
       if (typeof window !== 'undefined') {
         const isAuthPage = window.location.pathname.startsWith('/(auth)')

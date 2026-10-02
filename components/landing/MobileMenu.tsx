@@ -3,7 +3,9 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { CurrencySelector } from '@/components/ui/CurrencySelector'
 
 export function MobileMenu() {
     const { isAuthenticated, logout } = useAuth()
@@ -50,7 +52,9 @@ export function MobileMenu() {
             <div className="absolute right-0 top-0 h-full w-2/3 bg-white shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out" id="mobile-menu-panel">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <div className="flex items-center">
-                        <img src="/alcott-small.png" alt="Alcott Logo" className="h-8 w-auto" />
+                        <Link href="/" aria-label="Alcott home">
+                            <img src="/alcott-small.png" alt="Alcott Logo" className="h-8 w-auto" />
+                        </Link>
                     </div>
                     <button className="text-gray-700 hover:text-gray-900" id="close-mobile-menu">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,6 +64,7 @@ export function MobileMenu() {
                 </div>
 
                 <div className="p-6">
+                    <CurrencySelector className="mb-6" />
                     <nav className="space-y-4 mb-8">
                         <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Home</a>
                         <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Ship</a>
@@ -108,7 +113,13 @@ export function MobileMenu() {
                         <Button
                             className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
                             style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
-                            onClick={() => alert('Request a delivery functionality coming soon!')}
+                            onClick={() => {
+                                if (isAuthenticated) {
+                                    router.push('/shipment/new')
+                                    return
+                                }
+                                router.push('/lets-get-you-in')
+                            }}
                         >
                             Request a delivery
                         </Button>

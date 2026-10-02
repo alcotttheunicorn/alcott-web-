@@ -13,16 +13,26 @@ export interface CreateShipmentRequest {
   sender_email: string
   sender_city: string
   sender_address: string
+  sender_zip_code?: string | null
+  sender_address_details?: string | null
   receiver_name: string
   receiver_phone_number: string
   receiver_email: string
   receiver_city: string
   receiver_address: string
+  receiver_zip_code?: string | null
+  receiver_address_details?: string | null
   package_category?: string
+  package_description?: string | null
   package_weight?: number
   package_length?: number
   package_width?: number
   package_height?: number
+}
+
+export interface ShipmentCategoryOption {
+  value: string
+  label: string
 }
 
 export async function createShipment(
@@ -76,7 +86,7 @@ export async function getShipmentByTrackingId(
   return data
 }
 
-export async function getCategories(): Promise<ApiResponse<string[]>> {
+export async function getCategories(): Promise<ApiResponse<ShipmentCategoryOption[]>> {
   const { data } = await apiClient.get('/shipments/categories/list')
   return data
 }

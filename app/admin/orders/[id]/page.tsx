@@ -13,6 +13,7 @@ import { EventLogCard } from '@/components/admin/EventLogCard'
 import { FinanceCard } from '@/components/admin/FinanceCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { OrderDetailSkeleton } from '@/components/shared/skeletons'
+import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 import {
   useAdminShipment,
   useAdminShipmentEvents,
@@ -146,26 +147,26 @@ export default function OrderDetailsPage() {
     }
   }
 
-  const handleSaveDelivery = async (values: { minDays: number; maxDays: number }) => {
+  const handleSaveDelivery = async (values: { estimatedDate: string }) => {
     try {
       await updateShipment.mutateAsync({
         id: orderId,
-        min_delivery_days: values.minDays,
-        max_delivery_days: values.maxDays,
+        estimated_delivery_date: values.estimatedDate,
       })
-      toast({ title: 'Delivery updated', description: 'Estimated delivery window saved.' })
+      toast({ title: 'Delivery date updated', description: 'Estimated delivery date saved.' })
     } catch (err) {
       handleError(err)
     }
   }
 
-  const handleSaveFinance = async (values: { amountPaid: number; paymentMethod: string; paymentStatus: string }) => {
+  const handleSaveFinance = async (values: { amountPaid: number; paymentMethod: string; paymentStatus: string; cost: number }) => {
     try {
       await updateShipment.mutateAsync({
         id: orderId,
         price: values.amountPaid,
         payment_method: values.paymentMethod,
         payment_status: values.paymentStatus,
+        cost: values.cost,
       })
       toast({ title: 'Finance updated', description: 'Payment details saved.' })
     } catch (err) {
@@ -194,8 +195,7 @@ export default function OrderDetailsPage() {
   const paid = ['SUBMITTED', 'ON_PROCESS', 'DELIVERED'].includes(shipment.status ?? '')
   const paymentStatus = str(getField(shipment, 'payment_status'), paid ? 'PAID' : 'UNPAID')
 
-  const minDays = typeof shipment.min_delivery_days === 'number' ? shipment.min_delivery_days : undefined
-  const maxDays = typeof shipment.max_delivery_days === 'number' ? shipment.max_delivery_days : undefined
+  const estimatedDeliveryDate = shipment.estimated_delivery_date ?? ''
 
   const senderCity = str(shipment.sender_city, '').trim()
   const senderAddress = senderCity && !(shipment.sender_address?.includes(senderCity))
@@ -214,6 +214,8 @@ export default function OrderDetailsPage() {
   ].filter(Boolean).join(' × ')
 
   const paymentMethod = str(shipment.payment_method, '')
+  const cost = typeof shipment.cost === 'number' ? shipment.cost : Number(shipment.cost) || 0
+  const profit = (paid ? shipment.price ?? 0 : 0) - Math.abs(cost)
 
   const eventLog = events.map((e) => ({
     event: str(e.event_name, str(e.event_id)),
@@ -265,8 +267,7 @@ export default function OrderDetailsPage() {
             onComplete={handleComplete}
           />
           <DeliveryInfoCard
-            estDays={maxDays || minDays || 0}
-            estDate="—"
+            estimatedDate={estimatedDeliveryDate}
             editable
             disabled={busy}
             onSave={handleSaveDelivery}
@@ -288,9 +289,9 @@ export default function OrderDetailsPage() {
                   </option>
                 ))}
               </select>
-              <input
+              <LocationAutocompleteInput
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={setLocation}
                 placeholder="Location"
                 className="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
               />
@@ -308,8 +309,8 @@ export default function OrderDetailsPage() {
             amountPaid={paid && typeof shipment.price === 'number' ? shipment.price : 0}
             paymentMethod={paymentMethod}
             paymentStatus={paymentStatus.toUpperCase()}
-            expenses={0}
-            profit={0}
+            cost={cost}
+            profit={profit}
             currency="NGN"
             editable
             disabled={busy}

@@ -98,7 +98,7 @@ export function LocationAutocompleteInput({
       />
 
       {showDropdown && (
-        <div id={listboxId} role="listbox" className="absolute z-20 mt-1 w-full rounded-lg bg-white shadow-lg border border-gray-100 overflow-hidden max-h-64 overflow-y-auto">
+        <div id={listboxId} role="listbox" className="absolute z-20 mt-1 w-full rounded-lg bg-white shadow-lg border border-gray-100 overflow-hidden max-h-64 overflow-y-auto scrollbar-hidden">
           {loading && predictions.length === 0 ? (
             <div className="px-4 py-2.5 text-sm text-gray-500">Searching...</div>
           ) : predictions.map((prediction, index) => (

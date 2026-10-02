@@ -1,12 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { SVGProps } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import type { CreateShipmentRequest } from '@/lib/api/shipment-api'
-import { useShipmentCategories, useCreateShipment } from '@/hooks/use-shipments'
+import { useShipmentCategories, useCreateShipment, usePayShipment } from '@/hooks/use-shipments'
+import { useCheckPricingAuth, useExchangeRate } from '@/hooks/use-pricing'
 import { useWalletBalance } from '@/hooks/use-wallet'
+import { useCurrency } from '@/components/providers/currency-provider'
+import { convertCurrency, formatCurrency } from '@/lib/currency'
 import { useAuth } from '@/hooks/use-auth'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { toast } from '@/components/ui/use-toast'
@@ -42,9 +45,7 @@ const steps: ShipmentSteps = [
 type StepKey = ShipmentStepKey
 
 const shippingOptions: ShipmentOptions = [
-  { id: 'regular', label: 'Regular', eta: '3-4 days', price: 12000, rateId: 'shipping-rate-regular', type: 'REGULAR', currency: 'NGN' },
-  { id: 'cargo', label: 'Cargo', eta: '3-5 days', price: 18000, rateId: 'shipping-rate-cargo', type: 'CARGO', currency: 'NGN' },
-  { id: 'express', label: 'Express', eta: '1-2 days', price: 24000, rateId: 'shipping-rate-express', type: 'EXPRESS', currency: 'NGN' },
+  { id: 'express', label: 'Express', eta: '3-5 days', price: 24000, rateId: 'shipping-rate-express', type: 'EXPRESS', currency: 'NGN' },
 ]
 
 const weightUnitOptions: ShipmentWeightUnit[] = ['kg', 'lb']
@@ -56,6 +57,8 @@ const initialContact: ShipmentContact = {
   email: '',
   city: '',
   address: '',
+  zipCode: '',
+  addressDetails: '',
   countryCode: 'NG',
 }
 
@@ -66,7 +69,7 @@ const initialPackage: ShipmentPackage = {
   length: '',
   width: '',
   height: '',
-  shippingOption: 'regular',
+  shippingOption: 'express',
   weightUnit: 'kg',
   dimensionUnit: 'cm',
 }
@@ -81,7 +84,11 @@ export default function NewShipmentPage() {
   const { data: categories = [] } = useShipmentCategories()
   const { data: balance } = useWalletBalance()
   const walletBalance = balance ?? null
+  const { currency } = useCurrency()
+  const { data: exchangeRate } = useExchangeRate()
   const createMutation = useCreateShipment()
+  const payMutation = usePayShipment()
+  const pricingMutation = useCheckPricingAuth()
 
   const sanitizePhoneInput = (value: string) => {
     const stripped = value.replace(/[^0-9+]/g, '')
@@ -133,6 +140,10 @@ export default function NewShipmentPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [quotedAmountNGN, setQuotedAmountNGN] = useState<number | null>(null)
+  const [quoteLoading, setQuoteLoading] = useState(false)
+  const [quoteError, setQuoteError] = useState(false)
+  const [quoteRetry, setQuoteRetry] = useState(0)
 
   const handleBack = () => {
     if (activeIndex <= 0) {
@@ -146,13 +157,59 @@ export default function NewShipmentPage() {
     () => shippingOptions.find((opt) => opt.id === pkg.shippingOption) || shippingOptions[0],
     [pkg.shippingOption]
   )
+  const totalAmount = quotedAmountNGN
+
+  useEffect(() => {
+    if (currentStep !== 'finish') return
+    const weight = parseFloat(pkg.weight)
+    if (!sender.address.trim() || !receiver.address.trim() || !Number.isFinite(weight) || weight <= 0) return
+
+    let cancelled = false
+    const weightInKg = pkg.weightUnit === 'lb' ? weight * 0.453592 : weight
+    setQuoteLoading(true)
+    setQuoteError(false)
+    setQuotedAmountNGN(null)
+
+    pricingMutation.mutateAsync({
+      sender_address: sender.address.trim(),
+      receiver_address: receiver.address.trim(),
+      weight: Number(weightInKg.toFixed(2)),
+      sender_email: sender.email.trim() || undefined,
+      sender_phone_number: ensureIntlPhone(sender.phone, getDialCode(sender.countryCode)) || undefined,
+    }).then((response) => {
+      if (cancelled) return
+      const result = response.data
+      const quoteParts = typeof result.price?.amount === 'number'
+        ? [{ amount: result.price.amount, currency: result.price.currency }]
+        : [result.export_price, result.import_price]
+            .filter((part): part is NonNullable<typeof part> => typeof part?.amount === 'number')
+            .map((part) => ({ amount: part.amount, currency: part.currency }))
+      const amountsInNGN = quoteParts.map((part) => convertCurrency(
+        part.amount,
+        part.currency === 'USD' ? 'USD' : 'NGN',
+        'NGN',
+        exchangeRate?.ngn_per_usd,
+      ))
+      const amount = amountsInNGN.every((part): part is number => part != null)
+        ? amountsInNGN.reduce((sum, part) => sum + part, 0)
+        : null
+      if (amount != null && amount > 0) setQuotedAmountNGN(amount)
+      else setQuoteError(true)
+    }).catch(() => {
+      if (!cancelled) setQuoteError(true)
+    }).finally(() => {
+      if (!cancelled) setQuoteLoading(false)
+    })
+
+    return () => { cancelled = true }
+  }, [currentStep, sender.address, receiver.address, pkg.weight, pkg.weightUnit, sender.email, sender.phone, sender.countryCode, quoteRetry, exchangeRate?.ngn_per_usd])
 
   const senderPhoneValidation = validatePhoneNumber(sender.phone, sender.countryCode)
   const receiverPhoneValidation = validatePhoneNumber(receiver.phone, receiver.countryCode)
   const senderCanContinue = canMoveForward && senderPhoneValidation.valid
   const receiverCanContinue = canMoveForward && receiverPhoneValidation.valid
 
-  const handleConfirmShipment = async () => {
+  const handleConfirmShipment = async (selectedMethod: 'wallet' | 'card' = payment.method) => {
     if (typeof window === 'undefined') return
 
     if (!token) {
@@ -163,6 +220,24 @@ export default function NewShipmentPage() {
       router.push('/sign-in')
       return
     }
+
+    if (quotedAmountNGN == null) {
+      toast({ title: 'Shipment quote unavailable', description: 'Refresh the quote before continuing to payment.' })
+      return
+    }
+
+    const normalizedMethod = selectedMethod === 'card' ? 'card' : 'wallet'
+    const walletHasSufficientBalance = walletBalance == null || (totalAmount != null && walletBalance >= totalAmount)
+
+    if (normalizedMethod === 'wallet' && !walletHasSufficientBalance) {
+      toast({
+        title: 'Insufficient wallet balance',
+        description: `Your wallet balance is ₦${(walletBalance ?? 0).toLocaleString()}. Add funds or use Paystack checkout.`,
+      })
+      return
+    }
+
+    const selectedPaymentMethod = normalizedMethod === 'wallet' ? 'WALLET' : 'CARD'
 
     const toNumber = (value: string) => {
       const parsed = parseFloat(value)
@@ -180,12 +255,17 @@ export default function NewShipmentPage() {
       sender_email: sender.email.trim(),
       sender_city: sender.city.trim(),
       sender_address: sender.address.trim(),
+      sender_zip_code: sender.zipCode.trim() || null,
+      sender_address_details: sender.addressDetails.trim() || null,
       receiver_name: receiver.name.trim(),
       receiver_phone_number: ensureIntlPhone(receiver.phone, getDialCode(receiver.countryCode)),
       receiver_email: receiver.email.trim(),
       receiver_city: receiver.city.trim(),
       receiver_address: receiver.address.trim(),
-      package_category: (pkg.category || 'GENERAL').trim().toUpperCase(),
+      receiver_zip_code: receiver.zipCode.trim() || null,
+      receiver_address_details: receiver.addressDetails.trim() || null,
+      package_category: (pkg.category || 'OTHER').trim().toUpperCase(),
+      package_description: pkg.description.trim() || null,
       package_weight: parseFloat(weightInKg.toFixed(2)),
       package_length: parseFloat(lengthInCm.toFixed(2)),
       package_width: parseFloat(widthInCm.toFixed(2)),
@@ -195,13 +275,73 @@ export default function NewShipmentPage() {
     try {
       setIsSubmitting(true)
       const response = await createMutation.mutateAsync(payload)
+      const rawData = response?.data && typeof response.data === 'object' ? response.data : null
+      const shipment = rawData && typeof rawData === 'object' && 'shipment' in rawData ? (rawData as { shipment?: { id?: string } }).shipment : rawData
+      const shipmentId = shipment && typeof shipment === 'object' && 'id' in shipment ? String((shipment as { id?: string }).id) : ''
+
+      if (!shipmentId) {
+        throw new Error('Shipment was created, but no shipment ID was returned.')
+      }
+
+      if (rawData && typeof rawData === 'object') {
+        window.sessionStorage.setItem('lastCreatedShipment', JSON.stringify(rawData))
+      }
+
+      const serverQuote = rawData && typeof rawData === 'object' && 'quote' in rawData
+        ? (rawData as { quote?: { price_ngn?: number } }).quote?.price_ngn
+        : undefined
+      if (typeof serverQuote === 'number' && Math.abs(serverQuote - quotedAmountNGN) > 0.01) {
+        toast({
+          title: 'Shipment price updated',
+          description: `The confirmed quote is ₦${serverQuote.toLocaleString()}. Review and pay from the order details.`,
+        })
+        router.push(`/orders/${shipmentId}`)
+        return
+      }
+
+      let paymentResponse
+      try {
+        paymentResponse = await payMutation.mutateAsync({
+          id: shipmentId,
+          payload: { payment_method: selectedPaymentMethod, currency: 'NGN' },
+        })
+      } catch (paymentError) {
+        const paymentErrorMessage =
+          (paymentError as any)?.response?.data?.message ||
+          (paymentError as Error).message ||
+          'Payment could not be started.'
+        toast({
+          title: 'Shipment created, payment pending',
+          description: `${paymentErrorMessage} You can retry payment from the order details.`,
+        })
+        router.push(`/orders/${shipmentId}`)
+        return
+      }
+
+      if (normalizedMethod === 'card') {
+        const authorizationUrl =
+          (paymentResponse as any)?.data?.authorization_url ||
+          (paymentResponse as any)?.authorization_url ||
+          (paymentResponse as any)?.data?.checkout_url ||
+          (paymentResponse as any)?.checkout_url
+
+        if (authorizationUrl) {
+          window.location.href = authorizationUrl
+          return
+        }
+        toast({
+          title: 'Shipment created, payment pending',
+          description: 'Paystack did not return a checkout link. You can retry payment from the order details.',
+        })
+        router.push(`/orders/${shipmentId}`)
+        return
+      }
+
       toast({
         title: 'Shipment created',
-        description: 'Your shipment has been created successfully.',
+        description: normalizedMethod === 'wallet' ? 'Your shipment has been paid from wallet.' : 'Your shipment was created successfully.',
       })
-      if (response?.data && typeof response.data === 'object') {
-        window.sessionStorage.setItem('lastCreatedShipment', JSON.stringify(response.data))
-      }
+
       router.push('/shipment/new/success')
     } catch (error) {
       console.error('Failed to create shipment', error)
@@ -210,7 +350,7 @@ export default function NewShipmentPage() {
         (error as any)?.response?.data?.error ||
         (error as Error).message ||
         'Unable to create shipment. Please try again.'
-      toast({ title: 'Shipment creation failed', description: errorMessage })
+      toast({ title: 'Shipment booking failed', description: errorMessage })
       setIsSubmitting(false)
     }
   }
@@ -281,6 +421,13 @@ export default function NewShipmentPage() {
                 payment={payment}
                 onConfirm={handleConfirmShipment}
                 isSubmitting={isSubmitting}
+                totalAmount={totalAmount}
+                walletBalance={walletBalance}
+                displayCurrency={currency}
+                ngnPerUsd={exchangeRate?.ngn_per_usd}
+                quoteLoading={quoteLoading}
+                quoteError={quoteError}
+                onRefreshQuote={() => setQuoteRetry((current) => current + 1)}
               />
             )}
           </div>
@@ -311,7 +458,7 @@ function SenderForm({
 }) {
   return (
     <FormSection title="Sender Details" subtitle="Who is sending this package?">
-      <InputRow 
+      <InputRow
         label="Sender Name" 
         placeholder="Sender Name" 
         value={data.name} 
@@ -350,14 +497,20 @@ function SenderForm({
         placeholder="City / Province" 
         value={data.city} 
         onChange={(value) => onChange({ ...data, city: value })}
+        locationAutocomplete
+        country={data.countryCode}
         prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
       />
-      <TextareaRow 
-        label="Address Details" 
+      <InputRow
+        label="Address Details"
         placeholder="Address Details" 
         value={data.address} 
         onChange={(value) => onChange({ ...data, address: value })}
+        locationAutocomplete
+        country={data.countryCode}
       />
+      <InputRow label="ZIP / Postal Code" placeholder="ZIP / Postal Code" value={data.zipCode} onChange={(value) => onChange({ ...data, zipCode: value })} autoComplete="postal-code" />
+      <TextareaRow label="Extra address details (optional)" placeholder="Apartment, suite, landmark, delivery instructions" value={data.addressDetails} onChange={(value) => onChange({ ...data, addressDetails: value })} />
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
     </FormSection>
   )
@@ -419,14 +572,20 @@ function ReceiverForm({
         placeholder="City / Province" 
         value={data.city} 
         onChange={(value) => onChange({ ...data, city: value })}
+        locationAutocomplete
+        country={data.countryCode}
         prefix={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>}
       />
-      <TextareaRow 
-        label="Address Details" 
+      <InputRow
+        label="Address Details"
         placeholder="Address Details" 
         value={data.address} 
         onChange={(value) => onChange({ ...data, address: value })}
+        locationAutocomplete
+        country={data.countryCode}
       />
+      <InputRow label="ZIP / Postal Code" placeholder="ZIP / Postal Code" value={data.zipCode} onChange={(value) => onChange({ ...data, zipCode: value })} autoComplete="postal-code" />
+      <TextareaRow label="Extra address details (optional)" placeholder="Apartment, suite, landmark, delivery instructions" value={data.addressDetails} onChange={(value) => onChange({ ...data, addressDetails: value })} />
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
     </FormSection>
   )
@@ -451,7 +610,7 @@ function PackageForm({
   weightUnits: ShipmentWeightUnit[]
   dimensionUnits: ShipmentDimensionUnit[]
   sanitizeDecimal: (value: string) => string
-  categories: string[]
+  categories: { value: string; label: string }[]
 }) {
   const [showOptions, setShowOptions] = useState(false)
   const [showCategoryOptions, setShowCategoryOptions] = useState(false)
@@ -474,7 +633,7 @@ function PackageForm({
           className="mt-2 w-full h-11 px-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between text-sm text-gray-700 hover:bg-gray-100"
         >
           <span className={data.category ? 'text-gray-900' : 'text-gray-500'}>
-            {data.category || 'Select category'}
+            {categories.find((category) => category.value === data.category)?.label || (data.category || 'Select category')}
           </span>
           <CaretDownIcon className="w-4 h-4" />
         </button>
@@ -483,18 +642,18 @@ function PackageForm({
             {categories.length === 0 && (
               <p className="px-4 py-3 text-sm text-gray-400">No categories available</p>
             )}
-            {categories.map((cat) => (
+            {categories.map((category) => (
               <button
-                key={cat}
+                key={category.value}
                 onClick={() => {
-                  onChange({ ...data, category: cat })
+                  onChange({ ...data, category: category.value })
                   setShowCategoryOptions(false)
                 }}
                 className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
-                  data.category === cat ? 'bg-gray-50 font-semibold' : ''
+                  data.category === category.value ? 'bg-gray-50 font-semibold' : ''
                 }`}
               >
-                {cat}
+                {category.label}
               </button>
             ))}
           </div>
@@ -560,7 +719,7 @@ function PackageForm({
         >
           <span className="flex items-center gap-1.5 whitespace-normal wrap-break-word text-left">
             <MenuIcon className="w-4 h-4" />
-            {shippingSelection ? `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}` : 'Shipping'}
+            {shippingSelection ? `${shippingSelection.label} – ${shippingSelection.eta}` : 'Shipping'}
           </span>
           <CaretDownIcon className="w-4 h-4" />
         </button>
@@ -581,7 +740,6 @@ function PackageForm({
                   <p className="text-sm font-semibold text-gray-900">{option.label}</p>
                   <p className="text-xs text-gray-500">{option.eta}</p>
                 </div>
-                <span className="text-sm font-bold text-[#4043FF]">₦{option.price.toLocaleString()}</span>
               </button>
             ))}
           </div>
@@ -660,15 +818,35 @@ function ReviewSummary({
   payment,
   onConfirm,
   isSubmitting,
+  totalAmount,
+  walletBalance,
+  displayCurrency,
+  ngnPerUsd,
+  quoteLoading,
+  quoteError,
+  onRefreshQuote,
 }: {
   sender: ShipmentContact
   receiver: ShipmentContact
   pkg: ShipmentPackage
   shippingSelection: ShipmentOption
   payment: ShipmentPaymentSelection
-  onConfirm: () => void
+  onConfirm: (method?: 'wallet' | 'card') => void
   isSubmitting: boolean
+  totalAmount: number | null
+  walletBalance: number | null
+  displayCurrency: 'NGN' | 'USD'
+  ngnPerUsd?: number
+  quoteLoading: boolean
+  quoteError: boolean
+  onRefreshQuote: () => void
 }) {
+  const walletShortfall = walletBalance != null && totalAmount != null ? Math.max(0, totalAmount - walletBalance) : 0
+  const convertedTotal = totalAmount == null ? null : convertCurrency(totalAmount, 'NGN', displayCurrency, ngnPerUsd)
+  const totalDisplay = totalAmount == null
+    ? '—'
+    : formatCurrency(convertedTotal ?? totalAmount, convertedTotal == null ? 'NGN' : displayCurrency)
+
   return (
     <FormSection title="Review Summary" subtitle="Confirm the details before completing the order.">
       <div className="space-y-4">
@@ -688,20 +866,51 @@ function ReviewSummary({
           ['Category', pkg.category],
           ['Weight', pkg.weight ? `${pkg.weight} ${pkg.weightUnit.toUpperCase()}` : ''],
           ['Dimensions', `${pkg.length || 0} × ${pkg.width || 0} × ${pkg.height || 0} ${pkg.dimensionUnit.toUpperCase()}`],
-          ['Shipping', `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}`],
+          ['Shipping', `${shippingSelection.label} – ${shippingSelection.eta}`],
         ]} />
         <SummaryCard title="Payment" items={[[
           'Method', payment.method === 'wallet' ? 'My Wallet' : 'Pay with Card'
         ]]} />
+
+        <div className="rounded-2xl border border-[#4043FF]/20 bg-[#4043FF]/5 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.08em] text-gray-500">Total amount</p>
+              <p className="mt-1 text-2xl font-bold text-[#4043FF]">{quoteLoading ? 'Calculating…' : totalDisplay}</p>
+              <p className="mt-1 text-xs text-gray-500">{totalAmount == null ? 'Live quote required before payment' : `Charged in NGN: ${formatCurrency(totalAmount, 'NGN')}`}</p>
+            </div>
+            <div className="text-right text-xs text-gray-500">
+              <p>Wallet balance</p>
+              <p className="mt-1 font-semibold text-gray-900">{walletBalance == null ? '—' : formatCurrency(walletBalance, 'NGN')}</p>
+              {walletBalance != null && walletShortfall > 0 && (
+                <p className="mt-1 text-[#E56A1A]">Need ₦{walletShortfall.toLocaleString()} more</p>
+              )}
+            </div>
+          </div>
+          {quoteError && (
+            <div className="mt-3 flex items-center justify-between gap-3 text-sm text-red-600">
+              <span>Could not get a live shipment quote.</span>
+              <button type="button" onClick={onRefreshQuote} className="font-semibold underline">Retry</button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="pt-4">
+      <div className="pt-4 space-y-3">
         <Button
-          onClick={onConfirm}
-          disabled={isSubmitting}
+          onClick={() => onConfirm('wallet')}
+          disabled={isSubmitting || quoteLoading || totalAmount == null || (walletBalance != null && walletBalance < totalAmount)}
           className="w-full h-12 rounded-full bg-[#4043FF] hover:bg-[#3333CC] text-white font-semibold disabled:opacity-60"
         >
-          {isSubmitting ? 'Confirming…' : 'Confirm Order'}
+          {isSubmitting ? 'Processing…' : 'Pay from Wallet'}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => onConfirm('card')}
+          disabled={isSubmitting || quoteLoading || totalAmount == null}
+          className="w-full h-12 rounded-full border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white font-semibold disabled:opacity-60"
+        >
+          {isSubmitting ? 'Redirecting…' : 'Pay with Paystack'}
         </Button>
       </div>
     </FormSection>

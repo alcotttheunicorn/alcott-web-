@@ -23,11 +23,9 @@ function LetsGetYouInContent() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Top Logo */}
       <div className="absolute top-6 left-6 lg:top-8 lg:left-8 z-10">
-        <img
-          src="/alcott-small.png"
-          alt="Alcott Logo"
-          className="h-8 lg:h-10 w-auto"
-        />
+        <Link href="/" aria-label="Alcott home">
+          <img src="/alcott-small.png" alt="Alcott Logo" className="h-8 lg:h-10 w-auto" />
+        </Link>
       </div>
 
       {/* Main Content */}

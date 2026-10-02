@@ -10,6 +10,10 @@ import {
     useCreateAdminPolicy,
     useUpdateAdminPolicy,
     useDeleteAdminPolicy,
+    useAdminTermsOfUse,
+    useCreateAdminTermOfUse,
+    useUpdateAdminTermOfUse,
+    useDeleteAdminTermOfUse,
     type PrivacyPolicy,
 } from '@/hooks/use-admin'
 import { toast } from '@/components/ui/use-toast'
@@ -38,17 +42,27 @@ function shortId(id?: string) {
 
 export default function PoliciesPage() {
     const [currentPage, setCurrentPage] = useState(1)
-    const { data, isLoading: loading, error: queryError } = useAdminPolicies({ page: currentPage, limit: PAGE_SIZE })
+    const [documentType, setDocumentType] = useState<'privacy' | 'terms'>('privacy')
+    const privacyQuery = useAdminPolicies({ page: currentPage, limit: PAGE_SIZE, enabled: documentType === 'privacy' })
+    const termsQuery = useAdminTermsOfUse({ page: currentPage, limit: PAGE_SIZE, enabled: documentType === 'terms' })
     const createMutation = useCreateAdminPolicy()
     const updateMutation = useUpdateAdminPolicy()
     const deleteMutation = useDeleteAdminPolicy()
+    const createTermsMutation = useCreateAdminTermOfUse()
+    const updateTermsMutation = useUpdateAdminTermOfUse()
+    const deleteTermsMutation = useDeleteAdminTermOfUse()
 
-    const policies = data?.data?.privacy_policies ?? []
-    const totalPages = data?.totalPages || 1
-    const totalItems = data?.totalItems ?? 0
+    const policies = documentType === 'privacy'
+        ? privacyQuery.data?.data?.privacy_policies ?? []
+        : termsQuery.data?.data?.terms_of_use ?? []
+    const activeQuery = documentType === 'privacy' ? privacyQuery : termsQuery
+    const loading = activeQuery.isLoading
+    const queryError = activeQuery.error
+    const totalPages = activeQuery.data?.totalPages || 1
+    const totalItems = activeQuery.data?.totalItems ?? 0
 
     const error = queryError
-        ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to privacy policies." : 'Could not load privacy policies.')
+        ? ((queryError as any)?.response?.status === 403 ? "You don't have admin access to manage these documents." : 'Could not load legal documents.')
         : ''
 
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -60,7 +74,7 @@ export default function PoliciesPage() {
     const [isActive, setIsActive] = useState(true)
     const [formError, setFormError] = useState('')
 
-    const saving = createMutation.isPending || updateMutation.isPending
+    const saving = createMutation.isPending || updateMutation.isPending || createTermsMutation.isPending || updateTermsMutation.isPending
 
     const handleOpenCreate = () => {
         setEditingPolicy(null)
@@ -68,7 +82,7 @@ export default function PoliciesPage() {
         setContent('')
         setVersion('')
         setEffectiveDate('')
-        setIsActive(true)
+        setIsActive(documentType === 'privacy')
         setFormError('')
         setIsModalOpen(true)
     }
@@ -104,48 +118,59 @@ export default function PoliciesPage() {
 
         const handleError = (err: any) => setFormError(
             err?.response?.data?.message ||
-            (err?.response?.status === 403 ? "You don't have admin access to manage privacy policies." : 'Could not save policy.')
+            (err?.response?.status === 403 ? "You don't have admin access to manage legal documents." : 'Could not save this document.')
         )
         const onSuccess = () => {
-            toast({ title: editingPolicy ? 'Policy updated' : 'Policy created' })
+            toast({ title: `${documentType === 'terms' ? 'Terms of use' : 'Privacy policy'} ${editingPolicy ? 'updated' : 'created'}` })
             setIsModalOpen(false)
         }
 
         const payload = {
             title: title.trim(),
             content: content.trim(),
-            version: version.trim() || undefined,
-            effective_date: effectiveDate ? new Date(effectiveDate).toISOString() : undefined,
+            version: version.trim(),
+            effective_date: effectiveDate || new Date().toISOString(),
             is_active: isActive,
         }
 
         if (editingPolicy?.id) {
-            updateMutation.mutate({ id: editingPolicy.id, ...payload }, { onSuccess, onError: handleError })
+            if (documentType === 'terms') {
+                updateTermsMutation.mutate({ id: editingPolicy.id, ...payload }, { onSuccess, onError: handleError })
+            } else {
+                updateMutation.mutate({ id: editingPolicy.id, ...payload }, { onSuccess, onError: handleError })
+            }
             return
         }
 
-        createMutation.mutate(payload, { onSuccess, onError: handleError })
+        if (documentType === 'terms') {
+            createTermsMutation.mutate(payload, { onSuccess, onError: handleError })
+        } else {
+            createMutation.mutate(payload, { onSuccess, onError: handleError })
+        }
     }
 
     const handleDelete = (policy: PrivacyPolicy) => {
         if (!policy.id) return
         if (!window.confirm(`Delete policy "${policy.title ?? 'this policy'}"?`)) return
 
-        deleteMutation.mutate(policy.id, {
-            onSuccess: () => {
-                toast({ title: 'Policy deleted' })
-                if (policies.length === 1 && currentPage > 1) setCurrentPage((p) => p - 1)
-            },
-            onError: (err: any) => toast({
-                title: 'Delete failed',
-                description: err?.response?.data?.message || 'Could not delete policy.',
-            }),
+        const onSuccess = () => {
+            toast({ title: `${documentType === 'terms' ? 'Terms of use' : 'Privacy policy'} deleted` })
+            if (policies.length === 1 && currentPage > 1) setCurrentPage((p) => p - 1)
+        }
+        const onError = (err: any) => toast({
+            title: 'Delete failed',
+            description: err?.response?.data?.message || 'Could not delete this document.',
+        })
+        const mutation = documentType === 'terms' ? deleteTermsMutation : deleteMutation
+        mutation.mutate(policy.id, {
+            onSuccess,
+            onError,
         })
     }
 
     return (
         <div className="p-4 lg:p-6 w-full overflow-x-hidden">
-            <AdminPageHeader title="PRIVACY POLICIES" backHref="/admin/users">
+            <AdminPageHeader title={documentType === 'terms' ? 'TERMS OF USE' : 'PRIVACY POLICIES'} backHref="/admin/users">
                 <button
                     onClick={handleOpenCreate}
                     className="flex items-center gap-1.5 text-[#4043FF] hover:text-[#3333CC] transition-colors cursor-pointer"
@@ -157,19 +182,40 @@ export default function PoliciesPage() {
                 </button>
             </AdminPageHeader>
 
+            <div className="mb-5 inline-flex rounded-lg border border-gray-200 bg-white p-1" role="tablist" aria-label="Legal document type">
+                {(['privacy', 'terms'] as const).map((type) => (
+                    <button
+                        key={type}
+                        type="button"
+                        role="tab"
+                        aria-selected={documentType === type}
+                        onClick={() => {
+                            setDocumentType(type)
+                            setCurrentPage(1)
+                            setEditingPolicy(null)
+                            setIsModalOpen(false)
+                        }}
+                        className={`rounded-md px-4 py-2 text-sm font-semibold ${documentType === type ? 'bg-[#4043FF] text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        {type === 'privacy' ? 'Privacy Policy' : 'Terms of Use'}
+                    </button>
+                ))}
+            </div>
+
             {loading ? (
                 <AdminListSkeleton count={PAGE_SIZE} />
             ) : error ? (
                 <EmptyState message={error} />
             ) : policies.length === 0 ? (
-                <EmptyState message='No privacy policies yet. Click "ADD" to create one.' />
+                <EmptyState message={`No ${documentType === 'terms' ? 'terms of use' : 'privacy policies'} yet. Click "ADD" to create one.`} />
             ) : (
                 <>
                     <div className="space-y-6 lg:space-y-8 pl-2 lg:pl-6 pr-2 lg:pr-8">
                         {policies.map((policy) => {
                             const createdAt = formatDateTime(policy.created_at ?? policy.effective_date)
                             const effectiveAt = formatDateTime(policy.effective_date)
-                            const deleting = deleteMutation.isPending && deleteMutation.variables === policy.id
+                            const activeDeleteMutation = documentType === 'terms' ? deleteTermsMutation : deleteMutation
+                            const deleting = activeDeleteMutation.isPending && activeDeleteMutation.variables === policy.id
 
                             return (
                                 <div key={policy.id ?? policy.title} className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -266,7 +312,7 @@ export default function PoliciesPage() {
                 </>
             )}
 
-            <AdminModal isOpen={isModalOpen} onClose={handleCloseModal} title={editingPolicy ? 'Edit Policy' : 'New Policy'}>
+            <AdminModal isOpen={isModalOpen} onClose={handleCloseModal} title={`${editingPolicy ? 'Edit' : 'New'} ${documentType === 'terms' ? 'Terms of Use' : 'Privacy Policy'}`}>
                 <form onSubmit={handleSubmit} className="p-4 lg:p-6">
                     <div className="mb-4">
                         <label className="block text-xs text-gray-500 mb-1">Title</label>

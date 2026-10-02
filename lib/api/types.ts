@@ -80,18 +80,28 @@ export interface ShipmentData {
   sender_email?: string
   sender_city?: string
   sender_address?: string
+  sender_zip_code?: string | null
+  sender_address_details?: string | null
   receiver_name?: string
   receiver_phone_number?: string
   receiver_email?: string
   receiver_city?: string
   receiver_address?: string
+  receiver_zip_code?: string | null
+  receiver_address_details?: string | null
   package_category?: string
+  package_description?: string | null
   package_weight?: number
   package_length?: number
   package_width?: number
   package_height?: number
   payment_method?: string
+  payment_status?: string
   price?: number
+  cost?: number | null
+  profit?: number | null
+  currency?: string
+  estimated_delivery_date?: string | null
   created_at?: string
   [key: string]: unknown
 }

@@ -3,35 +3,41 @@
 import { useState } from 'react'
 
 interface DeliveryInfoCardProps {
-    estDays: number
-    estDate: string
+    estimatedDate: string
     editable?: boolean
     disabled?: boolean
-    onSave?: (values: { minDays: number; maxDays: number }) => void
+    onSave?: (values: { estimatedDate: string }) => void
 }
 
-export function DeliveryInfoCard({ estDays, estDate, editable, disabled, onSave }: DeliveryInfoCardProps) {
+function displayDate(value: string) {
+    if (!value) return 'Not set'
+    const date = new Date(`${value.slice(0, 10)}T00:00:00`)
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+export function DeliveryInfoCard({ estimatedDate, editable, disabled, onSave }: DeliveryInfoCardProps) {
     const [editing, setEditing] = useState(false)
-    const [minDays, setMinDays] = useState(estDays > 0 ? estDays : '')
-    const [maxDays, setMaxDays] = useState(estDays > 0 ? estDays : '')
+    const [date, setDate] = useState(estimatedDate.slice(0, 10))
+    const [dateError, setDateError] = useState('')
 
     const startEdit = () => {
-        setMinDays(estDays > 0 ? estDays : '')
-        setMaxDays(estDays > 0 ? estDays : '')
+        setDate(estimatedDate.slice(0, 10))
+        setDateError('')
         setEditing(true)
     }
 
     const cancelEdit = () => {
         setEditing(false)
-        setMinDays(estDays > 0 ? estDays : '')
-        setMaxDays(estDays > 0 ? estDays : '')
+        setDate(estimatedDate.slice(0, 10))
+        setDateError('')
     }
 
     const submit = () => {
-        const min = Number(minDays)
-        const max = Number(maxDays)
-        if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max < 0) return
-        onSave?.({ minDays: min, maxDays: max })
+        if (!date) {
+            setDateError('Choose an estimated delivery date.')
+            return
+        }
+        onSave?.({ estimatedDate: new Date(`${date}T00:00:00.000Z`).toISOString() })
         setEditing(false)
     }
 
@@ -57,38 +63,23 @@ export function DeliveryInfoCard({ estDays, estDate, editable, disabled, onSave 
             {!editing ? (
                 <div className="space-y-3">
                     <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Est. Days</span>
-                        <span className="text-sm font-semibold text-gray-900">{estDays || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Est. Date</span>
-                        <span className="text-sm font-semibold text-gray-900">{estDate}</span>
+                        <span className="text-sm text-gray-500">Estimated delivery</span>
+                        <span className="text-sm font-semibold text-gray-900">{displayDate(estimatedDate)}</span>
                     </div>
                 </div>
             ) : (
                 <div className="space-y-3">
                     <div>
-                        <label className="block text-xs text-gray-500 mb-1">Min Days</label>
+                        <label className="block text-xs text-gray-500 mb-1">Estimated delivery date</label>
                         <input
-                            type="number"
-                            min={0}
-                            value={minDays}
-                            onChange={(e) => setMinDays(e.target.value)}
+                            type="date"
+                            value={date}
+                            onChange={(e) => { setDate(e.target.value); setDateError('') }}
                             disabled={disabled}
                             className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent disabled:opacity-50"
                         />
                     </div>
-                    <div>
-                        <label className="block text-xs text-gray-500 mb-1">Max Days</label>
-                        <input
-                            type="number"
-                            min={0}
-                            value={maxDays}
-                            onChange={(e) => setMaxDays(e.target.value)}
-                            disabled={disabled}
-                            className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent disabled:opacity-50"
-                        />
-                    </div>
+                    {dateError && <p className="text-xs text-red-600" role="alert">{dateError}</p>}
                 </div>
             )}
         </div>

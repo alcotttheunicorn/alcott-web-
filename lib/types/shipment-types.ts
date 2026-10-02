@@ -37,6 +37,8 @@ export interface ShipmentContact {
   email: string
   city: string
   address: string
+  zipCode: string
+  addressDetails: string
   countryCode: string
 }
 

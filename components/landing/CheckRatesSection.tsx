@@ -7,6 +7,8 @@ import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { PickupMarkerIcon, DeliveryPinIcon, TargetIcon, WeightBoxIcon } from '@/components/shared/location-icons'
 import type { PricingResult } from '@/lib/api/types'
+import type { CurrencyCode } from '@/components/providers/currency-provider'
+import { convertCurrency, formatCurrency } from '@/lib/currency'
 
 interface CheckRatesSectionProps {
     pickupAddress: string
@@ -18,6 +20,8 @@ interface CheckRatesSectionProps {
     onCheckRates: (phoneNumber: string, email: string) => void
     isCheckingRates: boolean
     pricingResult: PricingResult | null
+    displayCurrency: CurrencyCode
+    ngnPerUsd?: number
     onClearResult?: () => void
 }
 
@@ -31,11 +35,20 @@ export function CheckRatesSection({
     onCheckRates,
     isCheckingRates,
     pricingResult,
+    displayCurrency,
+    ngnPerUsd,
     onClearResult,
 }: CheckRatesSectionProps) {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [email, setEmail] = useState('')
     const router = useRouter()
+    const formatRate = (amount: number, source: string | undefined) => {
+        const sourceCurrency: CurrencyCode = source === 'USD' ? 'USD' : 'NGN'
+        const converted = convertCurrency(amount, sourceCurrency, displayCurrency, ngnPerUsd)
+        return converted == null
+            ? formatCurrency(amount, sourceCurrency)
+            : formatCurrency(converted, displayCurrency)
+    }
 
     return (
         <section className="bg-white py-12 lg:py-16">
@@ -210,8 +223,7 @@ export function CheckRatesSection({
                                                     <div>
                                                         {/* <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p> */}
                                                         <p className="text-2xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                            {pricingResult.price.currency === 'NGN' ? '₦' : `${pricingResult.price.currency} `}
-                                                            {pricingResult.price.amount.toLocaleString()}
+                                                            {formatRate(pricingResult.price.amount, pricingResult.price.currency)}
                                                         </p>
                                                     </div>
                                                 ) : pricingResult.export_price ? (
@@ -221,16 +233,14 @@ export function CheckRatesSection({
                                                             <div>
                                                                 <p className="text-[10px] font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Export</p>
                                                                 <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                                    {pricingResult.export_price.currency === 'NGN' ? '₦' : `${pricingResult.export_price.currency} `}
-                                                                    {pricingResult.export_price.amount.toLocaleString()}
+                                                                    {formatRate(pricingResult.export_price.amount, pricingResult.export_price.currency)}
                                                                 </p>
                                                             </div>
                                                             {pricingResult.import_price && (
                                                                 <div>
                                                                     <p className="text-[10px] font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Import</p>
                                                                     <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                                                                        {pricingResult.import_price.currency === 'NGN' ? '₦' : `${pricingResult.import_price.currency} `}
-                                                                        {pricingResult.import_price.amount.toLocaleString()}
+                                                                        {formatRate(pricingResult.import_price.amount, pricingResult.import_price.currency)}
                                                                     </p>
                                                                 </div>
                                                             )}

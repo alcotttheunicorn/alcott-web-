@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import { useCheckPricing } from '@/hooks/use-pricing'
+import { useExchangeRate } from '@/hooks/use-pricing'
+import { useCurrency } from '@/components/providers/currency-provider'
 import type { PricingResult } from '@/lib/api/types'
 import { TopContactBar } from '@/components/landing/TopContactBar'
 import { LandingHeader } from '@/components/landing/LandingHeader'
@@ -19,11 +21,19 @@ import { Footer } from '@/components/footer'
 
 export default function HomePage() {
   const checkRatesMutation = useCheckPricing()
+  const { currency } = useCurrency()
+  const { data: exchangeRate } = useExchangeRate()
   const [pickupAddress, setPickupAddress] = useState('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [weight, setWeight] = useState('')
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
   const [isCheckingRates, setIsCheckingRates] = useState(false)
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.add('scrollbar-hidden')
+    return () => root.classList.remove('scrollbar-hidden')
+  }, [])
 
   const handleCheckRates = async (phoneNumber: string, email: string) => {
     if (!pickupAddress.trim() || !deliveryAddress.trim() || !weight.trim()) {
@@ -70,6 +80,8 @@ export default function HomePage() {
         onCheckRates={handleCheckRates}
         isCheckingRates={isCheckingRates}
         pricingResult={pricingResult}
+        displayCurrency={currency}
+        ngnPerUsd={exchangeRate?.ngn_per_usd}
         onClearResult={() => setPricingResult(null)}
       />
       <ServicesSection />
