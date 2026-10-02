@@ -23,13 +23,17 @@ export default function PoliciesPage() {
                     ? raw
                     : Array.isArray((raw as { privacy_policies?: unknown })?.privacy_policies)
                         ? (raw as { privacy_policies: unknown[] }).privacy_policies
-                        : (raw && typeof raw === 'object')
-                            ? [raw]
-                            : []
+                        : Array.isArray((raw as { policies?: unknown })?.policies)
+                            ? (raw as { policies: unknown[] }).policies
+                            : Array.isArray((raw as { data?: unknown })?.data)
+                                ? (raw as { data: unknown[] }).data
+                                : (raw && typeof raw === 'object')
+                                    ? [raw]
+                                    : []
                 setPolicies(
                     (items as { id?: string; title?: string; content?: string }[]).map((p, i) => ({
                         id: p.id ?? i,
-                        title: p.title ?? '',
+                        title: p.title ?? 'Privacy Policy',
                         content: p.content ?? '',
                     })),
                 )

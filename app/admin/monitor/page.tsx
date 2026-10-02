@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  useAdminShipments,
+  useAdminAllShipments,
   useAdminAllUsers,
   useAdminActivityLogs,
   useAdminRateChecks,
@@ -99,7 +99,7 @@ function RateCheckRow({ check }: { check: RateCheck }) {
 export default function MonitorPage() {
   const { token, isLoading: authLoading } = useAuth()
 
-  const shipmentsQuery = useAdminShipments({ limit: 200 })
+  const shipmentsQuery = useAdminAllShipments()
   const allUsersQuery = useAdminAllUsers()
   const rateChecksQuery = useAdminRateChecks({ limit: 50 })
   const activityQuery = useAdminActivityLogs({ page: 1, limit: 20 })
@@ -144,6 +144,15 @@ export default function MonitorPage() {
   const totalUsers = allUsersQuery.data?.totalItems ?? allUsers.length
   const newUsersToday = allUsers.filter((u) => isSameDay(u.created_at, now)).length
   const rateChecksToday = rateChecks.filter((rc) => isSameDay(rc.created_at, now)).length
+  const paidShipments = shipments.filter((shipment) => {
+    const paymentStatus = (shipment.payment_status ?? '').toUpperCase()
+    if (paymentStatus) return paymentStatus === 'PAID'
+    return ['SUBMITTED', 'ON_PROCESS', 'DELIVERED'].includes((shipment.status ?? '').toUpperCase())
+  })
+  const totalRevenue = paidShipments.reduce((sum, shipment) => sum + (Number(shipment.price) || 0), 0)
+  const totalCost = shipments.reduce((sum, shipment) => sum + Math.abs(Number(shipment.cost) || 0), 0)
+  const totalProfit = totalRevenue - totalCost
+  const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-NG', { maximumFractionDigits: 2 })}`
 
   // ---- Pipeline ----
   const pipelineCounts = useMemo(() => {
@@ -177,7 +186,7 @@ export default function MonitorPage() {
       ) : (
         <div className="space-y-6">
           {/* ---------------------------- KPI cards ---------------------------- */}
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-1">In Transit</p>
               <p className="text-3xl font-bold text-gray-900">{inTransit}</p>
@@ -204,6 +213,21 @@ export default function MonitorPage() {
               <p className="text-sm text-gray-500 mb-1">Rate Checks Today</p>
               <p className="text-3xl font-bold text-gray-900">{rateChecksToday}</p>
               <p className="text-xs text-gray-500 mt-1">{plural(rateChecksToday, 'quote')} requested</p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="text-sm text-gray-500 mb-1">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900">{formatNaira(totalRevenue)}</p>
+              <p className="text-xs text-gray-500 mt-1">Paid shipments</p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="text-sm text-gray-500 mb-1">Total Cost</p>
+              <p className="text-2xl font-bold text-red-600">{formatNaira(totalCost)}</p>
+              <p className="text-xs text-gray-500 mt-1">Recorded shipment costs</p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="text-sm text-gray-500 mb-1">Total Profit</p>
+              <p className={`text-2xl font-bold ${totalProfit < 0 ? 'text-red-600' : 'text-green-700'}`}>{formatNaira(totalProfit)}</p>
+              <p className="text-xs text-gray-500 mt-1">Revenue minus recorded expenses</p>
             </div>
           </div>
 

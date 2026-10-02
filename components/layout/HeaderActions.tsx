@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
+import { useCurrency } from '@/components/providers/currency-provider'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -39,7 +40,7 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
   const router = useRouter()
   const { displayName, profile } = useProfile()
   const { logout } = useAuth()
-  const [selectedCurrency, setSelectedCurrency] = useState('NGN')
+  const { currency: selectedCurrency, setCurrency } = useCurrency()
   const [openMenu, setOpenMenu] = useState<'currency' | 'notifications' | 'profile' | null>(null)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const notificationsButtonRef = useRef<HTMLButtonElement>(null)
@@ -81,7 +82,7 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
                 <button
                   key={currency.code}
                   type="button"
-                  onClick={() => { setSelectedCurrency(currency.code); closeMenu() }}
+                  onClick={() => { setCurrency(currency.code); closeMenu() }}
                   className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[#F0F0FF] ${selectedCurrency === currency.code ? 'font-bold text-[#4043FF]' : 'text-gray-700'}`}
                 >
                   <span className="flex items-center gap-2.5">

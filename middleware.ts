@@ -9,6 +9,7 @@ const publicRoutes = [
   '/register',
   '/forgot-password',
   '/verify-email',
+  '/search',
   '/(auth)',
 ]
 

@@ -6,12 +6,12 @@ interface FinanceCardProps {
     amountPaid: number
     paymentMethod: string
     paymentStatus: string
-    expenses: number
+    cost: number
     profit: number
     currency: string
     editable?: boolean
     disabled?: boolean
-    onSave?: (values: { amountPaid: number; paymentMethod: string; paymentStatus: string }) => void
+    onSave?: (values: { amountPaid: number; paymentMethod: string; paymentStatus: string; cost: number }) => void
 }
 
 function formatCurrency(amount: number, currency: string) {
@@ -22,7 +22,7 @@ export function FinanceCard({
     amountPaid,
     paymentMethod,
     paymentStatus,
-    expenses,
+    cost,
     profit,
     currency,
     editable,
@@ -33,11 +33,13 @@ export function FinanceCard({
     const [amount, setAmount] = useState(amountPaid > 0 ? String(amountPaid) : '')
     const [method, setMethod] = useState(paymentMethod)
     const [status, setStatus] = useState(paymentStatus)
+    const [expenseAmount, setExpenseAmount] = useState(String(Math.abs(cost)))
 
     const startEdit = () => {
         setAmount(amountPaid > 0 ? String(amountPaid) : '')
         setMethod(paymentMethod)
         setStatus(paymentStatus)
+        setExpenseAmount(String(Math.abs(cost)))
         setEditing(true)
     }
 
@@ -45,8 +47,9 @@ export function FinanceCard({
 
     const submit = () => {
         const parsed = Number(amount)
-        if (!Number.isFinite(parsed) || parsed < 0) return
-        onSave?.({ amountPaid: parsed, paymentMethod: method.trim(), paymentStatus: status.trim() })
+        const parsedExpenses = Number(expenseAmount)
+        if (!Number.isFinite(parsed) || parsed < 0 || !Number.isFinite(parsedExpenses) || parsedExpenses < 0) return
+        onSave?.({ amountPaid: parsed, paymentMethod: method.trim(), paymentStatus: status.trim(), cost: parsedExpenses })
         setEditing(false)
     }
 
@@ -90,13 +93,13 @@ export function FinanceCard({
                     <div className="flex justify-between">
                         <span className="text-sm text-gray-500">Expenses</span>
                         <span className="text-sm font-semibold text-red-500">
-                            {expenses !== 0 ? formatCurrency(expenses, currency) : 'N/A'}
+                            {cost !== 0 ? formatCurrency(Math.abs(cost), currency) : formatCurrency(0, currency)}
                         </span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-sm text-gray-500">Profit</span>
-                        <span className="text-sm font-semibold text-green-600">
-                            {profit > 0 ? formatCurrency(profit, currency) : 'N/A'}
+                        <span className={`text-sm font-semibold ${profit < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {formatCurrency(profit, currency)}
                         </span>
                     </div>
                 </div>
@@ -109,6 +112,18 @@ export function FinanceCard({
                             min={0}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
+                            disabled={disabled}
+                            className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent disabled:opacity-50"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-gray-500 mb-1">Expenses</label>
+                        <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={expenseAmount}
+                            onChange={(e) => setExpenseAmount(e.target.value)}
                             disabled={disabled}
                             className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent disabled:opacity-50"
                         />

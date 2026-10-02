@@ -2,7 +2,9 @@
 
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { CurrencySelector } from '@/components/ui/CurrencySelector'
 
 export function LandingHeader() {
     const { isAuthenticated, logout } = useAuth()
@@ -11,7 +13,9 @@ export function LandingHeader() {
     return (
         <header className="w-full flex items-center justify-between px-4 md:px-12 py-4 md:py-6 bg-[#F3F9FD]">
             <div className="flex items-center">
-                <img src="/alcott-small.png" alt="alcott logo" className="h-8 w-auto md:h-12" />
+                <Link href="/" aria-label="Alcott home">
+                    <img src="/alcott-small.png" alt="alcott logo" className="h-8 w-auto md:h-12" />
+                </Link>
             </div>
 
             <nav className="hidden md:flex items-center gap-8 text-lg font-medium" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
@@ -22,6 +26,7 @@ export function LandingHeader() {
             </nav>
 
             <div className="hidden md:flex items-center gap-4">
+                <CurrencySelector />
                 {isAuthenticated ? (
                     <>
                         <Button

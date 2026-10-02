@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { useProfile } from '@/hooks/use-profile'
 import { useWalletBalance, useTransactions } from '@/hooks/use-wallet'
+import { useCurrency } from '@/components/providers/currency-provider'
+import { CurrencySelector } from '@/components/ui/CurrencySelector'
+import { useExchangeRate } from '@/hooks/use-pricing'
+import { convertCurrency, formatCurrency } from '@/lib/currency'
 import { BalanceSkeleton, TransactionHistorySkeleton } from '@/components/shared/skeletons'
 import { formatDateTime } from '@/lib/utils'
 import type { Transaction } from '@/lib/api/types'
@@ -57,10 +61,10 @@ function HomeContent() {
   const { profile } = useProfile()
   const { data: balance, isLoading: balanceLoading } = useWalletBalance()
   const { data: recentTransactions = [], isLoading: transactionsLoading } = useTransactions(1, 4)
+  const { currency } = useCurrency()
+  const { data: exchangeRate } = useExchangeRate()
 
   const [greeting, setGreeting] = useState('Hello')
-  const [selectedCurrency, setSelectedCurrency] = useState('USD')
-  const [currencyOpen, setCurrencyOpen] = useState(false)
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -161,44 +165,7 @@ function HomeContent() {
             </h2>
           </div>
           <div className="md:hidden relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setCurrencyOpen((o) => !o)}
-              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-              style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
-            >
-              {selectedCurrency === 'NGN' ? '₦ NGN' : '$ USD'}
-              <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {currencyOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
-                {[
-                  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
-                  { code: 'USD', symbol: '$', name: 'US Dollar' },
-                ].map((currency) => (
-                  <button
-                    key={currency.code}
-                    type="button"
-                    onClick={() => { setSelectedCurrency(currency.code); setCurrencyOpen(false) }}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[#F0F0FF] ${selectedCurrency === currency.code ? 'font-bold text-[#4043FF]' : 'text-gray-700'}`}
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E0E0FF] text-xs font-bold text-[#4043FF]">
-                        {currency.symbol}
-                      </span>
-                      <span className="flex flex-col leading-tight">
-                        <span className="text-sm font-semibold">{currency.code}</span>
-                        <span className="text-[10px] font-normal text-gray-400">{currency.name}</span>
-                      </span>
-                    </span>
-                    {selectedCurrency === currency.code && (
-                      <svg className="h-4 w-4 text-[#4043FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
+            <CurrencySelector />
           </div>
         </div>
         <div className="relative w-full overflow-hidden rounded-2xl lg:rounded-3xl">
@@ -211,7 +178,12 @@ function HomeContent() {
                 <div className="min-w-0">
                   <p className="text-white/90 text-xs sm:text-sm font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Your balance</p>
                   <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-5 truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                    {balance != null ? `${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}NGN` : '---'}
+                    {balance != null
+                      ? (() => {
+                          const converted = convertCurrency(balance, 'NGN', currency, exchangeRate?.ngn_per_usd)
+                          return converted == null ? 'Loading exchange rate…' : formatCurrency(converted, currency)
+                        })()
+                      : '---'}
                   </h3>
                 </div>
                 <button

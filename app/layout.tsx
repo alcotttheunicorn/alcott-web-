@@ -1,8 +1,9 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
 import { QueryProvider } from '@/components/providers/query-provider'
+import { CurrencyProvider } from '@/components/providers/currency-provider'
 import { AuthHydrator } from '@/components/providers/auth-hydrator'
 import './globals.css'
 
@@ -19,11 +20,12 @@ const urbanist = Urbanist({
 export const metadata: Metadata = {
   title: 'Alcott Shipping Service',
   description: 'Ship and track packages worldwide with Alcott.',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({
@@ -39,9 +41,11 @@ export default function RootLayout({
       </head>
       <body className={urbanist.className}>
         <QueryProvider>
-          <AuthHydrator>
-            {children}
-          </AuthHydrator>
+          <CurrencyProvider>
+            <AuthHydrator>
+              {children}
+            </AuthHydrator>
+          </CurrencyProvider>
         </QueryProvider>
         <Toaster />
         <Analytics />
