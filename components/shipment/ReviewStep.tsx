@@ -48,7 +48,7 @@ export function ReviewStep({
                     ['Category', pkg.category],
                     ['Weight', pkg.weight ? `${pkg.weight} ${pkg.weightUnit.toUpperCase()}` : ''],
                     ['Dimensions', `${pkg.length || 0} × ${pkg.width || 0} × ${pkg.height || 0} ${pkg.dimensionUnit.toUpperCase()}`],
-                    ['Shipping', `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}`],
+                    ['Shipping', `${shippingSelection.label} – ${shippingSelection.eta}`],
                 ]} />
                 <SummaryCard title="Payment" items={[[
                     'Method', payment.method === 'wallet' ? 'My Wallet' : 'Pay with Card'

@@ -69,7 +69,7 @@ function OrderDetailContent() {
                 <div className="flex justify-between"><dt>Name</dt><dd className="text-gray-900">{shipment.sender_name}</dd></div>
                 <div className="flex justify-between"><dt>Phone</dt><dd className="text-gray-900">{shipment.sender_phone_number}</dd></div>
                 <div className="flex justify-between"><dt>City</dt><dd className="text-gray-900">{shipment.sender_city}</dd></div>
-                <div className="flex justify-between gap-4"><dt className="shrink-0">Address</dt><dd className="text-gray-900 text-right min-w-0 break-words">{shipment.sender_address}</dd></div>
+                <div className="flex justify-between gap-4"><dt className="shrink-0">Address</dt><dd className="text-gray-900 text-right min-w-0 wrap-break-word">{shipment.sender_address}</dd></div>
               </dl>
             </div>
 
@@ -79,7 +79,7 @@ function OrderDetailContent() {
                 <div className="flex justify-between"><dt>Name</dt><dd className="text-gray-900">{shipment.receiver_name}</dd></div>
                 <div className="flex justify-between"><dt>Phone</dt><dd className="text-gray-900">{shipment.receiver_phone_number}</dd></div>
                 <div className="flex justify-between"><dt>City</dt><dd className="text-gray-900">{shipment.receiver_city}</dd></div>
-                <div className="flex justify-between gap-4"><dt className="shrink-0">Address</dt><dd className="text-gray-900 text-right min-w-0 break-words">{shipment.receiver_address}</dd></div>
+                <div className="flex justify-between gap-4"><dt className="shrink-0">Address</dt><dd className="text-gray-900 text-right min-w-0 wrap-break-word">{shipment.receiver_address}</dd></div>
               </dl>
             </div>
 

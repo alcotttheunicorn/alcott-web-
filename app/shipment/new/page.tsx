@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { SVGProps } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -23,8 +23,6 @@ import { getDialCode, validatePhoneNumber } from '@/lib/countries'
 import { useShipmentWizard } from '@/hooks/use-shipment-wizard'
 import type {
   ShipmentContact,
-  ShipmentOption,
-  ShipmentOptions,
   ShipmentPaymentSelection,
   ShipmentStepKey,
   ShipmentSteps,
@@ -43,10 +41,6 @@ const steps: ShipmentSteps = [
 ]
 
 type StepKey = ShipmentStepKey
-
-const shippingOptions: ShipmentOptions = [
-  { id: 'express', label: 'Express', eta: '3-5 days', price: 24000, rateId: 'shipping-rate-express', type: 'EXPRESS', currency: 'NGN' },
-]
 
 const weightUnitOptions: ShipmentWeightUnit[] = ['kg', 'lb']
 const dimensionUnitOptions: ShipmentDimensionUnit[] = ['cm', 'in']
@@ -153,10 +147,6 @@ export default function NewShipmentPage() {
     moveToPrevious()
   }
 
-  const shippingSelection = useMemo<ShipmentOption>(
-    () => shippingOptions.find((opt) => opt.id === pkg.shippingOption) || shippingOptions[0],
-    [pkg.shippingOption]
-  )
   const totalAmount = quotedAmountNGN
 
   useEffect(() => {
@@ -400,7 +390,6 @@ export default function NewShipmentPage() {
               <PackageForm
                 data={pkg}
                 onChange={setPkg}
-                shippingSelection={shippingSelection}
                 onContinue={moveToNext}
                 canContinue={canMoveForward}
                 weightUnits={weightUnitOptions}
@@ -417,7 +406,6 @@ export default function NewShipmentPage() {
                 sender={sender}
                 receiver={receiver}
                 pkg={pkg}
-                shippingSelection={shippingSelection}
                 payment={payment}
                 onConfirm={handleConfirmShipment}
                 isSubmitting={isSubmitting}
@@ -594,7 +582,6 @@ function ReceiverForm({
 function PackageForm({
   data,
   onChange,
-  shippingSelection,
   onContinue,
   canContinue,
   weightUnits,
@@ -604,7 +591,6 @@ function PackageForm({
 }: {
   data: ShipmentPackage
   onChange: (value: ShipmentPackage) => void
-  shippingSelection: ShipmentOption
   onContinue: () => void
   canContinue: boolean
   weightUnits: ShipmentWeightUnit[]
@@ -612,7 +598,6 @@ function PackageForm({
   sanitizeDecimal: (value: string) => string
   categories: { value: string; label: string }[]
 }) {
-  const [showOptions, setShowOptions] = useState(false)
   const [showCategoryOptions, setShowCategoryOptions] = useState(false)
 
   const handleWeightUnitChange = (unit: ShipmentWeightUnit) => {
@@ -710,41 +695,6 @@ function PackageForm({
           sanitizeDecimal={sanitizeDecimal}
         />
       </div>
-      <div className="relative">
-        <label className="text-sm font-semibold text-gray-700">Select Shipping</label>
-        <button
-          type="button"
-          onClick={() => setShowOptions((prev) => !prev)}
-          className="mt-2 w-full h-11 px-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between text-sm text-gray-700 hover:bg-gray-100"
-        >
-          <span className="flex items-center gap-1.5 whitespace-normal wrap-break-word text-left">
-            <MenuIcon className="w-4 h-4" />
-            {shippingSelection ? `${shippingSelection.label} – ${shippingSelection.eta}` : 'Shipping'}
-          </span>
-          <CaretDownIcon className="w-4 h-4" />
-        </button>
-        {showOptions && (
-          <div className="absolute z-10 mt-2 w-full rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden">
-            {shippingOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => {
-                  onChange({ ...data, shippingOption: option.id })
-                  setShowOptions(false)
-                }}
-                className={`w-full px-4 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors ${
-                  data.shippingOption === option.id ? 'bg-gray-50' : ''
-                }`}
-              >
-                <div className="whitespace-normal wrap-break-word">
-                  <p className="text-sm font-semibold text-gray-900">{option.label}</p>
-                  <p className="text-xs text-gray-500">{option.eta}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
     </FormSection>
   )
@@ -814,7 +764,6 @@ function ReviewSummary({
   sender,
   receiver,
   pkg,
-  shippingSelection,
   payment,
   onConfirm,
   isSubmitting,
@@ -829,7 +778,6 @@ function ReviewSummary({
   sender: ShipmentContact
   receiver: ShipmentContact
   pkg: ShipmentPackage
-  shippingSelection: ShipmentOption
   payment: ShipmentPaymentSelection
   onConfirm: (method?: 'wallet' | 'card') => void
   isSubmitting: boolean
@@ -866,7 +814,6 @@ function ReviewSummary({
           ['Category', pkg.category],
           ['Weight', pkg.weight ? `${pkg.weight} ${pkg.weightUnit.toUpperCase()}` : ''],
           ['Dimensions', `${pkg.length || 0} × ${pkg.width || 0} × ${pkg.height || 0} ${pkg.dimensionUnit.toUpperCase()}`],
-          ['Shipping', `${shippingSelection.label} – ${shippingSelection.eta}`],
         ]} />
         <SummaryCard title="Payment" items={[[
           'Method', payment.method === 'wallet' ? 'My Wallet' : 'Pay with Card'
