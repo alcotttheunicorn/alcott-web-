@@ -251,8 +251,11 @@ export default function CheckRatesPage() {
               }
 
               return (
-                <div className="max-w-4xl rounded-xl border border-gray-100 bg-white px-5 py-6 text-right shadow-sm">
-                  <p className="text-2xl font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <div className="max-w-4xl mx-auto rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                    Total delivery cost
+                  </p>
+                  <p className="text-4xl font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
                     {formatMoney(displayBasePrice)}
                   </p>
                 </div>
