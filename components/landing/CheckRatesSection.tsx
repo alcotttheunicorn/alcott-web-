@@ -187,7 +187,7 @@ export function CheckRatesSection({
                                                 <div className="flex items-start gap-3">
                                                     <div className="flex flex-col items-center">
                                                         <PickupMarkerIcon />
-                                                        <div className="w-px flex-1 min-h-[2.5rem] bg-[#4043FF]/30" />
+                                                        <div className="w-px flex-1 min-h-10 bg-[#4043FF]/30" />
                                                         <DeliveryPinIcon />
                                                     </div>
                                                     <div className="flex-1 space-y-6">

@@ -8,6 +8,15 @@ import { AuthGuard } from '@/components/auth-guard'
 import { useVerifyShipmentPayment } from '@/hooks/use-shipments'
 import type { ShipmentData } from '@/lib/api/types'
 
+const PENDING_REF_KEY = 'alcott_pending_shipment_ref'
+
+// The Paystack webhook can land a moment after the checkout page finishes, so a
+// single failed verify is usually a race rather than a real decline — retry with
+// backoff before telling the user it failed.
+const MAX_ATTEMPTS = 8
+const RETRY_DELAY_MS = 4000
+const RETRY_BACKOFF = 1.1
+
 function loadLastCreatedShipment(): ShipmentData | null {
   if (typeof window === 'undefined') return null
   try {
@@ -21,6 +30,24 @@ function loadLastCreatedShipment(): ShipmentData | null {
   }
 }
 
+function readPendingReference(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return window.sessionStorage.getItem(PENDING_REF_KEY)
+  } catch {
+    return null
+  }
+}
+
+function clearPendingReference() {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.removeItem(PENDING_REF_KEY)
+  } catch {
+    // ignore storage errors
+  }
+}
+
 function SuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -30,10 +57,13 @@ function SuccessContent() {
   const verifyPaymentMutation = useVerifyShipmentPayment()
 
   useEffect(() => {
-    const reference = searchParams.get('reference')
     const stored = loadLastCreatedShipment()
+    // `trxref` is what Paystack appends when it redirects; prefer the URL, then
+    // fall back to the reference persisted before leaving for Paystack so the
+    // payment still confirms if the callback drops the query param.
+    const reference = searchParams.get('reference') ?? searchParams.get('trxref') ?? readPendingReference()
 
-    // Wallet payments: no Paystack reference in the URL, shipment is already confirmed.
+    // Wallet payments: no Paystack reference anywhere, shipment is already confirmed.
     if (!reference) {
       setShipment(stored)
       setStatus('ready')
@@ -42,13 +72,37 @@ function SuccessContent() {
 
     // Card payments: Paystack redirected back here — confirm the payment actually went through.
     if (!token) return
-    verifyPaymentMutation.mutate(reference, {
-      onSuccess: () => {
-        setShipment(stored)
-        setStatus('ready')
-      },
-      onError: () => setStatus('failed'),
-    })
+
+    let attempt = 0
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const attemptVerify = () => {
+      if (cancelled) return
+      verifyPaymentMutation.mutate(reference, {
+        onSuccess: () => {
+          if (cancelled) return
+          clearPendingReference()
+          setShipment(stored)
+          setStatus('ready')
+        },
+        onError: () => {
+          if (cancelled) return
+          attempt += 1
+          if (attempt < MAX_ATTEMPTS) {
+            timer = setTimeout(attemptVerify, RETRY_DELAY_MS * Math.pow(RETRY_BACKOFF, attempt))
+          } else {
+            setStatus('failed')
+          }
+        },
+      })
+    }
+
+    attemptVerify()
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, token])
 

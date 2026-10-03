@@ -143,7 +143,7 @@ export default function LocationsPage() {
             route={routeLine}
           />
           {geolocationError && userPosition && (
-            <div className="absolute inset-0 z-[500] flex items-center justify-center bg-[#E4E5FF]/60 pointer-events-none">
+            <div className="absolute inset-0 z-500 flex items-center justify-center bg-[#E4E5FF]/60 pointer-events-none">
               <p className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow">Location unavailable — showing default position</p>
             </div>
           )}
@@ -194,7 +194,7 @@ export default function LocationsPage() {
               {visibleCenters.length === 0 && <p className="p-6 text-center text-sm text-gray-500">No drop centers found.</p>}
             </section>
 
-            <aside className="rounded-[24px] border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-center flex flex-col items-center">
+            <aside className="rounded-3xl border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-center flex flex-col items-center">
               <div className="h-16 w-16 mb-4 rounded-full bg-[#E8E9FF] flex items-center justify-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C8.13401 2 5 5.13401 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13401 15.866 2 12 2ZM12 11.5C10.6193 11.5 9.5 10.3807 9.5 9C9.5 7.61929 10.6193 6.5 12 6.5C13.3807 6.5 14.5 7.61929 14.5 9C14.5 10.3807 13.3807 11.5 12 11.5Z" fill="#4043FF"/>

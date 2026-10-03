@@ -7,13 +7,13 @@ export interface ShipmentStep {
 
 export type ShipmentSteps = ReadonlyArray<ShipmentStep>
 
-export type ShipmentOptionId = 'regular' | 'cargo' | 'express'
+export type ShipmentOptionId = 'express'
 
 export interface ShipmentOption {
   id: ShipmentOptionId
   label: string
   eta: string
-  price: number
+  price?: number
   rateId?: string
   currency?: string
   type?: string
