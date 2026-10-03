@@ -187,7 +187,7 @@ function SearchContent() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Tracking number"
-                className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4043FF] focus:outline-none focus:ring-2 focus:ring-[#4043FF]/20 sm:min-w-[22rem]"
+                className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#4043FF] focus:outline-none focus:ring-2 focus:ring-[#4043FF]/20 sm:min-w-88"
                 autoFocus
               />
             </div>
@@ -274,6 +274,11 @@ function TrackingResult({ shipment }: { shipment: ShipmentData }) {
   const events = trackingEvents(shipment)
   const estimate = formatDeliveryDate(shipment.estimated_delivery_date) || 'Not available yet'
   const latestEvent = events[0]
+  const pickupEvent = events.slice().reverse().find((event) =>
+    /picked up|pickup|collected/i.test(event.event_name ?? event.event ?? '') && event.location,
+  )
+  const origin = shipment.sender_city || pickupEvent?.location
+  const destination = shipment.receiver_city
   const createdDate = formatDate(shipment.created_at)
 
   return (
@@ -289,12 +294,12 @@ function TrackingResult({ shipment }: { shipment: ShipmentData }) {
         <div className="mt-6 grid gap-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">From</p>
-            <p className="mt-1 text-sm font-semibold text-gray-900">{shipment.sender_city || 'Origin pending'}</p>
+            <p className="mt-1 text-sm font-semibold text-gray-900">{origin || 'Origin not provided'}</p>
           </div>
           <div className="hidden h-px w-16 bg-gray-300 sm:block" aria-hidden="true" />
           <div className="sm:text-right">
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">To</p>
-            <p className="mt-1 text-sm font-semibold text-gray-900">{shipment.receiver_city || 'Destination pending'}</p>
+            <p className="mt-1 text-sm font-semibold text-gray-900">{destination || 'Destination not included in tracking data'}</p>
           </div>
         </div>
         <div className="mt-6 grid gap-3 border-t border-gray-100 pt-4 sm:grid-cols-2">

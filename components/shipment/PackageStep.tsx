@@ -146,7 +146,7 @@ export function PackageStep({
                 >
                     <span className="flex items-center gap-1.5 whitespace-normal wrap-break-word text-left">
                         <MenuIcon className="w-4 h-4" />
-                        {shippingSelection ? `${shippingSelection.label} – ₦${shippingSelection.price.toLocaleString()}` : 'Shipping'}
+                        {shippingSelection ? `${shippingSelection.label} – ${shippingSelection.eta}` : 'Shipping'}
                     </span>
                     <CaretDownIcon className="w-4 h-4" />
                 </button>
@@ -167,7 +167,6 @@ export function PackageStep({
                                     <p className="text-sm font-semibold text-gray-900">{option.label}</p>
                                     <p className="text-xs text-gray-500">{option.eta}</p>
                                 </div>
-                                <span className="text-sm font-bold text-[#4043FF]">₦{option.price.toLocaleString()}</span>
                             </button>
                         ))}
                     </div>

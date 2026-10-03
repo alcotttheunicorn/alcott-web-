@@ -19,10 +19,10 @@ export function LandingHeader() {
             </div>
 
             <nav className="hidden md:flex items-center gap-8 text-lg font-medium" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
-                <a href="#" className="text-gray-700 hover:text-[#4043FF] transition-colors">Home</a>
-                <a href="#" className="text-gray-700 hover:text-[#4043FF] transition-colors">Ship</a>
-                <a href="#" className="text-gray-700 hover:text-[#4043FF] transition-colors">Track</a>
-                <a href="#" className="text-gray-700 hover:text-[#4043FF] transition-colors">Shop & Ship</a>
+                <a href="/" className="text-gray-700 hover:text-[#4043FF] transition-colors">Home</a>
+                <a href="/shipment/new" className="text-gray-700 hover:text-[#4043FF] transition-colors">Ship</a>
+                <a href="/search" className="text-gray-700 hover:text-[#4043FF] transition-colors">Track</a>
+                <a href="/#" className="text-gray-700 hover:text-[#4043FF] transition-colors">Shop & Ship</a>
             </nav>
 
             <div className="hidden md:flex items-center gap-4">

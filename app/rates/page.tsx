@@ -137,7 +137,7 @@ export default function CheckRatesPage() {
             </div>
 
             {/* Dashed connecting line */}
-            <div className="absolute left-[36px] top-[54px] w-0 h-4 border-l-2 border-dashed border-gray-300" />
+            <div className="absolute left-9 top-[54px] w-0 h-4 border-l-2 border-dashed border-gray-300" />
 
             {/* Package Destination */}
             <div className="flex items-center gap-4 bg-[#F8F9FA] rounded-2xl p-4">
@@ -250,76 +250,14 @@ export default function CheckRatesPage() {
                 return formatCurrency(amount, currency)
               }
 
-              const rateOptions = [
-                {
-                  id: 'regular',
-                  name: 'Regular',
-                  time: '3-4 days',
-                  price: displayBasePrice * 0.5,
-                  icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M21 16V8.00002C20.9996 7.64929 20.9071 7.30482 20.7315 7.00118C20.556 6.69753 20.3037 6.44538 20 6.27002L13 2.27002C12.696 2.09448 12.3511 2.00208 12 2.00208C11.6489 2.00208 11.304 2.09448 11 2.27002L4 6.27002C3.69626 6.44538 3.44398 6.69753 3.26846 7.00118C3.09294 7.30482 3.00036 7.64929 3 8.00002V16C3.00036 16.3508 3.09294 16.6952 3.26846 16.9989C3.44398 17.3025 3.69626 17.5547 4 17.73L11 21.73C11.304 21.9056 11.6489 21.998 12 21.998C12.3511 21.998 12.696 21.9056 13 21.73L20 17.73C20.3037 17.5547 20.556 17.3025 20.7315 16.9989C20.9071 16.6952 20.9996 16.3508 21 16Z" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M3.27002 6.95996L12 12.01L20.73 6.95996M12 22.08V12" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-                {
-                  id: 'cargo',
-                  name: 'Cargo',
-                  time: '3-5 days',
-                  price: displayBasePrice * 0.75,
-                  icon: (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 3H15V16H1V3Z" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M15 8H19L23 11V16H15V8Z" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="5.5" cy="18.5" r="2.5" stroke="#4043FF" strokeWidth="2"/>
-                      <circle cx="18.5" cy="18.5" r="2.5" stroke="#4043FF" strokeWidth="2"/>
-                    </svg>
-                  )
-                },
-                {
-                  id: 'express',
-                  name: 'Express',
-                  time: '1-2 days',
-                  price: displayBasePrice,
-                  icon: (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 18H3C2.44772 18 2 17.5523 2 17V7C2 6.44772 2.44772 6 3 6H17C17.5523 6 18 6.44772 18 7V17C18 17.5523 17.5523 18 17 18H15" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M18 14H21C21.5523 14 22 13.5523 22 13V10L19.5 7H18" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="7" cy="18" r="2" stroke="#4043FF" strokeWidth="2"/>
-                      <circle cx="13" cy="18" r="2" stroke="#4043FF" strokeWidth="2"/>
-                      <path d="M14 6L12 2" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M18 6L16 2" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M10 6L8 2" stroke="#4043FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                }
-              ]
-
               return (
-                <div className="space-y-4">
-                  {rateOptions.map((option) => (
-                    <div key={option.id} className="bg-white border border-gray-100 rounded-[20px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-[#F4F5FF] flex items-center justify-center shrink-0">
-                          {option.icon}
-                        </div>
-                        <div>
-                          <p className="font-bold text-[15px] text-gray-900 leading-tight mb-1" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                            {option.name}
-                          </p>
-                          <p className="text-xs text-gray-400 font-medium" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                            {option.time}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[17px] font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                          {formatMoney(option.price)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="max-w-4xl mx-auto rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                    Total delivery cost
+                  </p>
+                  <p className="text-4xl font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                    {formatMoney(displayBasePrice)}
+                  </p>
                 </div>
               )
             })()}
