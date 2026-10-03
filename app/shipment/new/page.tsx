@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SVGProps } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import type { CreateShipmentRequest } from '@/lib/api/shipment-api'
@@ -138,6 +139,9 @@ export default function NewShipmentPage() {
   const [quoteLoading, setQuoteLoading] = useState(false)
   const [quoteError, setQuoteError] = useState(false)
   const [quoteRetry, setQuoteRetry] = useState(0)
+  // Tracks the inputs the current quote was fetched for, so stepping from
+  // payment -> finish reuses the quote instead of blanking it and refetching.
+  const quoteSignatureRef = useRef<string | null>(null)
 
   const handleBack = () => {
     if (activeIndex <= 0) {
@@ -150,23 +154,30 @@ export default function NewShipmentPage() {
   const totalAmount = quotedAmountNGN
 
   useEffect(() => {
-    if (currentStep !== 'finish') return
+    // The quote is needed on the payment step too, so the amount is visible
+    // while the user is still choosing how to pay.
+    if (currentStep !== 'payment' && currentStep !== 'finish') return
     const weight = parseFloat(pkg.weight)
     if (!sender.address.trim() || !receiver.address.trim() || !Number.isFinite(weight) || weight <= 0) return
 
-    let cancelled = false
     const weightInKg = pkg.weightUnit === 'lb' ? weight * 0.453592 : weight
-    setQuoteLoading(true)
-    setQuoteError(false)
-    setQuotedAmountNGN(null)
-
-    pricingMutation.mutateAsync({
+    const request = {
       sender_address: sender.address.trim(),
       receiver_address: receiver.address.trim(),
       weight: Number(weightInKg.toFixed(2)),
       sender_email: sender.email.trim() || undefined,
       sender_phone_number: ensureIntlPhone(sender.phone, getDialCode(sender.countryCode)) || undefined,
-    }).then((response) => {
+    }
+    const signature = JSON.stringify(request)
+
+    if (quoteSignatureRef.current === signature && quotedAmountNGN != null) return
+    quoteSignatureRef.current = signature
+
+    let cancelled = false
+    setQuoteLoading(true)
+    setQuoteError(false)
+
+    pricingMutation.mutateAsync(request).then((response) => {
       if (cancelled) return
       const result = response.data
       const quoteParts = typeof result.price?.amount === 'number'
@@ -184,22 +195,27 @@ export default function NewShipmentPage() {
         ? amountsInNGN.reduce((sum, part) => sum + part, 0)
         : null
       if (amount != null && amount > 0) setQuotedAmountNGN(amount)
-      else setQuoteError(true)
+      else {
+        setQuotedAmountNGN(null)
+        setQuoteError(true)
+      }
     }).catch(() => {
-      if (!cancelled) setQuoteError(true)
+      if (cancelled) return
+      setQuotedAmountNGN(null)
+      setQuoteError(true)
     }).finally(() => {
       if (!cancelled) setQuoteLoading(false)
     })
 
     return () => { cancelled = true }
-  }, [currentStep, sender.address, receiver.address, pkg.weight, pkg.weightUnit, sender.email, sender.phone, sender.countryCode, quoteRetry, exchangeRate?.ngn_per_usd])
+  }, [currentStep, sender.address, receiver.address, pkg.weight, pkg.weightUnit, sender.email, sender.phone, sender.countryCode, quoteRetry, exchangeRate?.ngn_per_usd, quotedAmountNGN])
 
   const senderPhoneValidation = validatePhoneNumber(sender.phone, sender.countryCode)
   const receiverPhoneValidation = validatePhoneNumber(receiver.phone, receiver.countryCode)
   const senderCanContinue = canMoveForward && senderPhoneValidation.valid
   const receiverCanContinue = canMoveForward && receiverPhoneValidation.valid
 
-  const handleConfirmShipment = async (selectedMethod: 'wallet' | 'card' = payment.method) => {
+  const handleConfirmShipment = async () => {
     if (typeof window === 'undefined') return
 
     if (!token) {
@@ -216,13 +232,14 @@ export default function NewShipmentPage() {
       return
     }
 
-    const normalizedMethod = selectedMethod === 'card' ? 'card' : 'wallet'
-    const walletHasSufficientBalance = walletBalance == null || (totalAmount != null && walletBalance >= totalAmount)
+    // Step 4 is the single source of truth for how this order is paid for.
+    const normalizedMethod = payment.method === 'card' ? 'card' : 'wallet'
+    const walletHasSufficientBalance = walletBalance != null && totalAmount != null && walletBalance >= totalAmount
 
     if (normalizedMethod === 'wallet' && !walletHasSufficientBalance) {
       toast({
         title: 'Insufficient wallet balance',
-        description: `Your wallet balance is ₦${(walletBalance ?? 0).toLocaleString()}. Add funds or use Paystack checkout.`,
+        description: `Your wallet balance is ₦${(walletBalance ?? 0).toLocaleString()}. Add funds or switch to paying by card.`,
       })
       return
     }
@@ -309,13 +326,26 @@ export default function NewShipmentPage() {
       }
 
       if (normalizedMethod === 'card') {
+        const paymentData = (paymentResponse as any)?.data as Record<string, unknown> | undefined
         const authorizationUrl =
-          (paymentResponse as any)?.data?.authorization_url ||
+          paymentData?.authorization_url ||
           (paymentResponse as any)?.authorization_url ||
-          (paymentResponse as any)?.data?.checkout_url ||
+          paymentData?.checkout_url ||
           (paymentResponse as any)?.checkout_url
 
         if (authorizationUrl) {
+          // Persist the reference BEFORE leaving for Paystack so the return trip
+          // can still confirm the payment if the callback drops ?reference= or
+          // the user refreshes. sessionStorage survives the cross-site redirect.
+          const reference = paymentData?.reference ?? (paymentResponse as any)?.reference
+          if (typeof reference === 'string' && reference) {
+            try {
+              window.sessionStorage.setItem('alcott_pending_shipment_ref', reference)
+              window.sessionStorage.setItem('alcott_pending_shipment_id', shipmentId)
+            } catch {
+              // ignore storage errors
+            }
+          }
           window.location.href = authorizationUrl
           return
         }
@@ -399,7 +429,20 @@ export default function NewShipmentPage() {
               />
             )}
             {currentStep === 'payment' && (
-              <PaymentForm data={payment} onChange={setPayment} onContinue={moveToNext} canContinue={canMoveForward} walletBalance={walletBalance} />
+              <PaymentForm
+                data={payment}
+                onChange={setPayment}
+                onContinue={moveToNext}
+                canContinue={canMoveForward}
+                walletBalance={walletBalance}
+                totalAmount={totalAmount}
+                quoteLoading={quoteLoading}
+                quoteError={quoteError}
+                onRefreshQuote={() => {
+                  quoteSignatureRef.current = null
+                  setQuoteRetry((current) => current + 1)
+                }}
+              />
             )}
             {currentStep === 'finish' && (
               <ReviewSummary
@@ -408,6 +451,7 @@ export default function NewShipmentPage() {
                 pkg={pkg}
                 payment={payment}
                 onConfirm={handleConfirmShipment}
+                onEditPayment={moveToPrevious}
                 isSubmitting={isSubmitting}
                 totalAmount={totalAmount}
                 walletBalance={walletBalance}
@@ -415,7 +459,10 @@ export default function NewShipmentPage() {
                 ngnPerUsd={exchangeRate?.ngn_per_usd}
                 quoteLoading={quoteLoading}
                 quoteError={quoteError}
-                onRefreshQuote={() => setQuoteRetry((current) => current + 1)}
+                onRefreshQuote={() => {
+                  quoteSignatureRef.current = null
+                  setQuoteRetry((current) => current + 1)
+                }}
               />
             )}
           </div>
@@ -706,26 +753,57 @@ function PaymentForm({
   onContinue,
   canContinue,
   walletBalance,
+  totalAmount,
+  quoteLoading,
+  quoteError,
+  onRefreshQuote,
 }: {
   data: ShipmentPaymentSelection
   onChange: (value: ShipmentPaymentSelection) => void
   onContinue: () => void
   canContinue: boolean
   walletBalance: number | null
+  totalAmount: number | null
+  quoteLoading: boolean
+  quoteError: boolean
+  onRefreshQuote: () => void
 }) {
-  const balanceDisplay = walletBalance != null ? `Balance: ₦${walletBalance.toLocaleString()}` : 'Balance: ₦—'
+  const balanceDisplay = walletBalance != null ? `Balance: ${formatCurrency(walletBalance, 'NGN')}` : 'Balance: —'
+  const walletShortfall = walletBalance != null && totalAmount != null ? Math.max(0, totalAmount - walletBalance) : 0
+  const walletInsufficient = data.method === 'wallet' && walletBalance != null && totalAmount != null && walletShortfall > 0
 
   return (
     <FormSection title="Payment Method" subtitle="Select how you want to pay for this shipment.">
+      <div className="rounded-2xl border border-[#4043FF]/20 bg-[#4043FF]/5 p-4">
+        <p className="text-xs uppercase tracking-[0.08em] text-gray-500">Total amount</p>
+        {quoteError ? (
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <p className="text-sm text-red-600">Could not get a live shipment quote.</p>
+            <button type="button" onClick={onRefreshQuote} className="shrink-0 text-sm font-semibold text-[#4043FF] underline">
+              Retry
+            </button>
+          </div>
+        ) : (
+          <p className="mt-1 text-2xl font-bold text-[#4043FF]">
+            {quoteLoading || totalAmount == null ? 'Calculating…' : formatCurrency(totalAmount, 'NGN')}
+          </p>
+        )}
+      </div>
+
       <div className="space-y-3">
         <label
-          className={`flex items-center justify-between border rounded-xl px-4 py-3 transition-colors ${
+          className={`flex items-center justify-between border rounded-xl px-4 py-3 transition-colors cursor-pointer ${
             data.method === 'wallet' ? 'border-[#4043FF] bg-[#4043FF]/5' : 'border-gray-200 hover:border-[#4043FF]/40'
           }`}
         >
           <div>
             <p className="text-sm font-semibold text-gray-900">My Wallet</p>
             <p className="text-xs text-gray-500">{balanceDisplay}</p>
+            {walletInsufficient && (
+              <p className="mt-1 text-xs font-medium text-[#E56A1A]">
+                {formatCurrency(walletShortfall, 'NGN')} more needed
+              </p>
+            )}
           </div>
           <input
             type="radio"
@@ -737,7 +815,7 @@ function PaymentForm({
           />
         </label>
         <label
-          className={`flex items-center justify-between border rounded-xl px-4 py-3 transition-colors ${
+          className={`flex items-center justify-between border rounded-xl px-4 py-3 transition-colors cursor-pointer ${
             data.method === 'card' ? 'border-[#4043FF] bg-[#4043FF]/5' : 'border-gray-200 hover:border-[#4043FF]/40'
           }`}
         >
@@ -755,7 +833,17 @@ function PaymentForm({
           />
         </label>
       </div>
-      <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
+
+      {walletInsufficient && (
+        <Link
+          href="/topup"
+          className="block text-center text-sm font-semibold text-[#4043FF] hover:underline"
+        >
+          Top up wallet
+        </Link>
+      )}
+
+      <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue || quoteLoading || totalAmount == null} />
     </FormSection>
   )
 }
@@ -766,6 +854,7 @@ function ReviewSummary({
   pkg,
   payment,
   onConfirm,
+  onEditPayment,
   isSubmitting,
   totalAmount,
   walletBalance,
@@ -779,7 +868,8 @@ function ReviewSummary({
   receiver: ShipmentContact
   pkg: ShipmentPackage
   payment: ShipmentPaymentSelection
-  onConfirm: (method?: 'wallet' | 'card') => void
+  onConfirm: () => void
+  onEditPayment: () => void
   isSubmitting: boolean
   totalAmount: number | null
   walletBalance: number | null
@@ -790,10 +880,18 @@ function ReviewSummary({
   onRefreshQuote: () => void
 }) {
   const walletShortfall = walletBalance != null && totalAmount != null ? Math.max(0, totalAmount - walletBalance) : 0
+  const walletInsufficient = payment.method === 'wallet' && walletBalance != null && totalAmount != null && walletShortfall > 0
   const convertedTotal = totalAmount == null ? null : convertCurrency(totalAmount, 'NGN', displayCurrency, ngnPerUsd)
   const totalDisplay = totalAmount == null
     ? '—'
     : formatCurrency(convertedTotal ?? totalAmount, convertedTotal == null ? 'NGN' : displayCurrency)
+
+  const isCard = payment.method === 'card'
+  const payLabel = totalAmount == null
+    ? 'Confirm order'
+    : isCard
+      ? `Pay ${totalDisplay} with Card`
+      : `Pay ${totalDisplay} from Wallet`
 
   return (
     <FormSection title="Review Summary" subtitle="Confirm the details before completing the order.">
@@ -816,7 +914,7 @@ function ReviewSummary({
           ['Dimensions', `${pkg.length || 0} × ${pkg.width || 0} × ${pkg.height || 0} ${pkg.dimensionUnit.toUpperCase()}`],
         ]} />
         <SummaryCard title="Payment" items={[[
-          'Method', payment.method === 'wallet' ? 'My Wallet' : 'Pay with Card'
+          'Method', isCard ? 'Pay with Card' : 'My Wallet'
         ]]} />
 
         <div className="rounded-2xl border border-[#4043FF]/20 bg-[#4043FF]/5 p-4">
@@ -829,8 +927,8 @@ function ReviewSummary({
             <div className="text-right text-xs text-gray-500">
               <p>Wallet balance</p>
               <p className="mt-1 font-semibold text-gray-900">{walletBalance == null ? '—' : formatCurrency(walletBalance, 'NGN')}</p>
-              {walletBalance != null && walletShortfall > 0 && (
-                <p className="mt-1 text-[#E56A1A]">Need ₦{walletShortfall.toLocaleString()} more</p>
+              {walletInsufficient && (
+                <p className="mt-1 text-[#E56A1A]">Need {formatCurrency(walletShortfall, 'NGN')} more</p>
               )}
             </div>
           </div>
@@ -845,20 +943,35 @@ function ReviewSummary({
 
       <div className="pt-4 space-y-3">
         <Button
-          onClick={() => onConfirm('wallet')}
-          disabled={isSubmitting || quoteLoading || totalAmount == null || (walletBalance != null && walletBalance < totalAmount)}
+          onClick={onConfirm}
+          disabled={isSubmitting || quoteLoading || totalAmount == null || walletInsufficient}
           className="w-full h-12 rounded-full bg-[#4043FF] hover:bg-[#3333CC] text-white font-semibold disabled:opacity-60"
         >
-          {isSubmitting ? 'Processing…' : 'Pay from Wallet'}
+          {isSubmitting ? (isCard ? 'Redirecting…' : 'Processing…') : payLabel}
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => onConfirm('card')}
-          disabled={isSubmitting || quoteLoading || totalAmount == null}
-          className="w-full h-12 rounded-full border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white font-semibold disabled:opacity-60"
-        >
-          {isSubmitting ? 'Redirecting…' : 'Pay with Paystack'}
-        </Button>
+
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-gray-500">
+            {isCard ? 'You will be redirected to Paystack to complete payment.' : 'Your wallet will be debited immediately.'}
+          </span>
+          <button
+            type="button"
+            onClick={onEditPayment}
+            disabled={isSubmitting}
+            className="shrink-0 font-semibold text-[#4043FF] hover:underline disabled:opacity-60"
+          >
+            Change
+          </button>
+        </div>
+
+        {walletInsufficient && (
+          <Link
+            href="/topup"
+            className="block text-center text-sm font-semibold text-[#4043FF] hover:underline"
+          >
+            Top up wallet
+          </Link>
+        )}
       </div>
     </FormSection>
   )
