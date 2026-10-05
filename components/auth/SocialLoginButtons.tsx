@@ -6,7 +6,7 @@ export function SocialLoginButtons() {
     return (
         <>
             <div className="text-center mb-8">
-                <span className="text-sm text-gray-500 font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>or continue with</span>
+                <span className="text-sm text-gray-500 font-bold">or continue with</span>
             </div>
 
             <div className="flex justify-center space-x-8 mb-8">

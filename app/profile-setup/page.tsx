@@ -146,7 +146,7 @@ export default function ProfileSetupPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+        <h1 className="text-xl font-bold text-gray-900">
           {step === 1 ? 'Fill Your Profile' : 'Pin Your Address Location'}
         </h1>
       </div>
@@ -195,8 +195,8 @@ export default function ProfileSetupPage() {
                 placeholder="First name"
                 value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className="w-full h-12 px-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                className="w-full h-12 px-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-bold placeholder:font-bold"
+                style={{ fontWeight: 'bold' }}
                 required
               />
             </div>
@@ -208,8 +208,8 @@ export default function ProfileSetupPage() {
                 placeholder="Last name"
                 value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className="w-full h-12 px-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                className="w-full h-12 px-4 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-bold placeholder:font-bold"
+                style={{ fontWeight: 'bold' }}
                 required
               />
             </div>
@@ -221,8 +221,8 @@ export default function ProfileSetupPage() {
                 placeholder="Date of Birth"
                 value={formData.dateOfBirth}
                 onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-bold placeholder:font-bold"
+                style={{ fontWeight: 'bold' }}
                 required
               />
               <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,8 +237,8 @@ export default function ProfileSetupPage() {
                 placeholder="Email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-bold placeholder:font-bold"
+                style={{ fontWeight: 'bold' }}
                 required
               />
               <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,15 +251,15 @@ export default function ProfileSetupPage() {
               <div className="flex">
                 <div className="flex items-center px-3 border border-r-0 border-gray-200 rounded-l-lg bg-gray-50">
                   <div className="w-6 h-4 bg-green-500 mr-2"></div>
-                  <span className="text-gray-600 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>NG</span>
+                  <span className="text-gray-600 font-bold" style={{ fontWeight: 'bold' }}>NG</span>
                 </div>
                 <Input
                   type="tel"
                   placeholder="Phone Number"
                   value={formData.phoneNumber}
                   onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                  className="flex-1 h-12 px-4 border border-gray-200 rounded-r-lg rounded-l-none text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] font-bold placeholder:font-bold"
-                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                  className="flex-1 h-12 px-4 border border-gray-200 rounded-r-lg rounded-l-none text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-bold placeholder:font-bold"
+                  style={{ fontWeight: 'bold' }}
                 required
                 />
               </div>
@@ -270,8 +270,8 @@ export default function ProfileSetupPage() {
               <select
                 value={formData.gender}
                 onChange={(e) => handleInputChange('gender', e.target.value)}
-                className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent appearance-none bg-white font-[Urbanist] font-bold"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                className="w-full h-12 px-4 pr-12 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent appearance-none bg-white font-bold"
+                style={{ fontWeight: 'bold' }}
                 required
               >
                 <option value="" className="text-gray-500 font-bold">Gender</option>
@@ -285,12 +285,12 @@ export default function ProfileSetupPage() {
             </div>
 
             {errorMessage && (
-              <p className="text-sm text-red-600 text-center font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <p className="text-sm text-red-600 text-center font-bold">
                 {errorMessage}
               </p>
             )}
             {successMessage && (
-              <p className="text-sm text-green-600 text-center font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <p className="text-sm text-green-600 text-center font-bold">
                 {successMessage}
               </p>
             )}
@@ -301,8 +301,8 @@ export default function ProfileSetupPage() {
                 type="button"
                 onClick={handleContinueToAddress}
                 disabled={isSubmitting}
-                className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-[Urbanist] max-w-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full max-w-sm disabled:opacity-70 disabled:cursor-not-allowed"
+
               >
                 Continue
               </Button>
@@ -314,7 +314,7 @@ export default function ProfileSetupPage() {
         <div className="hidden lg:flex w-2/5 items-center justify-center p-6">
           <ImagePicker 
             onImageSelect={handleImageSelect}
-            className=""
+            
           />
         </div>
         </>

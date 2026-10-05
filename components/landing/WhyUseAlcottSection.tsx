@@ -3,7 +3,7 @@ export function WhyUseAlcottSection() {
         <section className="bg-gray-50 py-20">
             <div className="max-w-8xl mx-auto px-4 lg:px-12">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                    <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                         Why Use Alcott?
                     </h2>
                 </div>
@@ -25,8 +25,8 @@ export function WhyUseAlcottSection() {
 
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Easy to use</h3>
-                                <p className="text-gray-600 leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Easy to use</h3>
+                                <p className="text-gray-600 leading-relaxed">
                                     Navigate through the Alcott app easily as individuals or businesses, book shipment & deliveries alongside many more things.
                                 </p>
                             </div>
@@ -41,8 +41,8 @@ export function WhyUseAlcottSection() {
 
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Super fast</h3>
-                                <p className="text-gray-600 leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Super fast</h3>
+                                <p className="text-gray-600 leading-relaxed">
                                     Across our platforms all logistics processes are blazing fast because of our efficient partners and digital servers that anchors our work.
                                 </p>
                             </div>
@@ -57,8 +57,8 @@ export function WhyUseAlcottSection() {
 
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Safe & secure</h3>
-                                <p className="text-gray-600 leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Safe & secure</h3>
+                                <p className="text-gray-600 leading-relaxed">
                                     Your shipments and payments are protected at every stage. With secure systems, trusted partners, and real-time tracking, we guarantee peace of mind from dispatch to delivery.
                                 </p>
                             </div>

@@ -116,7 +116,7 @@ function SuccessContent() {
 
   if (status === 'failed') {
     return (
-      <div className="min-h-screen bg-[#F8F9FC] flex flex-col items-center justify-center px-6 py-16 text-center font-['Urbanist']">
+      <div className="min-h-screen bg-[#F8F9FC] flex flex-col items-center justify-center px-6 py-16 text-center">
         <div className="max-w-lg w-full bg-white border border-gray-200 rounded-3xl shadow-lg p-10 space-y-6">
           <h1 className="text-2xl font-bold text-gray-900">Payment couldn't be verified</h1>
           <p className="text-sm text-gray-600">
@@ -136,7 +136,7 @@ function SuccessContent() {
   const trackingId = shipment?.tracking_id
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] flex flex-col items-center justify-center px-6 py-16 text-center font-['Urbanist']">
+    <div className="min-h-screen bg-[#F8F9FC] flex flex-col items-center justify-center px-6 py-16 text-center">
       <div className="max-w-lg w-full bg-white border border-gray-200 rounded-3xl shadow-lg p-10 space-y-6">
         <div className="mx-auto w-24 h-24 bg-[#4043FF]/10 rounded-full flex items-center justify-center relative">
           <div className="absolute inset-0 animate-ping bg-[#4043FF]/20 rounded-full" />

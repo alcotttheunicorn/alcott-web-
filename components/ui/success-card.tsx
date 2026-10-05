@@ -41,13 +41,13 @@ export function SuccessCard({
       </div>
 
       {/* Title */}
-      <h2 className="text-3xl font-bold text-gray-900 mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+      <h2 className="text-3xl font-bold text-gray-900 mb-6">
         {title}
       </h2>
 
       {/* Description */}
       <div className="space-y-2 mb-8">
-        <p className="text-lg text-gray-600 font-[Urbanist] font-medium" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+        <p className="text-lg text-gray-600 font-medium">
           {description}
         </p>
       </div>

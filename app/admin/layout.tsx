@@ -123,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const isActive = (href: string) => pathname.startsWith(href)
 
     return (
-        <div className="min-h-screen bg-[#F8F9FC] flex w-full overflow-x-hidden" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+        <div className="min-h-screen bg-[#F8F9FC] flex w-full overflow-x-hidden">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex w-56 bg-[#4043FF] text-white flex-col fixed h-full z-40">
                 {/* Logo */}

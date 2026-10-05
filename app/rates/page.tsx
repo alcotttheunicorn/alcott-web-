@@ -128,7 +128,7 @@ export default function CheckRatesPage() {
                   placeholder="Pick up Location"
                   containerClassName="flex-1"
                   className="w-full bg-transparent text-gray-900 placeholder:text-gray-400 outline-none text-[15px]"
-                  style={{ fontFamily: "'Urbanist', sans-serif" }}
+
                 />
                 <div className="shrink-0 cursor-pointer">
                   <TargetIcon />
@@ -152,7 +152,7 @@ export default function CheckRatesPage() {
                   placeholder="Package Destination"
                   containerClassName="flex-1"
                   className="w-full bg-transparent text-gray-900 placeholder:text-gray-400 outline-none text-[15px]"
-                  style={{ fontFamily: "'Urbanist', sans-serif" }}
+
                 />
                 <div className="shrink-0 cursor-pointer">
                   <TargetIcon />
@@ -164,7 +164,7 @@ export default function CheckRatesPage() {
 
         {/* Dimension section */}
         <div className="mb-8">
-          <h2 className="text-[15px] font-bold text-gray-900 mb-3" style={{ fontFamily: "'Urbanist', sans-serif" }}>Dimension</h2>
+          <h2 className="text-[15px] font-bold text-gray-900 mb-3">Dimension</h2>
           <div className="flex items-center gap-3 p-4 bg-[#F8F9FA] rounded-2xl">
             <div className="shrink-0">
               <WeightBoxIcon />
@@ -179,9 +179,9 @@ export default function CheckRatesPage() {
                 setWeight(sanitized)
               }}
               className="flex-1 w-full bg-transparent text-gray-900 placeholder:text-gray-400 outline-none text-[15px]"
-              style={{ fontFamily: "'Urbanist', sans-serif" }}
+
             />
-            <span className="text-gray-500 font-medium shrink-0 text-[15px]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+            <span className="text-gray-500 font-medium shrink-0 text-[15px]">
               kg
             </span>
           </div>
@@ -191,8 +191,8 @@ export default function CheckRatesPage() {
         <button
           onClick={handleCheckRates}
           disabled={isLoading}
-          className="w-full bg-[#4043FF] text-white rounded-full py-4 px-6 font-bold text-[16px] hover:bg-[#3333CC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-[Urbanist]"
-          style={{ fontFamily: "'Urbanist', sans-serif" }}
+          className="w-full bg-[#4043FF] text-white rounded-full py-4 px-6 font-bold text-[16px] hover:bg-[#3333CC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+
         >
           {isLoading ? 'Checking...' : 'Check'}
         </button>
@@ -200,17 +200,17 @@ export default function CheckRatesPage() {
         {/* Rates Display */}
         {showRates && pricingResult && (
           <div className="mt-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">
               Rates
             </h2>
 
             {/* Location Summary */}
             <div className="flex items-center justify-between mb-8 px-4">
               <div className="flex-1 text-center">
-                <p className="text-[15px] font-bold text-gray-900 mb-1" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <p className="text-[15px] font-bold text-gray-900 mb-1">
                   {pickupLocation || 'Not specified'}
                 </p>
-                <p className="text-[11px] text-gray-400 font-medium" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <p className="text-[11px] text-gray-400 font-medium">
                   Pick-up Location
                 </p>
               </div>
@@ -222,10 +222,10 @@ export default function CheckRatesPage() {
               </div>
 
               <div className="flex-1 text-center">
-                <p className="text-[15px] font-bold text-gray-900 mb-1" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <p className="text-[15px] font-bold text-gray-900 mb-1">
                   {destination || 'Not specified'}
                 </p>
-                <p className="text-[11px] text-gray-400 font-medium" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <p className="text-[11px] text-gray-400 font-medium">
                   Package Destination
                 </p>
               </div>
@@ -252,10 +252,10 @@ export default function CheckRatesPage() {
 
               return (
                 <div className="max-w-4xl mx-auto rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
                     Total delivery cost
                   </p>
-                  <p className="text-4xl font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                  <p className="text-4xl font-bold text-[#4043FF]">
                     {formatMoney(displayBasePrice)}
                   </p>
                 </div>

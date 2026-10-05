@@ -103,10 +103,10 @@ export function VerifyPaymentHandler() {
   return (
     <>
       {isPending && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/80">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-white/80">
           <div className="flex flex-col items-center gap-4">
             <div className="w-10 h-10 border-4 border-[#4043FF] border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-700 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+            <p className="text-gray-700 ">
               Confirming your payment…
             </p>
           </div>

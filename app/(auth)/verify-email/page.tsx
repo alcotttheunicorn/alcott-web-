@@ -46,8 +46,8 @@ export default function VerifyEmailPage() {
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 font-['Urbanist']">Verify your email</h1>
-            <p className="mt-2 text-gray-600 font-['Urbanist'] font-bold">Enter the code we sent to your email to continue.</p>
+            <h1 className="text-3xl font-bold text-gray-900">Verify your email</h1>
+            <p className="mt-2 text-gray-600 font-bold">Enter the code we sent to your email to continue.</p>
           </div>
 
           <form
@@ -121,9 +121,9 @@ export default function VerifyEmailPage() {
                     <svg className="w-5 h-5 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c.5304 0 1.0391.2107 1.4142.5858C13.7893 11.9609 14 12.4696 14 13v4c0 .5304-.2107 1.0391-.5858 1.4142C13.0391 18.7893 12.5304 19 12 19H8c-.5304 0-1.0391-.2107-1.4142-.5858C6.2107 18.0391 6 17.5304 6 17v-4c0-.5304.2107-1.0391.5858-1.4142C6.9609 11.2107 7.4696 11 8 11h4zM10 11V9a2 2 0 114 0v2m-6 4h8" />
                     </svg>
-                    <span className="text-sm font-bold font-['Urbanist']">Enter 6-digit code</span>
+                    <span className="text-sm font-bold">Enter 6-digit code</span>
                   </div>
-                  <span className="text-xs text-gray-500 font-['Urbanist'] font-bold">Code expires in 10 minutes</span>
+                  <span className="text-xs text-gray-500 font-bold">Code expires in 10 minutes</span>
                 </div>
 
                 <InputOTP
@@ -152,24 +152,24 @@ export default function VerifyEmailPage() {
 
             {/* Feedback */}
             {errorMessage && (
-              <p className="text-sm text-red-600 text-center font-['Urbanist'] font-bold">{errorMessage}</p>
+              <p className="text-sm text-red-600 text-center font-bold">{errorMessage}</p>
             )}
             {successMessage && (
-              <p className="text-sm text-green-600 text-center font-['Urbanist'] font-bold">{successMessage}</p>
+              <p className="text-sm text-green-600 text-center font-bold">{successMessage}</p>
             )}
 
             {/* Submit */}
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-['Urbanist'] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Verifying…' : 'Verify email'}
             </Button>
           </form>
 
           {/* Footer */}
-          <div className="mt-6 text-center text-sm text-gray-500 font-bold font-['Urbanist'] space-y-4">
+          <div className="mt-6 text-center text-sm text-gray-500 font-bold space-y-4">
             <p>Didn't receive the code? <span className="text-[#4043FF]">Check spam</span> or resend below.</p>
             <div className="flex flex-col items-center space-y-2">
               <Button
@@ -206,20 +206,20 @@ export default function VerifyEmailPage() {
                   }
                 }}
                 disabled={isResending || !email}
-                className="rounded-full border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white font-['Urbanist']"
+                className="rounded-full border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white"
               >
                 {isResending ? 'Sending…' : 'Resend verification email'}
               </Button>
               {resendError && (
-                <p className="text-xs text-red-600 font-['Urbanist'] font-bold">{resendError}</p>
+                <p className="text-xs text-red-600 font-bold">{resendError}</p>
               )}
               {resendMessage && (
-                <p className="text-xs text-green-600 font-['Urbanist'] font-bold">{resendMessage}</p>
+                <p className="text-xs text-green-600 font-bold">{resendMessage}</p>
               )}
             </div>
             <p>
               Need to change your email?{' '}
-              <Link href="/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
+              <Link href="/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline">
                 Start over
               </Link>
             </p>

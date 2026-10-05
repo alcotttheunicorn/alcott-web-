@@ -12,19 +12,19 @@ export function HowItWorksSection() {
                     </div>
 
                     <div className="flex-1 text-white max-w-md">
-                        <h2 className="text-3xl font-semibold mb-8" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>How it Works</h2>
+                        <h2 className="text-3xl font-semibold mb-8">How it Works</h2>
 
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Create Account</h3>
-                                <p className="text-base opacity-90 leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                <h3 className="text-xl font-semibold mb-2">Create Account</h3>
+                                <p className="text-base opacity-90 leading-relaxed">
                                     Log on to our web app and create your account
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Book Shipment</h3>
-                                <div className="space-y-1 text-base opacity-90 leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                <h3 className="text-xl font-semibold mb-2">Book Shipment</h3>
+                                <div className="space-y-1 text-base opacity-90 leading-relaxed">
                                     <p>1. Select &apos;request a delivery&apos; or &apos;new shipment&apos;</p>
                                     <p>2. Select whether you want to drop-off at one of our hubs or you want us to pick up from your location</p>
                                     <p>3. Enter details of sender and receiver</p>
@@ -33,8 +33,8 @@ export function HowItWorksSection() {
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Make Payment</h3>
-                                <p className="text-base opacity-90 leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                <h3 className="text-xl font-semibold mb-2">Make Payment</h3>
+                                <p className="text-base opacity-90 leading-relaxed">
                                     Pay and that&apos;s it! Your package is on it&apos;s way to the receiver
                                 </p>
                             </div>
@@ -43,19 +43,19 @@ export function HowItWorksSection() {
                 </div>
 
                 <div className="lg:hidden text-center">
-                    <h2 className="text-3xl font-bold text-white mb-10" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>How it Works</h2>
+                    <h2 className="text-3xl font-bold text-white mb-10">How it Works</h2>
 
                     <div className="space-y-8 text-center mb-10">
                         <div>
-                            <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Create Account</h3>
-                            <p className="text-white opacity-90 text-base leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                            <h3 className="text-xl font-bold text-white mb-2">Create Account</h3>
+                            <p className="text-white opacity-90 text-base leading-relaxed">
                                 Log on to our web app and create your account
                             </p>
                         </div>
 
                         <div>
-                            <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Book Shipment</h3>
-                            <div className="space-y-1 text-white opacity-90 text-base leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                            <h3 className="text-xl font-bold text-white mb-2">Book Shipment</h3>
+                            <div className="space-y-1 text-white opacity-90 text-base leading-relaxed">
                                 <p>1. Select &apos;request a delivery&apos; or &apos;new shipment&apos;</p>
                                 <p>2. Select whether you want to drop-off at one of our hubs or you want us to pick up from your location</p>
                                 <p>3. Enter details of sender and receiver</p>
@@ -64,8 +64,8 @@ export function HowItWorksSection() {
                         </div>
 
                         <div>
-                            <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Make Payment</h3>
-                            <p className="text-white opacity-90 text-base leading-relaxed" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                            <h3 className="text-xl font-bold text-white mb-2">Make Payment</h3>
+                            <p className="text-white opacity-90 text-base leading-relaxed">
                                 Pay and that&apos;s it! Your package is on it&apos;s way to the receiver
                             </p>
                         </div>

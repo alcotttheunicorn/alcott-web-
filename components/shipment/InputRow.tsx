@@ -55,7 +55,7 @@ export function InputRow({
 
   return (
     <div className={`space-y-1.5 ${containerClassName ?? ''}`}>
-      <label className="text-sm font-bold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>{label}</label>
+      <label className="text-sm font-bold text-gray-900">{label}</label>
       <div className="flex items-center rounded-xl bg-[#F9F9F9] border border-gray-200 focus-within:ring-2 focus-within:ring-[#4043FF]/20 transition-all focus-within:border-[#4043FF]/30 focus-within:bg-white">
         {prefix && (
           <div className="pl-4 pr-1 flex items-center justify-center text-gray-500">
@@ -71,7 +71,7 @@ export function InputRow({
             country={country}
             containerClassName="flex-1 min-w-0"
             className={commonInputClasses}
-            style={{ fontFamily: "'Urbanist', sans-serif" }}
+
           />
         ) : (
           <Input
@@ -80,7 +80,7 @@ export function InputRow({
             placeholder={placeholder}
             onChange={handleChange}
             className={commonInputClasses}
-            style={{ fontFamily: "'Urbanist', sans-serif" }}
+
             inputMode={inputMode}
             autoComplete={autoComplete}
             maxLength={maxLength}

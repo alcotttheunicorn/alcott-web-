@@ -41,15 +41,15 @@ function TransactionCard({ item, index }: { item: Transaction; index: number }) 
           <TransactionIcon type={item.type} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs lg:text-sm font-bold text-gray-900 truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+          <p className="text-xs lg:text-sm font-bold text-gray-900 truncate" style={{ fontWeight: 'bold' }}>
             {item.title ?? 'Transaction'}
           </p>
-          <p className="text-xs lg:text-sm text-gray-600 line-clamp-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+          <p className="text-xs lg:text-sm text-gray-600 line-clamp-2" style={{ fontWeight: 'bold' }}>
             {item.description ?? ''}
           </p>
         </div>
       </div>
-      <span className="text-xs text-gray-500 mt-1 shrink-0 ml-2" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+      <span className="text-xs text-gray-500 mt-1 shrink-0 ml-2" style={{ fontWeight: 'bold' }}>
         {formatDateTime(item.created_at)}
       </span>
     </div>
@@ -157,10 +157,10 @@ function HomeContent() {
       <section className="mb-6 lg:mb-8">
         <div className="flex items-start justify-between gap-4 mb-3 px-0.5">
           <div>
-            <p className="text-xs sm:text-sm text-gray-500 leading-tight" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+            <p className="text-xs sm:text-sm text-gray-500 leading-tight">
               {greeting} <span aria-hidden="true">👋</span>
             </p>
-            <h2 className="text-sm sm:text-base font-bold text-gray-900 mt-0.5" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+            <h2 className="text-sm sm:text-base font-bold text-gray-900 mt-0.5">
               {profile ? `${profile.first_name} ${profile.last_name}` : ''}
             </h2>
           </div>
@@ -176,8 +176,8 @@ function HomeContent() {
               <img src="/home_card.png" alt="Balance card background" className="w-full h-auto" />
               <div className="absolute inset-0 flex items-center justify-between gap-x-3 sm:flex-col sm:items-start sm:justify-center sm:gap-y-6 px-4 sm:px-10 lg:px-14 py-2 sm:py-6">
                 <div className="min-w-0">
-                  <p className="text-white/90 text-xs sm:text-sm font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Your balance</p>
-                  <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-5 truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                  <p className="text-white/90 text-xs sm:text-sm font-bold">Your balance</p>
+                  <h3 className="text-white text-xl sm:text-3xl lg:text-4xl font-extrabold mt-1 sm:mt-5 truncate">
                     {balance != null
                       ? (() => {
                           const converted = convertCurrency(balance, 'NGN', currency, exchangeRate?.ngn_per_usd)
@@ -189,7 +189,7 @@ function HomeContent() {
                 <button
                   onClick={() => router.push('/topup')}
                   className="shrink-0 bg-white text-[#4043FF] hover:bg-gray-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold shadow transition-colors flex items-center gap-1"
-                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                  style={{ fontWeight: 'bold' }}
                 >
                   <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7.69175 3.9921V0.651254C7.69175 0.296024 7.97508 0 8.33342 0C8.65425 0 8.92607 0.248743 8.96914 0.563817L8.97508 0.651254V3.9921L12.9583 3.99235C14.9417 3.99235 16.5711 5.61648 16.6626 7.64201L16.6667 7.82174V12.0212C16.6667 14.0609 15.0939 15.7352 13.14 15.8292L12.9667 15.8333H3.7C1.71667 15.8333 0.0950748 14.2173 0.00403149 12.1844L0 12.0039L0 7.81314C0 5.77342 1.56492 4.09101 3.51833 3.99654L3.69167 3.99235H7.69167V9.32768L6.35833 7.95082C6.10833 7.69266 5.7 7.69266 5.45 7.95082C5.325 8.0799 5.26667 8.25201 5.26667 8.42412C5.26667 8.55492 5.304 8.69123 5.38293 8.80661L5.45 8.88881L7.875 11.4016C7.99167 11.5307 8.15833 11.5995 8.33333 11.5995C8.47222 11.5995 8.61111 11.5517 8.72106 11.4611L8.78333 11.4016L11.2083 8.88881C11.4583 8.63064 11.4583 8.20898 11.2083 7.95082C10.9811 7.71613 10.6229 7.69479 10.3719 7.88681L10.3 7.95082L8.975 9.32768V3.99235L7.69175 3.9921Z" fill="#4043FF"/>
@@ -212,18 +212,18 @@ function HomeContent() {
             <div className="w-12 h-12 rounded-full bg-[#E0E0FF] text-[#4043FF] flex items-center justify-center">
               {item.icon}
             </div>
-            <span className="text-xs lg:text-sm font-bold text-gray-800 text-center" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>{item.label}</span>
+            <span className="text-xs lg:text-sm font-bold text-gray-800 text-center" style={{ fontWeight: 'bold' }}>{item.label}</span>
           </div>
         ))}
       </section>
 
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg md:text-xl font-extrabold text-gray-900" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Transaction History</h3>
+          <h3 className="text-lg md:text-xl font-extrabold text-gray-900" style={{ fontWeight: 'bold' }}>Transaction History</h3>
           <button
             onClick={() => router.push('/transactions')}
             className="text-[#4043FF] text-sm font-bold hover:text-[#3333CC] transition-colors"
-            style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+            style={{ fontWeight: 'bold' }}
           >
             See All
           </button>

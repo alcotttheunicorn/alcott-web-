@@ -88,7 +88,7 @@ export default function OrdersPage() {
                   ? 'bg-[#4043FF] text-white'
                   : 'bg-white border border-gray-300 text-gray-600 hover:border-[#4043FF] hover:text-[#4043FF]'
               }`}
-              style={{ fontFamily: "'Urbanist', sans-serif" }}
+
             >
               {status === 'all' ? 'All' : status === 'pending' ? 'Pending' : status === 'onprocess' ? 'On Process' : 'Delivered'}
             </button>
@@ -125,17 +125,17 @@ export default function OrdersPage() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 truncate" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                      <h3 className="font-bold text-gray-900 truncate">
                         {order.trackingNumber}
                       </h3>
-                      <p className="text-sm text-gray-500 truncate" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                      <p className="text-sm text-gray-500 truncate">
                         {order.statusText}
                       </p>
                     </div>
                   </div>
 
                   <div className="shrink-0">
-                    <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${order.statusColor}`} style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                    <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${order.statusColor}`}>
                       {order.statusLabel}
                     </span>
                   </div>
@@ -149,7 +149,7 @@ export default function OrdersPage() {
                         router.push(`/search?q=${encodeURIComponent(order.trackingNumber)}`)
                       }}
                       className="w-full bg-[#4043FF] text-white py-3 rounded-lg font-semibold hover:bg-[#3333CC] transition-colors"
-                      style={{ fontFamily: "'Urbanist', sans-serif" }}
+
                     >
                       Track
                     </button>

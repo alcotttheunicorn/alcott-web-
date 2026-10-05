@@ -40,30 +40,30 @@ export default function InboxPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>Inbox</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontWeight: 'bold' }}>Inbox</h1>
         </div>
 
         {/* Filter Tabs */}
         <div className="flex justify-center space-x-4 mb-6 lg:mb-10">
           <button
             onClick={() => setActiveTab('Chats')}
-            className={`px-6 lg:px-40 py-3 rounded-full border font-bold font-[Urbanist] transition-colors ${
+            className={`px-6 lg:px-40 py-3 rounded-full border font-bold transition-colors ${
               activeTab === 'Chats'
                 ? 'bg-[#5B5FED] text-white border-[#5B5FED]'
                 : 'border-[#5B5FED] text-[#5B5FED] bg-white hover:bg-gray-50'
             }`}
-            style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+            style={{ fontWeight: 'bold' }}
           >
             Chats
           </button>
           <button
             onClick={() => setActiveTab('Calls')}
-            className={`px-6 lg:px-40 py-3 rounded-full border font-bold font-[Urbanist] transition-colors ${
+            className={`px-6 lg:px-40 py-3 rounded-full border font-bold transition-colors ${
               activeTab === 'Calls'
                 ? 'bg-[#5B5FED] text-white border-[#5B5FED]'
                 : 'border-[#5B5FED] text-[#5B5FED] bg-white hover:bg-gray-50'
             }`}
-            style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+            style={{ fontWeight: 'bold' }}
           >
             Calls
           </button>
@@ -81,12 +81,12 @@ export default function InboxPage() {
                     </svg>
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-gray-900 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+                    <h3 className="font-bold text-gray-900 truncate" style={{ fontWeight: 'bold' }}>
                       {call.name}
                     </h3>
                     <div className="flex items-center space-x-2">
                       <div className={`w-2 h-2 rounded-full shrink-0 ${call.color}`}></div>
-                      <p className="text-sm text-gray-600 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+                      <p className="text-sm text-gray-600 truncate" style={{ fontWeight: 'bold' }}>
                         {call.status} | {call.date}
                       </p>
                     </div>
@@ -109,10 +109,10 @@ export default function InboxPage() {
                     </svg>
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-gray-900 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+                    <h3 className="font-bold text-gray-900 truncate" style={{ fontWeight: 'bold' }}>
                       {chat.name}
                     </h3>
-                    <p className="text-sm text-gray-600 font-[Urbanist] truncate" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+                    <p className="text-sm text-gray-600 truncate" style={{ fontWeight: 'bold' }}>
                       {chat.message}
                     </p>
                   </div>
@@ -120,12 +120,12 @@ export default function InboxPage() {
                 <div className="flex flex-col items-end space-y-1 shrink-0">
                   {chat.unread > 0 && (
                     <div className="w-5 h-5 bg-[#5B5FED] rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white font-bold font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                      <span className="text-xs text-white font-bold">
                         {chat.unread}
                       </span>
                     </div>
                   )}
-                  <p className="text-xs text-gray-500 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}>
+                  <p className="text-xs text-gray-500" style={{ fontWeight: 'bold' }}>
                     {chat.time}
                   </p>
                 </div>

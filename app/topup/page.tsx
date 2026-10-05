@@ -257,7 +257,7 @@ function TopUpContent() {
         {currentStep === 1 && (
           <div className="space-y-8">
             <div className="text-center">
-              <p className="text-gray-600 mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <p className="text-gray-600 mb-6">
                 Enter the amount of top up
               </p>
 
@@ -269,8 +269,8 @@ function TopUpContent() {
                   value={customAmount || ''}
                   onChange={(e) => handleCustomAmountChange(e.target.value)}
                   placeholder="₦247,000"
-                  className="w-full max-w-md mx-auto text-center text-2xl font-bold text-[#4043FF] bg-transparent border-2 border-gray-200 rounded-xl px-6 py-4 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent font-[Urbanist] placeholder:text-[#4043FF]"
-                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif', color: '#4043FF' }}
+                  className="w-full max-w-md mx-auto text-center text-2xl font-bold text-[#4043FF] bg-transparent border-2 border-gray-200 rounded-xl px-6 py-4 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent placeholder:text-[#4043FF]"
+                  style={{ color: '#4043FF' }}
                 />
               </div>
             </div>
@@ -281,12 +281,12 @@ function TopUpContent() {
                 <button
                   key={amount}
                   onClick={() => handleAmountSelect(amount)}
-                  className={`px-6 py-3 rounded-full border-2 font-semibold transition-colors font-[Urbanist] ${
+                  className={`px-6 py-3 rounded-full border-2 font-semibold transition-colors ${
                     selectedAmount === amount
                       ? 'border-[#4043FF] bg-[#4043FF] text-white'
                       : 'border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white'
                   }`}
-                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                 >
                   {formatAmount(amount)}
                 </button>
@@ -298,8 +298,8 @@ function TopUpContent() {
               <Button
                 onClick={handleContinueFromAmount}
                 disabled={isProcessing}
-                className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-12 py-3 rounded-full font-[Urbanist] w-full max-w-md disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-12 py-3 rounded-full w-full max-w-md disabled:opacity-50 disabled:cursor-not-allowed"
+
               >
                 Continue
               </Button>
@@ -311,7 +311,7 @@ function TopUpContent() {
         {currentStep === 2 && (
           <div className="space-y-8">
             <div className="text-center">
-              <p className="text-gray-600 mb-8 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <p className="text-gray-600 mb-8">
                 Select the top up method you want to use
               </p>
             </div>
@@ -335,7 +335,7 @@ function TopUpContent() {
                         <span className="text-white text-xs font-bold">{card.brand === 'Mastercard' ? 'MC' : card.brand.slice(0, 4)}</span>
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        <p className="font-semibold text-gray-900">
                           {card.brand} •••• {card.last4}
                         </p>
                       </div>
@@ -371,7 +371,7 @@ function TopUpContent() {
             {/* Add New Card Form */}
             {showAddCard && (
               <div className="max-w-md mx-auto border-2 border-[#E0E0FF] rounded-xl p-6 space-y-4">
-                <p className="font-semibold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                <p className="font-semibold text-gray-900">
                   Add New Card
                 </p>
                 <input
@@ -379,8 +379,8 @@ function TopUpContent() {
                   value={newCard.holder}
                   onChange={(e) => setNewCard({ ...newCard, holder: e.target.value })}
                   placeholder="Cardholder name"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-[Urbanist] focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
-                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
+
                 />
                 <input
                   type="text"
@@ -391,8 +391,8 @@ function TopUpContent() {
                     setNewCard({ ...newCard, number: digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim() })
                   }}
                   placeholder="Card number (e.g. 4111 1111 1111 1111)"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-[Urbanist] focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
-                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
+
                 />
                 <div className="grid grid-cols-2 gap-4">
                   <input
@@ -405,8 +405,8 @@ function TopUpContent() {
                       setNewCard({ ...newCard, expiry: v })
                     }}
                     placeholder="MM/YY"
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-[Urbanist] focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
+
                   />
                   <input
                     type="text"
@@ -415,15 +415,15 @@ function TopUpContent() {
                     value={newCard.cvc}
                     onChange={(e) => setNewCard({ ...newCard, cvc: e.target.value.replace(/\D/g, '').slice(0, 4) })}
                     placeholder="CVC"
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-[Urbanist] focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
+
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button
                     onClick={handleSaveCard}
-                    className="flex-1 bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 rounded-full font-[Urbanist]"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                    className="flex-1 bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 rounded-full"
+
                   >
                     Save Card
                   </Button>
@@ -433,8 +433,8 @@ function TopUpContent() {
                       setShowAddCard(false)
                       setNewCard({ holder: '', number: '', expiry: '', cvc: '' })
                     }}
-                    className="flex-1 border-2 border-gray-200 text-gray-600 py-3 rounded-full font-[Urbanist]"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                    className="flex-1 border-2 border-gray-200 text-gray-600 py-3 rounded-full"
+
                   >
                     Cancel
                   </Button>
@@ -449,8 +449,8 @@ function TopUpContent() {
                 onClick={() => {
                   setShowAddCard((open) => !open)
                 }}
-                className="w-full border-2 border-[#E0E0FF] text-[#4043FF] bg-[#E0E0FF] hover:bg-[#D0D0FF] py-3 rounded-full font-[Urbanist]"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                className="w-full border-2 border-[#E0E0FF] text-[#4043FF] bg-[#E0E0FF] hover:bg-[#D0D0FF] py-3 rounded-full"
+
               >
                 Add New Card
               </Button>
@@ -458,8 +458,8 @@ function TopUpContent() {
               <Button
                 onClick={handleContinueFromPayment}
                 disabled={!selectedCardId || isProcessing}
-                className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 rounded-full font-[Urbanist] disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+
               >
                 {isProcessing ? 'Processing…' : 'Continue'}
               </Button>

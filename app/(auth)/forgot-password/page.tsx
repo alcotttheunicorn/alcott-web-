@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+        <h1 className="text-xl font-bold text-gray-900">
           Forgot Password
         </h1>
       </div>
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
           <div className="w-full max-w-md">
             {/* Header Text */}
             <div className="mb-8 text-center lg:text-left">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Select which contact details we should use to reset your password
               </h2>
             </div>
@@ -137,10 +137,10 @@ export default function ForgotPasswordPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-500 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        <p className="text-sm text-gray-500 font-bold">
                           via SMS
                         </p>
-                        <p className="text-base font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        <p className="text-base font-bold text-gray-900">
                           via SMS
                         </p>
                       </div>
@@ -194,10 +194,10 @@ export default function ForgotPasswordPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-500 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        <p className="text-sm text-gray-500 font-bold">
                           via Email
                         </p>
-                        <p className="text-base font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        <p className="text-base font-bold text-gray-900">
                           via Email
                         </p>
                       </div>
@@ -235,8 +235,8 @@ export default function ForgotPasswordPage() {
             <Button
               onClick={handleContinue}
               disabled={!selectedMethod || isLoading}
-              className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full font-[Urbanist]"
-              style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+              className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full"
+
             >
               {isLoading ? 'Sending...' : 'Continue'}
             </Button>
