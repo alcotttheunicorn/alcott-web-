@@ -2,22 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { toast } from '@/components/ui/use-toast'
-import { useCheckPricing } from '@/hooks/use-pricing'
-import { useExchangeRate } from '@/hooks/use-pricing'
+import { useCheckPricing, useExchangeRate } from '@/hooks/use-pricing'
 import { useCurrency } from '@/components/providers/currency-provider'
 import type { PricingResult } from '@/lib/api/types'
 import { TopContactBar } from '@/components/landing/TopContactBar'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { MobileMenu } from '@/components/landing/MobileMenu'
-import { HeroSection } from '@/components/landing/HeroSection'
-import { CheckRatesSection } from '@/components/landing/CheckRatesSection'
-import { ServicesSection } from '@/components/landing/ServicesSection'
-import { WhyUseAlcottSection } from '@/components/landing/WhyUseAlcottSection'
-import { HowItWorksSection } from '@/components/landing/HowItWorksSection'
 import { FAQSection } from '@/components/landing/FAQSection'
-import { TestimonialsSection } from '@/components/testimonials-section'
-import { ContactSection } from '@/components/contact-section'
-import { Footer } from '@/components/footer'
+import { GlobalShoppingSection } from '@/components/landing/GlobalShoppingSection'
+import { LogisticsTeamSection } from '@/components/landing/LogisticsTeamSection'
+import { PerformanceMetricsSection } from '@/components/landing/PerformanceMetricsSection'
+import { ServiceOfferingsSection } from '@/components/landing/ServiceOfferingsSection'
+import { ShipmentBookingHero } from '@/components/landing/ShipmentBookingHero'
+import { ShippingProcessSection } from '@/components/landing/ShippingProcessSection'
+import { SiteFooterSection } from '@/components/landing/SiteFooterSection'
+import { CustomerTestimonialsSection } from '@/components/landing/CustomerTestimonialsSection'
+import { MobileAppDownloadSection } from '@/components/landing/MobileAppDownloadSection'
+
 
 export default function HomePage() {
   const checkRatesMutation = useCheckPricing()
@@ -65,32 +66,35 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F3F9FD] flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <TopContactBar />
       <LandingHeader />
       <MobileMenu />
-      <HeroSection />
-      <CheckRatesSection
-        pickupAddress={pickupAddress}
-        onPickupChange={setPickupAddress}
-        deliveryAddress={deliveryAddress}
-        onDeliveryChange={setDeliveryAddress}
-        weight={weight}
-        onWeightChange={setWeight}
-        onCheckRates={handleCheckRates}
-        isCheckingRates={isCheckingRates}
-        pricingResult={pricingResult}
-        displayCurrency={currency}
-        ngnPerUsd={exchangeRate?.ngn_per_usd}
-        onClearResult={() => setPricingResult(null)}
-      />
-      <ServicesSection />
-      <WhyUseAlcottSection />
-      <HowItWorksSection />
-      <FAQSection />
-      <TestimonialsSection />
-      <ContactSection />
-      <Footer />
+      <main className="flex-1">
+        <ShipmentBookingHero
+          pickupAddress={pickupAddress}
+          onPickupChange={setPickupAddress}
+          deliveryAddress={deliveryAddress}
+          onDeliveryChange={setDeliveryAddress}
+          weight={weight}
+          onWeightChange={setWeight}
+          onCheckRates={handleCheckRates}
+          isCheckingRates={isCheckingRates}
+          pricingResult={pricingResult}
+          displayCurrency={currency}
+          ngnPerUsd={exchangeRate?.ngn_per_usd}
+          onClearResult={() => setPricingResult(null)}
+        />
+        <MobileAppDownloadSection />
+        <ServiceOfferingsSection />
+        <GlobalShoppingSection />
+        <ShippingProcessSection />
+        <PerformanceMetricsSection />
+        <FAQSection />
+        <CustomerTestimonialsSection />
+        <LogisticsTeamSection />
+      </main>
+      <SiteFooterSection />
     </div>
   )
 }

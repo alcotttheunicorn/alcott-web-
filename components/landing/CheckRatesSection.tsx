@@ -61,7 +61,7 @@ export function CheckRatesSection({
                     </div>
 
                     <div className="flex-1 w-full max-w-md mx-auto lg:mx-0">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center lg:text-left" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Check Rates</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center lg:text-left">Check Rates</h2>
 
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ export function CheckRatesSection({
                                         placeholder="Pick up address"
                                         containerClassName="flex-1"
                                         className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
-                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                     />
                                     <div className="shrink-0">
                                         <TargetIcon />
@@ -98,7 +98,7 @@ export function CheckRatesSection({
                                         placeholder="Delivery address"
                                         containerClassName="flex-1"
                                         className="w-full bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
-                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                     />
                                     <div className="shrink-0">
                                         <TargetIcon />
@@ -107,7 +107,7 @@ export function CheckRatesSection({
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Weight</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Weight</h3>
                                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="w-6 h-6 rounded flex items-center justify-center shrink-0">
                                         <WeightBoxIcon />
@@ -116,16 +116,16 @@ export function CheckRatesSection({
                                         type="text"
                                         placeholder="2.2"
                                         className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
-                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                         value={weight}
                                         onChange={(e) => onWeightChange(e.target.value)}
                                     />
-                                    <span className="text-gray-500 font-medium" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>kg</span>
+                                    <span className="text-gray-500 font-medium">kg</span>
                                 </div>
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Phone number</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Phone number</h3>
                                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="w-6 h-6 rounded flex items-center justify-center shrink-0">
                                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -137,7 +137,7 @@ export function CheckRatesSection({
                                         type="tel"
                                         placeholder="+234 906 000 7571"
                                         className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
-                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                         value={phoneNumber}
                                         onChange={(event) => setPhoneNumber(event.target.value)}
                                     />
@@ -145,7 +145,7 @@ export function CheckRatesSection({
                             </div>
 
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Email</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Email</h3>
                                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="w-6 h-6 rounded flex items-center justify-center shrink-0">
                                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -158,7 +158,7 @@ export function CheckRatesSection({
                                         type="email"
                                         placeholder="info@alcott.com.ng"
                                         className="flex-1 bg-transparent text-gray-900 placeholder:text-gray-500 outline-none font-medium"
-                                        style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                         value={email}
                                         onChange={(event) => setEmail(event.target.value)}
                                     />
@@ -177,7 +177,7 @@ export function CheckRatesSection({
                                 <Dialog open={!!pricingResult} onOpenChange={(open) => { if (!open) onClearResult?.() }}>
                                     <DialogContent className="sm:max-w-md">
                                         <DialogHeader>
-                                            <DialogTitle style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                            <DialogTitle>
                                                 Rate Check Result
                                             </DialogTitle>
                                         </DialogHeader>
@@ -192,14 +192,14 @@ export function CheckRatesSection({
                                                     </div>
                                                     <div className="flex-1 space-y-6">
                                                         <div>
-                                                            <p className="text-xs font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>From</p>
-                                                            <p className="text-sm font-bold text-gray-900 mt-0.5" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                            <p className="text-xs font-semibold text-gray-500">From</p>
+                                                            <p className="text-sm font-bold text-gray-900 mt-0.5">
                                                                 {pickupAddress || '—'}
                                                             </p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-xs font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>To</p>
-                                                            <p className="text-sm font-bold text-gray-900 mt-0.5" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                            <p className="text-xs font-semibold text-gray-500">To</p>
+                                                            <p className="text-sm font-bold text-gray-900 mt-0.5">
                                                                 {deliveryAddress || '—'}
                                                             </p>
                                                         </div>
@@ -210,8 +210,8 @@ export function CheckRatesSection({
                                             {/* Weight */}
                                             {weight && (
                                                 <div className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3">
-                                                    <span className="text-sm font-semibold text-gray-600" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Weight</span>
-                                                    <span className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                    <span className="text-sm font-semibold text-gray-600">Weight</span>
+                                                    <span className="text-sm font-bold text-gray-900">
                                                         {weight} kg
                                                     </span>
                                                 </div>
@@ -221,25 +221,25 @@ export function CheckRatesSection({
                                             <div className="rounded-xl bg-[#F0F0FF] px-4 py-4 text-center">
                                                 {'price' in pricingResult && pricingResult.price ? (
                                                     <div>
-                                                        {/* <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p> */}
-                                                        <p className="text-2xl font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                        {/* <p className="text-xs font-semibold text-[#4043FF] mb-1">{pricingResult.pricing_type}</p> */}
+                                                        <p className="text-2xl font-bold text-[#4043FF]">
                                                             {formatRate(pricingResult.price.amount, pricingResult.price.currency)}
                                                         </p>
                                                     </div>
                                                 ) : pricingResult.export_price ? (
                                                     <div className="space-y-1">
-                                                        {/* <p className="text-xs font-semibold text-[#4043FF] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>{pricingResult.pricing_type}</p> */}
+                                                        {/* <p className="text-xs font-semibold text-[#4043FF] mb-1">{pricingResult.pricing_type}</p> */}
                                                         <div className="flex items-center justify-center gap-4">
                                                             <div>
-                                                                <p className="text-[10px] font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Export</p>
-                                                                <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                                <p className="text-[10px] font-semibold text-gray-500">Export</p>
+                                                                <p className="text-lg font-bold text-[#4043FF]">
                                                                     {formatRate(pricingResult.export_price.amount, pricingResult.export_price.currency)}
                                                                 </p>
                                                             </div>
                                                             {pricingResult.import_price && (
                                                                 <div>
-                                                                    <p className="text-[10px] font-semibold text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Import</p>
-                                                                    <p className="text-lg font-bold text-[#4043FF]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                                                    <p className="text-[10px] font-semibold text-gray-500">Import</p>
+                                                                    <p className="text-lg font-bold text-[#4043FF]">
                                                                         {formatRate(pricingResult.import_price.amount, pricingResult.import_price.currency)}
                                                                     </p>
                                                                 </div>

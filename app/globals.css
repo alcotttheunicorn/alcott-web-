@@ -76,6 +76,7 @@
 
 @theme inline {
   --container-8xl: 90rem;
+  --container-9xl: 96rem;
   --font-sans: 'Urbanist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-background: var(--background);

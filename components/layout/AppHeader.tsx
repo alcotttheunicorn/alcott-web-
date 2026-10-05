@@ -84,7 +84,7 @@ export function AppHeader({
                                 </svg>
                             </button>
                         )}
-                        <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                        <h1 className="text-xl font-bold text-gray-900">
                             {headerTitle.title}
                         </h1>
                     </div>
@@ -103,7 +103,7 @@ export function AppHeader({
                             onChange={(e) => setSearchValue(e.target.value)}
                             onFocus={handleSearchFocus}
                             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-lg focus:ring-2 focus:ring-[#4043FF] focus:bg-white text-gray-900 placeholder:text-gray-500 font-bold"
-                            style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                         />
                         {isSearchFocused && !searchOnNavigateToSearchPage && (
                             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50">

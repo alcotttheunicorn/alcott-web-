@@ -58,7 +58,7 @@ export function ShipmentStatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn('px-4 py-1.5 rounded-full text-xs font-semibold', display.colorClass, className)}
-      style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
     >
       {display.label}
     </span>

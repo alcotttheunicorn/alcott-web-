@@ -123,7 +123,7 @@ export default function OTPVerificationPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+        <h1 className="text-xl font-bold text-gray-900">
           Forgot Password
         </h1>
       </div>
@@ -146,7 +146,7 @@ export default function OTPVerificationPage() {
           <div className="w-full max-w-md">
             {/* Header Text */}
             <div className="mb-8 text-center lg:text-left">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
                 Code has been sent to {email || phoneNumber || 'your contact'}
               </h2>
             </div>
@@ -166,8 +166,8 @@ export default function OTPVerificationPage() {
                     value={digit}
                     onChange={(e) => handleInputChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 bg-gray-50 rounded-lg focus:border-[#4043FF] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all duration-200 font-[Urbanist]"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 bg-gray-50 rounded-lg focus:border-[#4043FF] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all duration-200"
+
                   />
                 ))}
               </div>
@@ -177,12 +177,12 @@ export default function OTPVerificationPage() {
                 <button
                   onClick={handleResendCode}
                   disabled={resendTimer > 0}
-                  className={`text-sm font-bold font-[Urbanist] ${
+                  className={`text-sm font-bold ${
                     resendTimer > 0
                       ? 'text-gray-400 cursor-not-allowed'
                       : 'text-[#4043FF] hover:text-[#3333CC] cursor-pointer'
                   }`}
-                  style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                 >
                   {resendTimer > 0
                     ? `Resend code in ${resendTimer} s`
@@ -196,8 +196,8 @@ export default function OTPVerificationPage() {
             <Button
               onClick={handleContinue}
               disabled={otp.join('').length !== 6 || isLoading}
-              className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full font-[Urbanist]"
-              style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+              className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full"
+
             >
               {isLoading ? 'Verifying...' : 'Continue'}
             </Button>

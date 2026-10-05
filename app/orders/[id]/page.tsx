@@ -43,29 +43,29 @@ function OrderDetailContent() {
         <OrderDetailSkeleton />
       ) : error ? (
           <div className="text-center py-16">
-            <p className="text-gray-600 mb-4" style={{ fontFamily: "'Urbanist', sans-serif" }}>{error}</p>
+            <p className="text-gray-600 mb-4">{error}</p>
             <Link href="/orders" className="text-[#4043FF] font-semibold">Back to Orders</Link>
           </div>
         ) : shipment ? (
           <div className="space-y-4">
             <div className="bg-white border border-gray-200 rounded-xl p-5 flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 mb-1" style={{ fontFamily: "'Urbanist', sans-serif" }}>Tracking ID</p>
-                <p className="text-lg font-bold text-gray-900 truncate" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <p className="text-xs text-gray-500 mb-1">Tracking ID</p>
+                <p className="text-lg font-bold text-gray-900 truncate">
                   {shipment.tracking_id}
                 </p>
               </div>
               <span
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 ${STATUS_STYLES[shipment.status] ?? 'bg-gray-100 text-gray-600'}`}
-                style={{ fontFamily: "'Urbanist', sans-serif" }}
+
               >
                 {shipment.status}
               </span>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <h2 className="text-sm font-bold text-gray-900 mb-3" style={{ fontFamily: "'Urbanist', sans-serif" }}>Sender</h2>
-              <dl className="space-y-1 text-sm text-gray-600" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+              <h2 className="text-sm font-bold text-gray-900 mb-3">Sender</h2>
+              <dl className="space-y-1 text-sm text-gray-600">
                 <div className="flex justify-between"><dt>Name</dt><dd className="text-gray-900">{shipment.sender_name}</dd></div>
                 <div className="flex justify-between"><dt>Phone</dt><dd className="text-gray-900">{shipment.sender_phone_number}</dd></div>
                 <div className="flex justify-between"><dt>City</dt><dd className="text-gray-900">{shipment.sender_city}</dd></div>
@@ -74,8 +74,8 @@ function OrderDetailContent() {
             </div>
 
             <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <h2 className="text-sm font-bold text-gray-900 mb-3" style={{ fontFamily: "'Urbanist', sans-serif" }}>Receiver</h2>
-              <dl className="space-y-1 text-sm text-gray-600" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+              <h2 className="text-sm font-bold text-gray-900 mb-3">Receiver</h2>
+              <dl className="space-y-1 text-sm text-gray-600">
                 <div className="flex justify-between"><dt>Name</dt><dd className="text-gray-900">{shipment.receiver_name}</dd></div>
                 <div className="flex justify-between"><dt>Phone</dt><dd className="text-gray-900">{shipment.receiver_phone_number}</dd></div>
                 <div className="flex justify-between"><dt>City</dt><dd className="text-gray-900">{shipment.receiver_city}</dd></div>
@@ -84,8 +84,8 @@ function OrderDetailContent() {
             </div>
 
             <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <h2 className="text-sm font-bold text-gray-900 mb-3" style={{ fontFamily: "'Urbanist', sans-serif" }}>Package</h2>
-              <dl className="space-y-1 text-sm text-gray-600" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+              <h2 className="text-sm font-bold text-gray-900 mb-3">Package</h2>
+              <dl className="space-y-1 text-sm text-gray-600">
                 <div className="flex justify-between"><dt>Category</dt><dd className="text-gray-900">{shipment.package_category ?? '—'}</dd></div>
                 <div className="flex justify-between"><dt>Weight</dt><dd className="text-gray-900">{shipment.package_weight ? `${shipment.package_weight} kg` : '—'}</dd></div>
                 <div className="flex justify-between"><dt>Dimensions</dt><dd className="text-gray-900">

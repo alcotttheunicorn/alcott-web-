@@ -7,10 +7,10 @@ export function ContactSection() {
       <div className="max-w-8xl mx-auto px-4 lg:px-12 text-center">
         {/* Header */}
         <div className="mb-12">
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
             Get in touch with us
           </h2>
-          <p className="text-lg text-white opacity-90 max-w-2xl mx-auto font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <p className="text-lg text-white opacity-90 max-w-2xl mx-auto font-bold">
             If you need our help or have a question, We're here for you          </p>
         </div>
 
@@ -20,16 +20,16 @@ export function ContactSection() {
             <Input
               type="email"
               placeholder="Enter your email address"
-              className="flex-1 h-12 bg-white border-0 rounded-none px-6 text-gray-900 placeholder:text-gray-500 focus:ring-0 focus:outline-none font-[Urbanist] text-base"
-              style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+              className="flex-1 h-12 bg-white border-0 rounded-none px-6 text-gray-900 placeholder:text-gray-500 focus:ring-0 focus:outline-none text-base"
+
             />
-            <Button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 text-base font-bold rounded-none h-12 whitespace-nowrap border-0 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+            <Button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 text-base font-bold rounded-none h-12 whitespace-nowrap border-0">
               Subscribe Now
             </Button>
           </div>
           
           {/* Disclaimer */}
-          <p className="text-white text-sm mt-4 opacity-80 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <p className="text-white text-sm mt-4 opacity-80 font-bold">
             No ads. No trails. No commitments.
           </p>
         </div>
@@ -38,16 +38,16 @@ export function ContactSection() {
         <div className="hidden md:grid md:grid-cols-2 gap-12 max-w-2xl mx-auto">
           {/* Years in Business */}
           <div className="text-center">
-            <div className="text-5xl lg:text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>6+</div>
-            <div className="text-lg font-bold text-white mb-1 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Years in Business</div>
-            <div className="text-sm text-white opacity-80 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Creating the successful path</div>
+            <div className="text-5xl lg:text-6xl font-bold text-white mb-2">6+</div>
+            <div className="text-lg font-bold text-white mb-1">Years in Business</div>
+            <div className="text-sm text-white opacity-80 font-bold">Creating the successful path</div>
           </div>
 
           {/* Case Studies */}
           <div className="text-center">
-            <div className="text-5xl lg:text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>15000+</div>
-            <div className="text-lg font-bold text-white mb-1 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Packages Delivered</div>
-            <div className="text-sm text-white opacity-80 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>In last 6 years</div>
+            <div className="text-5xl lg:text-6xl font-bold text-white mb-2">15000+</div>
+            <div className="text-lg font-bold text-white mb-1">Packages Delivered</div>
+            <div className="text-sm text-white opacity-80 font-bold">In last 6 years</div>
           </div>
         </div>
 
@@ -55,16 +55,16 @@ export function ContactSection() {
         <div className="md:hidden space-y-8">
           {/* Years in Business */}
           <div className="text-center">
-            <div className="text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>6+</div>
-            <div className="text-xl font-bold text-white mb-1 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Years in Business</div>
-            <div className="text-base text-white opacity-80 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Creating the successful path</div>
+            <div className="text-6xl font-bold text-white mb-2">6+</div>
+            <div className="text-xl font-bold text-white mb-1">Years in Business</div>
+            <div className="text-base text-white opacity-80 font-bold">Creating the successful path</div>
           </div>
 
           {/* Case Studies */}
           <div className="text-center">
-            <div className="text-6xl font-bold text-white mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>4821</div>
-            <div className="text-xl font-bold text-white mb-1 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Case Studies Delivered</div>
-            <div className="text-base text-white opacity-80 font-[Urbanist] font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>In last 6 years</div>
+            <div className="text-6xl font-bold text-white mb-2">4821</div>
+            <div className="text-xl font-bold text-white mb-1">Case Studies Delivered</div>
+            <div className="text-base text-white opacity-80 font-bold">In last 6 years</div>
           </div>
         </div>
       </div>

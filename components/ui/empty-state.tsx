@@ -23,11 +23,11 @@ export function EmptyState({
       )}
     >
       {icon && <div className="mb-4 text-gray-400">{icon}</div>}
-      <p className="text-gray-900 font-semibold mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+      <p className="text-gray-900 font-semibold mb-1">
         {title}
       </p>
       {description && (
-        <p className="text-sm text-gray-500 mb-4" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+        <p className="text-sm text-gray-500 mb-4">
           {description}
         </p>
       )}
