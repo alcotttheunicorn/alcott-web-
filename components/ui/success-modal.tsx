@@ -69,17 +69,17 @@ export function SuccessModal({
 
         {/* Content */}
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
             {title}
           </h2>
-          <p className="text-gray-600 mb-8 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <p className="text-gray-600 mb-8">
             {message}
           </p>
           
           <Button 
             onClick={handleClose}
-            className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 rounded-full w-full font-[Urbanist]"
-            style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+            className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-8 py-3 rounded-full w-full"
+
           >
             {buttonText}
           </Button>

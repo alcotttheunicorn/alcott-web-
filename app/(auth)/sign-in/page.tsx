@@ -126,7 +126,7 @@ function SignInContent() {
 
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center lg:text-left font-['Urbanist']">Login to your Account</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center lg:text-left">Login to your Account</h1>
             </div>
 
             {/* Sign In Form */}
@@ -233,21 +233,21 @@ function SignInContent() {
                     </svg>
                   </div>
                 </div>
-                <label htmlFor="remember" className="ml-3 block text-sm text-gray-700 font-bold cursor-pointer font-['Urbanist']">
+                <label htmlFor="remember" className="ml-3 block text-sm text-gray-700 font-bold cursor-pointer">
                   Remember me
                 </label>
               </div>
 
               {/* Error Message */}
               {errorMessage && (
-                <p className="text-sm text-red-600 text-center font-['Urbanist'] font-bold">{errorMessage}</p>
+                <p className="text-sm text-red-600 text-center font-bold">{errorMessage}</p>
               )}
 
               {/* Sign In Button */}
               <Button 
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-['Urbanist'] disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Signing in…' : 'Sign In'}
               </Button>
@@ -255,14 +255,14 @@ function SignInContent() {
 
             {/* Forgot Password Link */}
             <div className="text-center mb-8">
-              <Link href="/forgot-password" className="text-sm text-[#4043FF] hover:text-[#3333CC] font-bold font-['Urbanist']">
+              <Link href="/forgot-password" className="text-sm text-[#4043FF] hover:text-[#3333CC] font-bold">
                 Forgot the password?
               </Link>
             </div>
 
             {/* Divider */}
             <div className="text-center mb-8">
-              <span className="text-sm text-gray-500 font-bold font-['Urbanist']">or continue with</span>
+              <span className="text-sm text-gray-500 font-bold">or continue with</span>
             </div>
 
             {/* Social Icons */}
@@ -284,9 +284,9 @@ function SignInContent() {
             </div>
 
             {/* Sign Up Link */}
-            <div className="text-center text-sm text-gray-500 font-bold font-['Urbanist']">
+            <div className="text-center text-sm text-gray-500 font-bold">
               Don't have an account?{' '}
-              <Link href="/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
+              <Link href="/register" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline">
                 Sign up
               </Link>
             </div>

@@ -30,10 +30,10 @@ export function TestimonialsSection() {
       <div className="max-w-8xl mx-auto px-4 lg:px-12">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             Don't just take our word for it,
           </h2>
-          <p className="text-2xl font-bold text-[#4043FF] font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <p className="text-2xl font-bold text-[#4043FF]">
             See for yourself.
           </p>
         </div>
@@ -54,10 +54,10 @@ export function TestimonialsSection() {
 
         {/* Call to Action */}
         <div className="text-center">
-          <h3 className="text-3xl font-bold text-gray-900 mb-8 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <h3 className="text-3xl font-bold text-gray-900 mb-8">
             Get started with Alcott.
           </h3>
-          <button className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-12 py-4 text-lg font-semibold rounded-full transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+          <button className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-12 py-4 text-lg font-semibold rounded-full transition-colors">
             Register
           </button>
         </div>

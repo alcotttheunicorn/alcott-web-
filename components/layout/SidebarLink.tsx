@@ -21,7 +21,7 @@ export function SidebarLink({ href, icon: Icon, label, active, onClick, hasBadge
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors font-bold relative ${
                     active ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`}
-                style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
             >
                 <Icon className="w-5 h-5 mr-3" />
                 {label}

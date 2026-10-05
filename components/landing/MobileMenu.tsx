@@ -66,10 +66,10 @@ export function MobileMenu() {
                 <div className="p-6">
                     <CurrencySelector className="mb-6" />
                     <nav className="space-y-4 mb-8">
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Home</a>
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Ship</a>
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Track</a>
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Shop & Ship</a>
+                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Home</a>
+                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Ship</a>
+                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Track</a>
+                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Shop & Ship</a>
                     </nav>
 
                     <div className="space-y-4 mb-8">
@@ -77,7 +77,7 @@ export function MobileMenu() {
                             <>
                                 <Button
                                     className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
-                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                     onClick={() => router.push('/home')}
                                 >
                                     Go to Dashboard
@@ -85,7 +85,7 @@ export function MobileMenu() {
                                 <Button
                                     variant="outline"
                                     className="w-full bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white py-3 text-base font-semibold rounded-full"
-                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                     onClick={() => { logout(); router.push('/') }}
                                 >
                                     Sign Out
@@ -96,14 +96,14 @@ export function MobileMenu() {
                                 <Button
                                     variant="outline"
                                     className="w-full bg-transparent border-2 border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white py-3 text-base font-semibold rounded-full"
-                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                     onClick={() => window.location.href = '/lets-get-you-in'}
                                 >
                                     Sign In
                                 </Button>
                                 <Button
                                     className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
-                                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                                     onClick={() => window.location.href = '/register'}
                                 >
                                     Register
@@ -112,7 +112,7 @@ export function MobileMenu() {
                         )}
                         <Button
                             className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 text-base font-semibold rounded-full"
-                            style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+
                             onClick={() => {
                                 if (isAuthenticated) {
                                     router.push('/shipment/new')
@@ -125,7 +125,7 @@ export function MobileMenu() {
                         </Button>
                     </div>
 
-                    <div className="text-center text-sm text-gray-500" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                    <div className="text-center text-sm text-gray-500">
                         Alcott V12 © Copyright 2023. All Rights Reserved.
                     </div>
                 </div>

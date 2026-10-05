@@ -119,7 +119,7 @@ export default function CreateNewPasswordPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+        <h1 className="text-xl font-bold text-gray-900">
           Create New Password
         </h1>
       </div>
@@ -142,7 +142,7 @@ export default function CreateNewPasswordPage() {
           <div className="w-full max-w-md">
             {/* Header Text */}
             <div className="mb-8 text-center lg:text-left">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Create Your New Password
               </h2>
             </div>
@@ -160,8 +160,8 @@ export default function CreateNewPasswordPage() {
                     placeholder="New Password"
                     value={passwords.newPassword}
                     onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1 font-[Urbanist] font-bold placeholder:font-bold"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1 font-bold placeholder:font-bold"
+                    style={{ fontWeight: 'bold' }}
                   />
                   <button
                     type="button"
@@ -193,8 +193,8 @@ export default function CreateNewPasswordPage() {
                     placeholder="Confirm Password"
                     value={passwords.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1 font-[Urbanist] font-bold placeholder:font-bold"
-                    style={{ fontFamily: 'Urbanist, system-ui, sans-serif', fontWeight: 'bold' }}
+                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none text-gray-900 placeholder:text-gray-500 flex-1 font-bold placeholder:font-bold"
+                    style={{ fontWeight: 'bold' }}
                   />
                   <button
                     type="button"
@@ -220,8 +220,8 @@ export default function CreateNewPasswordPage() {
             <Button
               onClick={handleContinue}
               disabled={!passwords.newPassword || !passwords.confirmPassword || isLoading}
-              className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full font-[Urbanist]"
-              style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}
+              className="w-full h-12 bg-[#4043FF] hover:bg-[#3333CC] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-full"
+
             >
               {isLoading ? 'Resetting...' : 'Continue'}
             </Button>

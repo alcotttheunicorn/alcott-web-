@@ -55,7 +55,7 @@ export default function RegisterPage() {
 
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center lg:text-left font-['Urbanist']">Create your Account</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center lg:text-left">Create your Account</h1>
             </div>
 
             {/* Registration Form */}
@@ -200,24 +200,24 @@ export default function RegisterPage() {
                     </svg>
                   </div>
                 </div>
-                <label htmlFor="remember" className="ml-3 block text-sm text-gray-700 font-bold cursor-pointer font-['Urbanist']">
+                <label htmlFor="remember" className="ml-3 block text-sm text-gray-700 font-bold cursor-pointer">
                   Remember me
                 </label>
               </div>
 
               {/* Error / Success Feedback */}
               {errorMessage && (
-                <p className="text-sm text-red-600 text-center font-['Urbanist'] font-bold">{errorMessage}</p>
+                <p className="text-sm text-red-600 text-center font-bold">{errorMessage}</p>
               )}
               {successMessage && (
-                <p className="text-sm text-green-600 text-center font-['Urbanist'] font-bold">{successMessage}</p>
+                <p className="text-sm text-green-600 text-center font-bold">{successMessage}</p>
               )}
 
               {/* Sign Up Button */}
               <Button 
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full font-['Urbanist'] disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full h-14 bg-[#4043FF] hover:bg-[#3333CC] text-white font-bold rounded-full disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Creating account…' : 'Sign up'}
               </Button>
@@ -225,7 +225,7 @@ export default function RegisterPage() {
 
             {/* Divider */}
             <div className="text-center mb-8">
-              <span className="text-sm text-gray-500 font-bold font-['Urbanist']">or continue with</span>
+              <span className="text-sm text-gray-500 font-bold">or continue with</span>
             </div>
 
             {/* Social Icons */}
@@ -247,9 +247,9 @@ export default function RegisterPage() {
             </div>
 
             {/* Sign In Link */}
-            <div className="text-center text-sm text-gray-500 font-bold font-['Urbanist']">
+            <div className="text-center text-sm text-gray-500 font-bold">
               Already have an account?{' '}
-              <Link href="/sign-in" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline font-['Urbanist']">
+              <Link href="/sign-in" className="font-bold text-[#4043FF] hover:text-[#3333CC] underline">
                 Sign in
               </Link>
             </div>

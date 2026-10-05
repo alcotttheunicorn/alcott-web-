@@ -17,46 +17,46 @@ export function Footer() {
                   <img src="/alcott-small.png" alt="Alcott" />
                 </Link>
               </div>
-              <p className="text-gray-600 leading-relaxed max-w-md font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <p className="text-gray-600 leading-relaxed max-w-md">
                 Alcott is an end-to-end logistics technology platform that enables individuals and businesses to ship, track and manage deliveries worldwide - anytime, anywhere, from a single digital platform.
               </p>  
             </div>
 
             {/* Column 2: Company Links */}
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Company</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Company</h3>
               <ul className="space-y-4">
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>About</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Features</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Works</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Career</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">About</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">Features</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">Works</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">Career</a></li>
               </ul>
             </div>
 
             {/* Column 3: Services Links */}
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Services</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Services</h3>
               <ul className="space-y-4">
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>For Business</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>For Partners</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">For Business</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">For Partners</a></li>
               </ul>
             </div>
 
             {/* Column 4: Help Links */}
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Help</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Help</h3>
               <ul className="space-y-4">
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Customer Support</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Delivery Details</a></li>
-                <li><a href="/terms" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Terms & Conditions</a></li>
-                <li><a href="/policies" className="text-gray-600 hover:text-[#4043FF] transition-colors font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Privacy Policy</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">Customer Support</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors">Delivery Details</a></li>
+                <li><a href="/terms" className="text-gray-600 hover:text-[#4043FF] transition-colors">Terms & Conditions</a></li>
+                <li><a href="/policies" className="text-gray-600 hover:text-[#4043FF] transition-colors">Privacy Policy</a></li>
               </ul>
             </div>
 
             {/* Column 5: Contact Information */}
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Contact Information</h3>
-              <div className="space-y-4 text-gray-600 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Contact Information</h3>
+              <div className="space-y-4 text-gray-600">
                 <div>+234 906 000 7571</div>
                 <div>info@alcott.com.ng</div>
                 <div>Suite 13, Waiting Hall,<br />Mobolaji Johnson Train Station, Alagomeji, Yaba,<br />Lagos State.</div>
@@ -96,13 +96,13 @@ export function Footer() {
 
             {/* Legal Links */}
             <div className="flex space-x-6">
-              <a href="/policies" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Privacy Policy</a>
-              <a href="/terms" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Terms & Conditions</a>
-              <a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>Support</a>
+              <a href="/policies" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm">Privacy Policy</a>
+              <a href="/terms" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm">Terms & Conditions</a>
+              <a href="#" className="text-gray-600 hover:text-[#4043FF] transition-colors text-sm">Support</a>
             </div>
 
             {/* Copyright Notice */}
-            <div className="text-gray-600 text-sm font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+            <div className="text-gray-600 text-sm">
               ©Copyright 2023. All Rights Reserved
             </div>
           </div>

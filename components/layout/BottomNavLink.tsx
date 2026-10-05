@@ -14,7 +14,7 @@ export function BottomNavLink({ href, label, icon: Icon, active }: BottomNavLink
     return (
         <Link href={href} className={`flex flex-col items-center p-2 ${active ? 'text-[#4043FF]' : 'text-gray-500'}`}>
             <Icon className="w-5 h-5 mb-1" />
-            <span className="text-xs font-bold" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+            <span className="text-xs font-bold">
                 {label}
             </span>
         </Link>

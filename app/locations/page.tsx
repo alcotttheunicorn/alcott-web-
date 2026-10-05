@@ -183,10 +183,10 @@ export default function LocationsPage() {
                     </svg>
                   </div>
                   <span className="min-w-0 flex-1">
-                    <strong className="block truncate text-[15px] font-bold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>{center.name}</strong>
-                    <small className="block truncate text-[13px] font-medium text-gray-400 mt-0.5" style={{ fontFamily: "'Urbanist', sans-serif" }}>{center.address}</small>
+                    <strong className="block truncate text-[15px] font-bold text-gray-900">{center.name}</strong>
+                    <small className="block truncate text-[13px] font-medium text-gray-400 mt-0.5">{center.address}</small>
                   </span>
-                  <span className="shrink-0 text-[14px] font-bold text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                  <span className="shrink-0 text-[14px] font-bold text-[#4043FF]">
                     {center.id === selectedId && routeDistance ? routeDistance : '—'}
                   </span>
                 </button>
@@ -200,10 +200,10 @@ export default function LocationsPage() {
                   <path d="M12 2C8.13401 2 5 5.13401 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13401 15.866 2 12 2ZM12 11.5C10.6193 11.5 9.5 10.3807 9.5 9C9.5 7.61929 10.6193 6.5 12 6.5C13.3807 6.5 14.5 7.61929 14.5 9C14.5 10.3807 13.3807 11.5 12 11.5Z" fill="#4043FF"/>
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "'Urbanist', sans-serif" }}>{selectedCenter.name}</h2>
-              <p className="mt-2 text-[13px] font-medium text-gray-500 leading-relaxed max-w-[80%]" style={{ fontFamily: "'Urbanist', sans-serif" }}>{selectedCenter.address}</p>
+              <h2 className="text-xl font-bold text-gray-900">{selectedCenter.name}</h2>
+              <p className="mt-2 text-[13px] font-medium text-gray-500 leading-relaxed max-w-[80%]">{selectedCenter.address}</p>
 
-              <div className="mt-6 flex items-center justify-center gap-4 text-[13px] font-medium text-[#4043FF]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+              <div className="mt-6 flex items-center justify-center gap-4 text-[13px] font-medium text-[#4043FF]">
                 <span className="flex items-center gap-1.5 bg-[#F4F5FF] px-3 py-1.5 rounded-full">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                   09:00 AM - 17:00 PM
@@ -214,7 +214,7 @@ export default function LocationsPage() {
                 </span>
               </div>
 
-              <div className="mt-5 flex items-center justify-center gap-2 text-[14px] font-bold text-gray-800" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+              <div className="mt-5 flex items-center justify-center gap-2 text-[14px] font-bold text-gray-800">
                 <Phone className="h-4 w-4 text-[#4043FF]" /> {selectedCenter.phone}
               </div>
 
@@ -223,11 +223,11 @@ export default function LocationsPage() {
                   type="button"
                   onClick={getPosition}
                   className="flex-1 rounded-full bg-[#F4F5FF] text-[#4043FF] py-3.5 text-[15px] font-bold hover:bg-[#E8E9FF] transition-colors"
-                  style={{ fontFamily: "'Urbanist', sans-serif" }}
+
                 >
                   Locate Me
                 </button>
-                <button type="button" onClick={handleDirection} disabled={isRouting} className="flex-1 rounded-full bg-[#4043FF] text-white py-3.5 text-[15px] font-bold hover:bg-[#3333CC] transition-colors disabled:opacity-60" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <button type="button" onClick={handleDirection} disabled={isRouting} className="flex-1 rounded-full bg-[#4043FF] text-white py-3.5 text-[15px] font-bold hover:bg-[#3333CC] transition-colors disabled:opacity-60">
                   {isRouting ? 'Routing…' : 'Direction'}
                 </button>
               </div>
@@ -236,7 +236,7 @@ export default function LocationsPage() {
         )}
 
         {/* OSM attribution */}
-        <p className="mt-4 text-center text-xs text-gray-400" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+        <p className="mt-4 text-center text-xs text-gray-400">
           Map data ©{' '}
           <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:underline">OpenStreetMap</a>{' '}
           contributors · Directions by{' '}

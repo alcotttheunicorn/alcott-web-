@@ -66,7 +66,7 @@ function UserAppLayoutInner({
       : undefined
 
   return (
-    <div className={`min-h-screen ${contentBgClass} flex flex-col`} style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+    <div className={`min-h-screen ${contentBgClass} flex flex-col`}>
       <VerifyPaymentHandler />
       <div className="flex flex-1 min-h-0">
         <DesktopSidebar activeNav={resolvedActiveNav} inboxBadge={inboxBadge} />

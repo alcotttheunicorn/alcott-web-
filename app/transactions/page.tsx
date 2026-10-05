@@ -77,16 +77,16 @@ export default function TransactionHistoryPage() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold text-gray-900 font-[Urbanist] mb-1" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                  <p className="text-base font-semibold text-gray-900 mb-1">
                     {transaction.title ?? 'Transaction'}
                   </p>
-                  <p className="text-sm text-gray-500 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                  <p className="text-sm text-gray-500">
                     {transaction.description ?? ''}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <span className="text-sm text-[#4043FF] font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif', color: '#4043FF' }}>
+                <span className="text-sm text-[#4043FF]" style={{ color: '#4043FF' }}>
                   {formatDateTime(transaction.created_at)}
                 </span>
                 <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
@@ -104,7 +104,7 @@ export default function TransactionHistoryPage() {
           {/* End of list indicator */}
           {!hasMore && transactions.length > 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500 font-[Urbanist]" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+              <p className="text-gray-500">
                 You've reached the end of your transaction history
               </p>
             </div>

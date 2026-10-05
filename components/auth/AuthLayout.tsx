@@ -24,7 +24,7 @@ export function AuthLayout({ title, illustration = '/lets_get_you_in.png', illus
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                    <h1 className="text-xl font-bold text-gray-900">
                         {header.title}
                     </h1>
                 </div>
@@ -51,7 +51,7 @@ export function AuthLayout({ title, illustration = '/lets_get_you_in.png', illus
 
                         {title && (
                             <div className="mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center lg:text-left" style={{ fontFamily: 'Urbanist, system-ui, sans-serif' }}>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center lg:text-left">
                                     {title}
                                 </h2>
                             </div>
