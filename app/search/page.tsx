@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useShipmentByTrackingId } from '@/hooks/use-shipments'
 import type { ShipmentData } from '@/lib/api/types'
+import { SearchResultsSkeleton } from '@/components/shared/skeletons/SearchSkeletons'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,13 +88,15 @@ function SearchContent() {
   const [submittedQuery, setSubmittedQuery] = useState('')
   const [searchResults, setSearchResults] = useState<ShipmentData[]>([])
   const [searchError, setSearchError] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
 
   const {
     data: searchData,
     isPending: isLoading,
     error: queryError,
-  } = useShipmentByTrackingId(submittedQuery.trim())
+    refetch,
+  } = useShipmentByTrackingId(submittedQuery)
 
   useEffect(() => {
     setRecentSearches(loadRecentSearches())
@@ -101,6 +104,7 @@ function SearchContent() {
 
   useEffect(() => {
     const query = searchParams.get('tracking-id') || searchParams.get('q')
+    const submit = searchParams.get('submit')
     if (query) {
       setSearchQuery(query)
       performSearch(query)
@@ -127,7 +131,7 @@ function SearchContent() {
       setRecentSearches(saveRecentSearch(submittedQuery) ?? recentSearches)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submittedQuery, searchData, queryError])
+  }, [submittedQuery, searchData, queryError, refreshKey])
 
   const performSearch = (query: string) => {
     const trackingId = query.trim()
@@ -136,6 +140,7 @@ function SearchContent() {
     setSearchError('')
     setSearchResults([])
     setSubmittedQuery(trackingId)
+    setRefreshKey((k) => k + 1)
   }
 
   const handleClearRecent = () => {
@@ -200,9 +205,7 @@ function SearchContent() {
         {submittedQuery ? (
           <section aria-live="polite">
             {isLoading ? (
-              <div className="flex max-w-4xl items-center gap-3 rounded-xl border border-gray-200 bg-white p-8 text-sm text-gray-600">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#4043FF] border-t-transparent" /> Looking up {submittedQuery}…
-              </div>
+              <SearchResultsSkeleton count={1} />
             ) : searchResults.length > 0 ? (
               <div className="max-w-4xl space-y-4">
                 {searchResults.map((result) => (
@@ -277,8 +280,8 @@ function TrackingResult({ shipment }: { shipment: ShipmentData }) {
   const pickupEvent = events.slice().reverse().find((event) =>
     /picked up|pickup|collected/i.test(event.event_name ?? event.event ?? '') && event.location,
   )
-  const origin = shipment.sender_city || pickupEvent?.location
-  const destination = shipment.receiver_city
+  const origin = shipment.sender_address || shipment.sender_city || pickupEvent?.location
+  const destination = shipment.receiver_address || shipment.receiver_city
   const createdDate = formatDate(shipment.created_at)
 
   return (
