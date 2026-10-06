@@ -1,18 +1,36 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { CurrencySelector } from '@/components/ui/CurrencySelector'
+import { cn } from '@/lib/utils'
 
 export function LandingHeader() {
     const { isAuthenticated, logout } = useAuth()
     const router = useRouter()
+    const [scrolled, setScrolled] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 8)
+        }
+        handleScroll()
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     return (
-        <header className="w-full bg-[#F3F9FD]">
-            <div className="mx-auto w-full max-w-9xl px-4 lg:px-12 flex items-center justify-between py-4 md:py-6">
+        <header
+            className={cn(
+                'w-full bg-[#F3F9FD] sticky top-0 z-40 transition-all duration-300 ease-in-out',
+                scrolled &&
+                    'backdrop-blur-md supports-[backdrop-filter]:bg-[#F3F9FD]/90 shadow-sm border-b border-gray-100/60'
+            )}
+        >
+            <div className="mx-auto w-full max-w-9xl px-4 lg:px-12 flex items-center justify-between py-3 md:py-4 lg:py-5">
                 <div className="flex items-center">
                     <Link href="/" aria-label="Alcott home">
                         <img src="/alcott-small.png" alt="alcott logo" className="h-8 w-auto md:h-12" />
