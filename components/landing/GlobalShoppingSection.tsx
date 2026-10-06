@@ -36,7 +36,7 @@ export function GlobalShoppingSection() {
           <div
             aria-label="Shop and Ship lifestyle"
             role="img"
-            className="relative min-h-[280px] lg:min-h-[583px] bg-[url(/lifestyle-image.png)] bg-cover bg-center"
+            className="relative min-h-[280px] lg:min-h-[583px] bg-[url(/shopping-parcel-scene.png)] bg-cover bg-center"
           />
         </div>
       </div>
