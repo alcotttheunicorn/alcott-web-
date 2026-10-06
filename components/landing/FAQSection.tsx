@@ -27,7 +27,7 @@ export function FAQSection() {
       <div className="max-w-9xl mx-auto px-4 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-10 lg:gap-16 items-center">
           {/* Left: phone overflowing the red circle */}
-            <div className="relative flex items-center justify-center h-80 sm:h-[420px] lg:h-[560px]">
+            <div className="relative flex items-center justify-center h-80 sm:h-[420px] lg:h-[560px] mb-8 lg:mb-0">
             {/* Red circle — centered, hidden on mobile */}
             <div
                 className="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] xl:w-[440px] xl:h-[440px] bg-[#fe2c31] rounded-full"
