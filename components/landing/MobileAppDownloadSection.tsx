@@ -34,8 +34,7 @@ export function MobileAppDownloadSection() {
             </h2>
 
             <p className="text-gray-600 text-base lg:text-lg leading-7 max-w-[520px] ">
-              With lots of unique blocks, you can easily build a page without
-              coding. Build your next landing page.
+              Book local and international shipments, get shipping estimates and track your deliveries - all in one place.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
