@@ -21,6 +21,5 @@ export async function updateProfile(formData: FormData): Promise<ApiResponse<Pro
 }
 
 export async function resendPhoneOtp(): Promise<MessageResponse> {
-  const { data } = await apiClient.post('/profile/resend-phone-otp')
-  return data
+  return Promise.reject(new Error('Phone OTP resend has been removed'))
 }

@@ -1,8 +1,16 @@
 import axios from "axios";
 import { getToken, clearSession } from "./auth-store";
 
+// In development, route through the same-origin Next.js rewrite (/api-proxy/*)
+// so the browser never makes a cross-origin call the backend's CORS allowlist
+// would block. Production keeps using the absolute backend URL.
+const baseURL =
+  process.env.NODE_ENV === 'development'
+    ? '/api-proxy'
+    : process.env.NEXT_PUBLIC_API_BASE_URL;
+
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL,
 });
 
 apiClient.interceptors.request.use((config) => {

@@ -58,7 +58,7 @@ function TransactionCard({ item, index }: { item: Transaction; index: number }) 
 
 function HomeContent() {
   const router = useRouter()
-  const { profile } = useProfile()
+  const { displayName } = useProfile()
   const { data: balance, isLoading: balanceLoading } = useWalletBalance()
   const { data: recentTransactions = [], isLoading: transactionsLoading } = useTransactions(1, 4)
   const { currency } = useCurrency()
@@ -161,7 +161,7 @@ function HomeContent() {
               {greeting} <span aria-hidden="true">👋</span>
             </p>
             <h2 className="text-sm sm:text-base font-bold text-gray-900 mt-0.5">
-              {profile ? `${profile.first_name} ${profile.last_name}` : ''}
+              {displayName ?? ''}
             </h2>
           </div>
           <div className="md:hidden relative shrink-0">
