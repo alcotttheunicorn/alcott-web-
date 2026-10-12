@@ -61,7 +61,7 @@ export default function OTPVerificationPage() {
     try {
       // Call forgotPassword again to resend the code
       const { forgotPassword } = await import('@/lib/api/auth-api')
-      await forgotPassword(email || undefined, phoneNumber || undefined)
+      await forgotPassword(email as string)
 
       toast({
         title: 'Code resent',

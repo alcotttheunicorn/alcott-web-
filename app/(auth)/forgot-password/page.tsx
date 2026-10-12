@@ -22,7 +22,15 @@ export default function ForgotPasswordPage() {
   const handleContinue = async () => {
     if (!selectedMethod) return
 
-    // Validate input based on selected method
+    // Backend now only accepts email
+    if (selectedMethod === 'sms') {
+      toast({
+        title: 'Email required',
+        description: 'Password reset is now email-only.',
+      })
+      return
+    }
+
     if (selectedMethod === 'email' && !email.trim()) {
       toast({
         title: 'Email required',
@@ -31,36 +39,19 @@ export default function ForgotPasswordPage() {
       return
     }
 
-    if (selectedMethod === 'sms' && !phoneNumber.trim()) {
-      toast({
-        title: 'Phone number required',
-        description: 'Please enter your phone number.',
-      })
-      return
-    }
-
     setIsLoading(true)
     try {
-      await forgotPassword(
-        selectedMethod === 'email' ? email.trim() : undefined,
-        selectedMethod === 'sms' ? phoneNumber.trim() : undefined
-      )
+      await forgotPassword(email.trim())
 
-      // Store the contact info for the next step
       if (typeof window !== 'undefined') {
-        if (selectedMethod === 'email') {
-          localStorage.setItem('pendingResetEmail', email.trim())
-        } else {
-          localStorage.setItem('pendingResetPhone', phoneNumber.trim())
-        }
+        localStorage.setItem('pendingResetEmail', email.trim())
       }
 
       toast({
         title: 'Reset code sent',
-        description: `A reset code has been sent to your ${selectedMethod === 'email' ? 'email' : 'phone'}.`,
+        description: 'A reset code has been sent to your email.',
       })
 
-      // Navigate to OTP verification page
       router.push('/forgot-password/verify')
     } catch (err: any) {
       const errorMessage =
