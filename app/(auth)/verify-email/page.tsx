@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { verifyEmail, resendVerification } from '@/lib/api/auth-api'
+import { setSession } from '@/lib/auth-store'
 import { toast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 import {
@@ -65,8 +66,18 @@ export default function VerifyEmailPage() {
                 if (typeof window !== 'undefined') {
                   localStorage.removeItem('pendingSignupEmail')
                 }
-                // Redirect to sign in so user can log in after verify
-                setTimeout(() => router.push('/sign-in'), 1200)
+
+                // Email verification returns a fresh { user, token }. Instead of
+                // sending the user to sign in again, start their session now and
+                // drop them into the app (the profile guard prompts completion).
+                const auth = res?.data
+                if (auth?.token && auth?.user) {
+                  setSession(auth.user, auth.token, true)
+                  setTimeout(() => router.replace('/home'), 1200)
+                } else {
+                  // Fallback: no token in the response — sign in manually.
+                  setTimeout(() => router.push('/sign-in'), 1200)
+                }
               } catch (err: any) {
                 const apiErrorMessage =
                   err?.response?.data?.message ||

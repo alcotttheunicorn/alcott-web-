@@ -4,12 +4,26 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { OrderDetailSkeleton } from '@/components/shared/skeletons'
 import { useShipmentById, usePayShipment } from '@/hooks/use-shipments'
+import { useWalletBalance } from '@/hooks/use-wallet'
+import { toast } from '@/components/ui/use-toast'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 
 const STATUS_STYLES: Record<string, string> = {
   UNPAID: 'bg-yellow-100 text-yellow-700',
+  SUBMITTED: 'bg-yellow-100 text-yellow-700',
   ON_PROCESS: 'bg-[#4043FF] text-white',
   DELIVERED: 'bg-green-100 text-green-700',
+  CANCELLED: 'bg-rose-100 text-rose-700',
+}
+
+// Friendly labels for the backend ShipmentStatus enum
+// (UNPAID · SUBMITTED · ON_PROCESS · DELIVERED · CANCELLED).
+const STATUS_LABELS: Record<string, string> = {
+  UNPAID: 'Unpaid',
+  SUBMITTED: 'Awaiting pickup',
+  ON_PROCESS: 'On Process',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 }
 
 export default function OrderDetailPage() {
@@ -24,17 +38,78 @@ function OrderDetailContent() {
   const { id } = useParams<{ id: string }>()
   const { data: shipment, isLoading: loading, error: queryError } = useShipmentById(id)
   const payMutation = usePayShipment()
+  const { data: balance } = useWalletBalance()
+  const walletBalance = balance ?? null
 
   const error = queryError
     ? ((queryError as any)?.response?.status === 404 ? 'Order not found.' : 'Could not load this order.')
     : ''
 
-  const handlePay = () => {
+  const priceNGN = shipment?.price != null ? Number(shipment.price) : null
+  const walletHasSufficientBalance =
+    walletBalance != null && priceNGN != null && walletBalance >= priceNGN
+
+  const handlePayWithWallet = () => {
     if (!id) return
-    payMutation.mutate({
-      id,
-      payload: { payment_method: 'WALLET', currency: 'NGN' },
-    })
+    payMutation.mutate(
+      { id, payload: { payment_method: 'WALLET', currency: 'NGN' } },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Payment successful',
+            description: 'Your shipment has been paid from your wallet.',
+          })
+        },
+        onError: (err) => {
+          const message =
+            (err as any)?.response?.data?.message ||
+            'Could not pay from your wallet. Please top up or pay by card.'
+          toast({ title: 'Wallet payment failed', description: message })
+        },
+      },
+    )
+  }
+
+  const handlePayWithCard = async () => {
+    if (!id) return
+    try {
+      const paymentResponse = await payMutation.mutateAsync({
+        id,
+        payload: { payment_method: 'CARD', currency: 'NGN' },
+      })
+
+      const paymentData = (paymentResponse as any)?.data as Record<string, unknown> | undefined
+      const authorizationUrl =
+        paymentData?.authorization_url ||
+        (paymentResponse as any)?.authorization_url ||
+        paymentData?.checkout_url ||
+        (paymentResponse as any)?.checkout_url
+
+      if (!authorizationUrl) {
+        toast({
+          title: 'Checkout unavailable',
+          description: 'Paystack did not return a checkout link. Please try again.',
+        })
+        return
+      }
+
+      const reference = paymentData?.reference ?? (paymentResponse as any)?.reference
+      if (typeof reference === 'string' && reference) {
+        try {
+          window.sessionStorage.setItem('alcott_pending_shipment_ref', reference)
+          window.sessionStorage.setItem('alcott_pending_shipment_id', id)
+        } catch {
+          // ignore storage errors
+        }
+      }
+
+      window.location.href = authorizationUrl as string
+    } catch (err) {
+      const message =
+        (err as any)?.response?.data?.message ||
+        'Could not start card payment. Please try again.'
+      toast({ title: 'Card payment failed', description: message })
+    }
   }
 
   return (
@@ -52,14 +127,14 @@ function OrderDetailContent() {
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 mb-1">Tracking ID</p>
                 <p className="text-lg font-bold text-gray-900 truncate">
-                  {shipment.tracking_id}
+                  {shipment.tracking_id || '—'}
                 </p>
               </div>
               <span
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 ${STATUS_STYLES[shipment.status] ?? 'bg-gray-100 text-gray-600'}`}
 
               >
-                {shipment.status}
+                {STATUS_LABELS[shipment.status] ?? shipment.status}
               </span>
             </div>
 
@@ -104,14 +179,39 @@ function OrderDetailContent() {
             </div>
 
             {shipment.status === 'UNPAID' && (
-              <button
-                type="button"
-                onClick={handlePay}
-                disabled={payMutation.isPending}
-                className="w-full rounded-xl bg-[#4043FF] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
-              >
-                {payMutation.isPending ? 'Processing payment...' : 'Pay shipment'}
-              </button>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={handlePayWithWallet}
+                  disabled={payMutation.isPending || !walletHasSufficientBalance}
+                  className="w-full rounded-xl bg-[#4043FF] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {payMutation.isPending
+                    ? 'Processing payment...'
+                    : priceNGN != null
+                      ? `Pay ₦${priceNGN.toLocaleString()} from wallet`
+                      : 'Pay from wallet'}
+                </button>
+
+                {!walletHasSufficientBalance && priceNGN != null && (
+                  <p className="text-xs text-center text-amber-600">
+                    Insufficient wallet balance. Top up or pay with card.
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handlePayWithCard}
+                  disabled={payMutation.isPending}
+                  className="w-full rounded-xl border-2 border-[#4043FF] px-4 py-3 text-sm font-semibold text-[#4043FF] hover:bg-[#4043FF]/5 disabled:opacity-60"
+                >
+                  Pay with Card (Paystack)
+                </button>
+
+                <p className="text-xs text-gray-500 text-center">
+                  Card payments are processed securely by Paystack. Your card details are never stored, and your wallet balance is not used.
+                </p>
+              </div>
             )}
           </div>
         ) : null}
