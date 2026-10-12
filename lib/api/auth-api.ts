@@ -16,13 +16,12 @@ export async function verifyEmail(email: string, otp: string): Promise<ApiRespon
   return data
 }
 
-export async function verifyPhone(phone_number: string, otp: string): Promise<MessageResponse> {
-  const { data } = await apiClient.post('/auth/verify-phone', { phone_number, otp })
-  return data
+export async function verifyPhone(_phone_number?: string, _otp?: string): Promise<MessageResponse> {
+  return Promise.reject(new Error('Phone verification has been removed'))
 }
 
-export async function forgotPassword(email?: string, phone_number?: string): Promise<MessageResponse> {
-  const { data } = await apiClient.post('/auth/forgot-password', { email, phone_number })
+export async function forgotPassword(email: string): Promise<MessageResponse> {
+  const { data } = await apiClient.post('/auth/forgot-password', { email })
   return data
 }
 
