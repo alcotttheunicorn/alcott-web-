@@ -130,8 +130,8 @@ function TopUpContent() {
                   inputMode="decimal"
                   value={customAmount || ''}
                   onChange={(e) => handleCustomAmountChange(e.target.value)}
-                  placeholder="₦247,000"
-                  className="w-full max-w-md mx-auto text-center text-2xl font-bold text-[#4043FF] bg-transparent border-2 border-gray-200 rounded-xl px-6 py-4 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent placeholder:text-[#4043FF]"
+                  placeholder="Enter amount"
+                  className="w-full max-w-md mx-auto text-center text-2xl font-bold text-[#4043FF] bg-transparent border-2 border-gray-200 rounded-xl px-6 py-4 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent placeholder:text-gray-400"
                   style={{ color: '#4043FF' }}
                 />
               </div>
