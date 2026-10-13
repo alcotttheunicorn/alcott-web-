@@ -164,7 +164,7 @@ export default function CheckRatesPage() {
 
         {/* Dimension section */}
         <div className="mb-8">
-          <h2 className="text-[15px] font-bold text-gray-900 mb-3">Dimension</h2>
+          <h2 className="text-[15px] font-bold text-gray-900 mb-3">Weight</h2>
           <div className="flex items-center gap-3 p-4 bg-[#F8F9FA] rounded-2xl">
             <div className="shrink-0">
               <WeightBoxIcon />
