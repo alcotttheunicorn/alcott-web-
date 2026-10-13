@@ -66,7 +66,13 @@ function TopUpContent() {
         
         if (res.data?.reference) {
           try {
-            window.sessionStorage.setItem('alcott_pending_topup_ref', res.data.reference)
+            // Store with a timestamp so the verify handler can ignore a stale
+            // reference left behind by an abandoned checkout (see TTL in
+            // verify-payment-handler.tsx).
+            window.sessionStorage.setItem(
+              'alcott_pending_topup_ref',
+              JSON.stringify({ reference: res.data.reference, ts: Date.now() }),
+            )
           } catch {
             // ignore storage errors
           }
@@ -80,10 +86,12 @@ function TopUpContent() {
   }
 
   const formatAmount = (amount: string) => {
-    if (amount === '1m') return '₦1,000,000'
+    // Compact chip labels so presets never spill out of their buttons on
+    // small screens (e.g. "₦1,000,000" at 360px viewport).
+    if (amount === '1m') return '₦1M'
     if (amount.includes('k')) {
       const num = amount.replace('k', '')
-      return `₦${num},000`
+      return `₦${num}K`
     }
     return `₦${amount}`
   }
@@ -119,9 +127,9 @@ function TopUpContent() {
         {currentStep === 1 && (
           <div className="space-y-8">
             <div className="text-center">
-              <p className="text-gray-600 mb-6">
+              {/* <p className="text-gray-600 mb-6">
                 Enter the amount of top up
-              </p>
+              </p> */}
 
               {/* Custom Amount Input */}
               <div className="mb-8">
@@ -130,7 +138,7 @@ function TopUpContent() {
                   inputMode="decimal"
                   value={customAmount || ''}
                   onChange={(e) => handleCustomAmountChange(e.target.value)}
-                  placeholder="Enter amount"
+                  placeholder="₦0"
                   className="w-full max-w-md mx-auto text-center text-2xl font-bold text-[#4043FF] bg-transparent border-2 border-gray-200 rounded-xl px-6 py-4 focus:ring-2 focus:ring-[#4043FF] focus:border-transparent placeholder:text-gray-400"
                   style={{ color: '#4043FF' }}
                 />
@@ -143,7 +151,7 @@ function TopUpContent() {
                 <button
                   key={amount}
                   onClick={() => handleAmountSelect(amount)}
-                  className={`px-6 py-3 rounded-full border-2 font-semibold transition-colors ${
+                  className={`px-6 py-3 rounded-full border-2 font-semibold whitespace-nowrap transition-colors ${
                     selectedAmount === amount
                       ? 'border-[#4043FF] bg-[#4043FF] text-white'
                       : 'border-[#4043FF] text-[#4043FF] hover:bg-[#4043FF] hover:text-white'
@@ -160,7 +168,7 @@ function TopUpContent() {
               <Button
                 onClick={handleContinueFromAmount}
                 disabled={isProcessing}
-                className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-12 py-3 rounded-full w-full max-w-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-12 h-16 rounded-full w-full max-w-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
 
               >
                 Continue
@@ -179,11 +187,11 @@ function TopUpContent() {
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-4 max-w-md mx-auto">
+            <div className="flex justify-center">
               <Button
                 onClick={handleContinueFromPayment}
                 disabled={isProcessing}
-                className="w-full bg-[#4043FF] hover:bg-[#3333CC] text-white py-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#4043FF] hover:bg-[#3333CC] text-white px-12 h-16 rounded-full w-full max-w-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
 
               >
                 {isProcessing ? 'Processing…' : 'Continue to payment'}
