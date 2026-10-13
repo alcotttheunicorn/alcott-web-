@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import { LocationAutocompleteInput } from '@/components/ui/location-autocomplete-input'
 import { useRouter } from 'next/navigation'
-import { useSetupProfile } from '@/hooks/use-profile'
+import { useProfile, useSetupProfile } from '@/hooks/use-profile'
 import { toast } from '@/components/ui/use-toast'
 
 export default function ProfileSetupPage() {
@@ -28,6 +28,7 @@ export default function ProfileSetupPage() {
   const [step, setStep] = useState<1 | 2>(1)
   const router = useRouter()
   const setupProfileMutation = useSetupProfile()
+  const { profile } = useProfile()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -43,7 +44,27 @@ export default function ProfileSetupPage() {
     }))
   }
 
+  // Prefill from the live profile (GET /profile) first, so previously saved
+  // values — including dob/phone/gender/address that the login authUser
+  // snapshot never contains — are shown. Fall back to the stored authUser for
+  // email/names only when the profile hasn't loaded yet.
   useEffect(() => {
+    if (profile) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: profile.first_name || prev.firstName,
+        lastName: profile.last_name || prev.lastName,
+        email: profile.email || prev.email,
+        phoneNumber: profile.phone_number || prev.phoneNumber,
+        gender: profile.gender || prev.gender,
+        address: profile.address || prev.address,
+        // type="date" inputs need yyyy-mm-dd; dob arrives as a full ISO timestamp
+        dateOfBirth: profile.dob
+          ? new Date(profile.dob).toLocaleDateString('en-CA')
+          : prev.dateOfBirth,
+      }))
+      return
+    }
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('authUser') || sessionStorage.getItem('authUser')
       if (storedUser) {
@@ -60,7 +81,7 @@ export default function ProfileSetupPage() {
         }
       }
     }
-  }, [])
+  }, [profile])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -92,7 +113,16 @@ export default function ProfileSetupPage() {
     const payload = new FormData()
     payload.append('first_name', formData.firstName)
     payload.append('last_name', formData.lastName)
-    payload.append('dob', new Date(formData.dateOfBirth).toISOString())
+    // Guard: an unparseable date would serialize as the literal "Invalid Date"
+    // and 500 on the backend — silently keeping the profile null.
+    const dobDate = new Date(formData.dateOfBirth)
+    if (Number.isNaN(dobDate.getTime())) {
+      const message = 'Please enter a valid date of birth.'
+      setErrorMessage(message)
+      toast({ title: 'Invalid date of birth', description: message })
+      return
+    }
+    payload.append('dob', dobDate.toISOString())
     payload.append('gender', formData.gender)
     payload.append('address', formData.address)
     payload.append('phone_number', formData.phoneNumber)
