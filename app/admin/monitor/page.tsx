@@ -8,6 +8,7 @@ import {
   useAdminAllUsers,
   useAdminActivityLogs,
   useAdminRateChecks,
+  useFinanceSummary,
 } from '@/hooks/use-admin'
 import type { ActivityLog, RateCheck } from '@/lib/api/admin-api'
 import type { ShipmentData } from '@/lib/api/types'
@@ -15,9 +16,7 @@ import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDateTime } from '@/lib/utils'
 
-/* Live-status pipeline. Backend lifecycle: UNPAID → SUBMITTED → ON_PROCESS
-   → DELIVERED → CANCELLED. Legacy literals (PENDING/ONGOING/SUCCESSFUL) are
-   bucketed into the current schema so the funnel never shows a dead label. */
+
 const PIPELINE_STAGES = [
   { key: 'UNPAID', label: 'Unpaid' },
   { key: 'SUBMITTED', label: 'Submitted' },
@@ -103,6 +102,7 @@ export default function MonitorPage() {
   const allUsersQuery = useAdminAllUsers()
   const rateChecksQuery = useAdminRateChecks({ limit: 50 })
   const activityQuery = useAdminActivityLogs({ page: 1, limit: 20 })
+  const financeQuery = useFinanceSummary()
 
   const shipments = useMemo(
     () => (Array.isArray(shipmentsQuery.data) ? shipmentsQuery.data : []),
@@ -144,15 +144,20 @@ export default function MonitorPage() {
   const totalUsers = allUsersQuery.data?.totalItems ?? allUsers.length
   const newUsersToday = allUsers.filter((u) => isSameDay(u.created_at, now)).length
   const rateChecksToday = rateChecks.filter((rc) => isSameDay(rc.created_at, now)).length
-  const paidShipments = shipments.filter((shipment) => {
-    const paymentStatus = (shipment.payment_status ?? '').toUpperCase()
-    if (paymentStatus) return paymentStatus === 'PAID'
-    return ['SUBMITTED', 'ON_PROCESS', 'DELIVERED'].includes((shipment.status ?? '').toUpperCase())
-  })
-  const totalRevenue = paidShipments.reduce((sum, shipment) => sum + (Number(shipment.price) || 0), 0)
-  const totalCost = shipments.reduce((sum, shipment) => sum + Math.abs(Number(shipment.cost) || 0), 0)
-  const totalProfit = totalRevenue - totalCost
-  const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-NG', { maximumFractionDigits: 2 })}`
+  // Finance KPIs come from /admin/finance/summary (server-authoritative), not
+  // from summing shipments here: revenue counts only paid shipments, and
+  // profit ≠ revenue − cost (it only spans shipments an admin has costed).
+  const finance = financeQuery.data
+  const totalRevenue = finance?.revenue ?? 0
+  const totalCost = finance?.cost ?? 0
+  const profit = finance?.profit ?? null
+  const uncostedShipments = finance?.uncosted?.shipments ?? 0
+  const uncostedRevenue = finance?.uncosted?.revenue ?? 0
+  const refundedCount = finance?.cancelled_after_payment?.shipments ?? 0
+  const refundedAmount = finance?.cancelled_after_payment?.amount ?? 0
+  const financeCurrency = finance?.currency === 'USD' ? 'USD' : 'NGN'
+  const formatNaira = (amount: number) =>
+    `${financeCurrency === 'USD' ? '$' : '₦'}${amount.toLocaleString('en-NG', { maximumFractionDigits: 2 })}`
 
   // ---- Pipeline ----
   const pipelineCounts = useMemo(() => {
@@ -226,8 +231,22 @@ export default function MonitorPage() {
             </div>
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-1">Total Profit</p>
-              <p className={`text-2xl font-bold ${totalProfit < 0 ? 'text-red-600' : 'text-green-700'}`}>{formatNaira(totalProfit)}</p>
-              <p className="text-xs text-gray-500 mt-1">Revenue minus recorded expenses</p>
+              <p className={`text-2xl font-bold ${profit == null ? 'text-gray-400' : profit < 0 ? 'text-red-600' : 'text-green-700'}`}>
+                {profit == null ? '—' : formatNaira(profit)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {profit == null ? 'No costs recorded yet' : 'Over costed shipments'}
+              </p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="text-sm text-gray-500 mb-1">Uncosted Revenue</p>
+              <p className="text-2xl font-bold text-gray-900">{formatNaira(uncostedRevenue)}</p>
+              <p className="text-xs text-gray-500 mt-1">{uncostedShipments} {plural(uncostedShipments, 'shipment')} without a cost</p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="text-sm text-gray-500 mb-1">Refunded</p>
+              <p className="text-2xl font-bold text-amber-600">{formatNaira(refundedAmount)}</p>
+              <p className="text-xs text-gray-500 mt-1">{refundedCount} {plural(refundedCount, 'order')} refunded to wallets</p>
             </div>
           </div>
 
