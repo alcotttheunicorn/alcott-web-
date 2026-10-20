@@ -104,9 +104,25 @@ export async function completeAdminShipment(
   return data
 }
 
-export async function cancelAdminShipment(id: string): Promise<ApiResponse<unknown>> {
+// Cancelling a paid order now auto-refunds to the customer's wallet. The
+// cancel response keeps `data` (the cancelled shipment) and adds a top-level
+// `refund` — null when the order was never settled.
+export interface CancelRefund {
+  amount: number
+  currency: string
+  payment_method: string
+  transaction_id: string
+}
+
+export interface CancelShipmentResult {
+  status: string
+  data: ShipmentData
+  refund: CancelRefund | null
+}
+
+export async function cancelAdminShipment(id: string): Promise<CancelShipmentResult> {
   const { data } = await apiClient.post(`/admin/shipments/${id}/cancel`)
-  return data
+  return data as CancelShipmentResult
 }
 
 export async function startProcessingShipment(id: string): Promise<ApiResponse<unknown>> {
