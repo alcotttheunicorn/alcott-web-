@@ -30,9 +30,17 @@ export interface CreateShipmentRequest {
   package_height?: number
 }
 
+export interface CategorySurcharge {
+  id: string
+  cost_per_kg: number
+}
+
 export interface ShipmentCategoryOption {
   value: string
   label: string
+  // Admin-managed per-kg surcharge attached to this category (public list),
+  // or null when none is set.
+  surcharge?: CategorySurcharge | null
 }
 
 export async function createShipment(

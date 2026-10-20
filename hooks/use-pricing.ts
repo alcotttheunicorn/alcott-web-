@@ -19,8 +19,12 @@ import {
   upsertPremisePricing,
   updateExchangeRate,
   importPricingConfig,
+  getSurcharges,
+  createSurcharge,
+  updateSurcharge,
+  deleteSurcharge,
 } from '@/lib/api/pricing-api'
-import type { ZonePricing, PremisePricing, RegionPricing, RegionZoneRateCard } from '@/lib/api/types'
+import type { ZonePricing, PremisePricing, RegionPricing, RegionZoneRateCard, CategorySurchargeRow } from '@/lib/api/types'
 import { queryKeys } from '@/components/providers/query-provider'
 
 export function useCheckPricing() {
@@ -31,13 +35,15 @@ export function useCheckPricing() {
       weight,
       sender_email,
       sender_phone_number,
+      category,
     }: {
       sender_address: string
       receiver_address: string
       weight: number
       sender_email?: string
       sender_phone_number?: string
-    }) => checkPricing(sender_address, receiver_address, weight, sender_email, sender_phone_number),
+      category?: string
+    }) => checkPricing(sender_address, receiver_address, weight, sender_email, sender_phone_number, category),
   })
 }
 
@@ -51,13 +57,15 @@ export function useCheckPricingAuth() {
       weight,
       sender_email,
       sender_phone_number,
+      category,
     }: {
       sender_address: string
       receiver_address: string
       weight: number
       sender_email?: string
       sender_phone_number?: string
-    }) => checkPricingAuth(sender_address, receiver_address, weight, sender_email, sender_phone_number),
+      category?: string
+    }) => checkPricingAuth(sender_address, receiver_address, weight, sender_email, sender_phone_number, category),
     retry: false,
   })
 }
@@ -273,6 +281,66 @@ export function useUpdateRegionPricing() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.regions })
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.overview })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Admin category surcharges
+// ---------------------------------------------------------------------------
+
+export function useSurcharges() {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: queryKeys.pricing.surcharges,
+    queryFn: async () => {
+      const res = await getSurcharges()
+      const payload = res.data as unknown
+      if (Array.isArray(payload)) return payload as CategorySurchargeRow[]
+      const wrapped = payload as { surcharges?: unknown; data?: unknown } | null
+      if (Array.isArray(wrapped?.surcharges)) return wrapped!.surcharges as CategorySurchargeRow[]
+      if (Array.isArray(wrapped?.data)) return wrapped!.data as CategorySurchargeRow[]
+      return []
+    },
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function useCreateSurcharge() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: { category: string; cost_per_kg: number }) => createSurcharge(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.surcharges })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.categories })
+    },
+  })
+}
+
+export function useUpdateSurcharge() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: string; category?: string; cost_per_kg?: number }) =>
+      updateSurcharge(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.surcharges })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.categories })
+    },
+  })
+}
+
+export function useDeleteSurcharge() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteSurcharge(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.surcharges })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.categories })
     },
   })
 }
