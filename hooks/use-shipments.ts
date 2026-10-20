@@ -96,10 +96,19 @@ export function useShipmentCategories() {
         const value = candidate.value ?? candidate.name
         const label = candidate.label ?? candidate.value ?? candidate.name
         return typeof value === 'string' && typeof label === 'string'
-      }).map((item) => ({
-        value: String(item.value ?? item.label ?? '').trim(),
-        label: String(item.label ?? item.value ?? '').trim(),
-      })).filter((item) => item.value && item.label)
+      }).map((item) => {
+        const raw = item as ShipmentCategoryOption & { name?: string; surcharge?: unknown }
+        const value = String(raw.value ?? raw.name ?? '').trim()
+        const label = String(raw.label ?? raw.value ?? raw.name ?? '').trim()
+        const s = raw.surcharge as { id?: unknown; cost_per_kg?: unknown } | null | undefined
+        return {
+          value,
+          label,
+          surcharge: s && typeof s === 'object'
+            ? { id: String(s.id ?? ''), cost_per_kg: Number(s.cost_per_kg) || 0 }
+            : null,
+        }
+      }).filter((item) => item.value && item.label)
 
       return normalized.length > 0 ? normalized : fallbackCategories
     },

@@ -124,6 +124,12 @@ export interface PricingSlabPrice extends PricingMoney {
   max_weight: number
 }
 
+export interface PricingSurcharge {
+  category?: string | null
+  cost_per_kg?: number
+  amount?: number
+}
+
 export interface PricingResult {
   pricing_type: string
   weight: number
@@ -136,6 +142,10 @@ export interface PricingResult {
   export_price?: PricingSlabPrice
   import_price?: PricingSlabPrice
   zone_code?: number
+  // Category surcharge (present when a surcharged category is quoted):
+  category?: string | null
+  base_price?: number
+  surcharge?: PricingSurcharge | null
   [key: string]: unknown
 }
 
@@ -189,6 +199,15 @@ export interface PremisePricing {
   cost_per_km: number
   cost_per_minute: number
   cost_per_kg: number
+  [key: string]: unknown
+}
+
+export interface CategorySurchargeRow {
+  id: string
+  category: string
+  cost_per_kg: number
+  created_at?: string
+  updated_at?: string
   [key: string]: unknown
 }
 

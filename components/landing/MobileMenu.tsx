@@ -66,10 +66,10 @@ export function MobileMenu() {
                 <div className="p-6">
                     <CurrencySelector className="mb-6" />
                     <nav className="space-y-4 mb-8">
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Home</a>
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Ship</a>
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Track</a>
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Shop & Ship</a>
+                        <a href="/" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Home</a>
+                        <a href="/shipment/new" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Ship</a>
+                        <a href="/search" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Track</a>
+                        <a href="/shop-and-ship" className="block text-lg font-medium text-gray-700 hover:text-[#4043FF] transition-colors">Shop & Ship</a>
                     </nav>
 
                     <div className="space-y-4 mb-8">

@@ -110,8 +110,12 @@ export default function OrderDetailsPage() {
 
   const handleCancel = async () => {
     try {
-      await cancelOrder.mutateAsync(orderId)
-      toast({ title: 'Order updated', description: 'Shipment cancelled.' })
+      const res = await cancelOrder.mutateAsync(orderId)
+      const refund = res?.refund
+      const description = refund
+        ? `NGN ${Number(refund.amount).toLocaleString()} refunded to the customer's wallet (${refund.payment_method}).`
+        : 'Order cancelled. No payment had been taken, so there was nothing to refund.'
+      toast({ title: 'Order cancelled', description })
     } catch (err) {
       handleError(err)
     }

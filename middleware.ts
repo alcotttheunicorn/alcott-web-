@@ -10,6 +10,7 @@ const publicRoutes = [
   '/forgot-password',
   '/verify-email',
   '/search',
+  '/shop-and-ship',
   '/(auth)',
 ]
 

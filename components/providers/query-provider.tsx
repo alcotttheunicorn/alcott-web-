@@ -27,12 +27,20 @@ export const queryKeys = {
     events: ['admin', 'events'] as const,
     activityLogs: ['admin', 'activity-logs'] as const,
     rateChecks: ['admin', 'rate-checks'] as const,
+    financeSummary: ['admin', 'finance-summary'] as const,
+  },
+  support: {
+    tickets: ['support', 'tickets'] as const,
+    ticketMessages: (id: string) => ['support', 'ticket', id, 'messages'] as const,
+    adminTickets: ['support', 'admin', 'tickets'] as const,
+    adminTicketMessages: (id: string) => ['support', 'admin', 'ticket', id, 'messages'] as const,
   },
   pricing: {
     overview: ['pricing', 'admin', 'overview'] as const,
     zones: ['pricing', 'admin', 'zones'] as const,
     regions: ['pricing', 'admin', 'regions'] as const,
     premise: ['pricing', 'admin', 'premise'] as const,
+    surcharges: ['pricing', 'admin', 'surcharges'] as const,
     exchangeRate: ['pricing', 'exchange-rate'] as const,
   },
 } as const
