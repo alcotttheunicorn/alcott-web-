@@ -7,6 +7,7 @@ import type {
   ZonePricing,
   RegionPricing,
   PremisePricing,
+  CategorySurchargeRow,
 } from './types'
 
 export async function checkPricing(
@@ -15,11 +16,13 @@ export async function checkPricing(
   weight: number,
   sender_email?: string,
   sender_phone_number?: string,
+  category?: string,
 ): Promise<ApiResponse<PricingResult>> {
   const { data } = await apiClient.post('/pricing/check', {
     sender_address,
     receiver_address,
     weight,
+    ...(category ? { category } : {}),
     ...(sender_email ? { sender_email } : {}),
     ...(sender_phone_number ? { sender_phone_number } : {}),
   })
@@ -32,11 +35,13 @@ export async function checkPricingAuth(
   weight: number,
   sender_email?: string,
   sender_phone_number?: string,
+  category?: string,
 ): Promise<ApiResponse<PricingResult>> {
   const { data } = await apiClient.post('/pricing/check/authenticated', {
     sender_address,
     receiver_address,
     weight,
+    ...(category ? { category } : {}),
     ...(sender_email ? { sender_email } : {}),
     ...(sender_phone_number ? { sender_phone_number } : {}),
   })
@@ -115,5 +120,33 @@ export async function updateExchangeRate(ngn_per_usd: number): Promise<ApiRespon
 
 export async function importPricingConfig(): Promise<MessageResponse> {
   const { data } = await apiClient.post('/pricing/admin/import')
+  return data
+}
+
+// --- Admin category surcharges (/api/admin/surcharges) ---
+
+export async function getSurcharges(): Promise<ApiResponse<CategorySurchargeRow[]>> {
+  const { data } = await apiClient.get('/admin/surcharges')
+  return data
+}
+
+export async function createSurcharge(payload: {
+  category: string
+  cost_per_kg: number
+}): Promise<ApiResponse<CategorySurchargeRow>> {
+  const { data } = await apiClient.post('/admin/surcharges', payload)
+  return data
+}
+
+export async function updateSurcharge(
+  id: string,
+  payload: { category?: string; cost_per_kg?: number },
+): Promise<ApiResponse<CategorySurchargeRow>> {
+  const { data } = await apiClient.patch(`/admin/surcharges/${id}`, payload)
+  return data
+}
+
+export async function deleteSurcharge(id: string): Promise<MessageResponse> {
+  const { data } = await apiClient.delete(`/admin/surcharges/${id}`)
   return data
 }

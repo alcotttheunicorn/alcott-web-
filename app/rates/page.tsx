@@ -9,6 +9,7 @@ import { PickupMarkerIcon, DeliveryPinIcon, TargetIcon, WeightBoxIcon } from '@/
 import { useProfile } from '@/hooks/use-profile'
 import { useCheckPricingAuth } from '@/hooks/use-pricing'
 import { useExchangeRate } from '@/hooks/use-pricing'
+import { useShipmentCategories } from '@/hooks/use-shipments'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { convertCurrency, formatCurrency } from '@/lib/currency'
 import type { PricingResult } from '@/lib/api/types'
@@ -19,6 +20,8 @@ export default function CheckRatesPage() {
   const [pickupLocation, setPickupLocation] = useState('')
   const [destination, setDestination] = useState('')
   const [weight, setWeight] = useState('')
+  const [category, setCategory] = useState('')
+  const { data: categories = [] } = useShipmentCategories()
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
   const [showRates, setShowRates] = useState(false)
   const { currency: displayCurrency } = useCurrency()
@@ -63,6 +66,7 @@ export default function CheckRatesPage() {
         weight: weightInKg,
         sender_email: profile?.email,
         sender_phone_number: profile?.phone_number,
+        category: category || undefined,
       },
       {
         onSuccess: (res) => {
@@ -187,6 +191,26 @@ export default function CheckRatesPage() {
           </div>
         </div>
 
+        {/* Category (affects surcharge) */}
+        <div className="mb-8">
+          <h2 className="text-[15px] font-bold text-gray-900 mb-3">Package category</h2>
+          <div className="flex items-center gap-3 p-4 bg-[#F8F9FA] rounded-2xl">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="flex-1 w-full bg-transparent text-gray-900 outline-none text-[15px]"
+            >
+              <option value="">No specific category</option>
+              {categories.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                  {c.surcharge ? ` (+₦${c.surcharge.cost_per_kg.toLocaleString()}/kg)` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Check button */}
         <button
           onClick={handleCheckRates}
@@ -233,22 +257,35 @@ export default function CheckRatesPage() {
 
             {/* Pricing Result Cards */}
             {(() => {
-              const isZoneShape = 'export_price' in pricingResult
-              const basePrice = isZoneShape
-                ? (pricingResult.export_price?.amount || 0) + (pricingResult.import_price?.amount || 0)
-                : (pricingResult.price?.amount || 0)
-              const sourceCurrency = isZoneShape
-                ? (pricingResult.export_price?.currency || 'NGN')
-                : (pricingResult.price?.currency || 'NGN')
-              const nativeCurrency = sourceCurrency === 'USD' ? 'USD' : 'NGN'
-              const convertedBasePrice = convertCurrency(basePrice, nativeCurrency, displayCurrency, exchangeRate?.ngn_per_usd)
-              const currency = convertedBasePrice == null ? nativeCurrency : displayCurrency
-              const displayBasePrice = convertedBasePrice ?? basePrice
+              const zoneSum =
+                (pricingResult.export_price?.amount || 0) + (pricingResult.import_price?.amount || 0)
+              const totalAmount =
+                typeof pricingResult.price?.amount === 'number'
+                  ? pricingResult.price.amount
+                  : zoneSum
+              const surchargeAmount =
+                typeof pricingResult.surcharge?.amount === 'number' ? pricingResult.surcharge.amount : 0
+              const baseAmount =
+                typeof pricingResult.base_price === 'number'
+                  ? pricingResult.base_price
+                  : totalAmount - surchargeAmount
 
-              const formatMoney = (amount: number) => {
-                if (!amount) return '—'
-                return formatCurrency(amount, currency)
+              const sourceCurrency =
+                pricingResult.price?.currency || pricingResult.export_price?.currency || 'NGN'
+              const nativeCurrency = sourceCurrency === 'USD' ? 'USD' : 'NGN'
+
+              const convert = (amount: number) =>
+                convertCurrency(amount, nativeCurrency, displayCurrency, exchangeRate?.ngn_per_usd)
+              const convertedTotal = convert(totalAmount)
+              const currency = convertedTotal == null ? nativeCurrency : displayCurrency
+
+              const display = (amount: number) => {
+                const c = convert(amount)
+                const v = c ?? amount
+                return v ? formatCurrency(v, currency) : '—'
               }
+
+              const hasSurcharge = surchargeAmount > 0
 
               return (
                 <div className="max-w-4xl mx-auto rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
@@ -256,8 +293,24 @@ export default function CheckRatesPage() {
                     Total delivery cost
                   </p>
                   <p className="text-4xl font-bold text-[#4043FF]">
-                    {formatMoney(displayBasePrice)}
+                    {display(totalAmount)}
                   </p>
+                  {hasSurcharge && (
+                    <div className="mx-auto mt-6 max-w-xs space-y-1 border-t border-gray-100 pt-4 text-sm">
+                      <div className="flex items-center justify-between text-gray-500">
+                        <span>Base price</span>
+                        <span>{display(baseAmount)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-gray-500">
+                        <span>Category surcharge</span>
+                        <span>{display(surchargeAmount)}</span>
+                      </div>
+                      <div className="flex items-center justify-between font-semibold text-gray-900">
+                        <span>Total</span>
+                        <span>{display(totalAmount)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })()}

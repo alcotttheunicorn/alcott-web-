@@ -11,6 +11,7 @@ import {
   getShipmentEvents,
   getAdminEvents,
   getAdminRateChecks,
+  getFinanceSummary,
   completeAdminShipment,
   updateAdminShipment,
   cancelAdminShipment,
@@ -24,6 +25,7 @@ import {
   type AdminShipmentEvent,
   type AdminEvent,
   type RateCheck,
+  type FinanceSummary,
 } from '@/lib/api/admin-api'
 import {
   getAdminPolicies,
@@ -436,4 +438,17 @@ export function displayAdminName(user: AdminUser) {
   return name || user.email
 }
 
-export type { AdminShipmentEvent, AdminEvent, RateCheck, PrivacyPolicy }
+// Authoritative revenue/cost/profit totals for the admin monitor. Called with
+// no dates for an all-time window.
+export function useFinanceSummary(params?: { start_date?: string; end_date?: string }) {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: queryKeys.admin.financeSummary,
+    queryFn: () => getFinanceSummary(params).then((res) => res.data),
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export type { AdminShipmentEvent, AdminEvent, RateCheck, PrivacyPolicy, FinanceSummary }

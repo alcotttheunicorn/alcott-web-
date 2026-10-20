@@ -104,9 +104,25 @@ export async function completeAdminShipment(
   return data
 }
 
-export async function cancelAdminShipment(id: string): Promise<ApiResponse<unknown>> {
+// Cancelling a paid order now auto-refunds to the customer's wallet. The
+// cancel response keeps `data` (the cancelled shipment) and adds a top-level
+// `refund` — null when the order was never settled.
+export interface CancelRefund {
+  amount: number
+  currency: string
+  payment_method: string
+  transaction_id: string
+}
+
+export interface CancelShipmentResult {
+  status: string
+  data: ShipmentData
+  refund: CancelRefund | null
+}
+
+export async function cancelAdminShipment(id: string): Promise<CancelShipmentResult> {
   const { data } = await apiClient.post(`/admin/shipments/${id}/cancel`)
-  return data
+  return data as CancelShipmentResult
 }
 
 export async function startProcessingShipment(id: string): Promise<ApiResponse<unknown>> {
@@ -169,5 +185,30 @@ export async function getAdminRateChecks(
   params?: { email?: string; phone_number?: string; page?: number; limit?: number },
 ): Promise<PaginatedResponse<{ rateChecks: RateCheck[] }>> {
   const { data } = await apiClient.get('/admin/rate-checks', { params })
+  return data
+}
+
+// Revenue/cost/profit totals for an optional date window, computed server-side
+// off when a shipment was created. Note the endpoint's own rule: `profit` sums
+// (price − cost) over ONLY the shipments an admin has costed, so
+// revenue − cost ≠ profit; `uncosted` carries the gap and `profit` is null while
+// nothing is costed. `cancelled_after_payment` is now the REFUNDED figure
+// (cancel auto-refunds to the wallet), not refund exposure.
+export interface FinanceSummary {
+  currency: string
+  period: { start_date: string | null; end_date: string | null }
+  shipments: { total: number; paid: number; unpaid: number; cancelled: number }
+  revenue: number
+  cost: number
+  profit: number | null
+  uncosted: { shipments: number; revenue: number }
+  cancelled_after_payment: { shipments: number; amount: number }
+}
+
+export async function getFinanceSummary(params?: {
+  start_date?: string
+  end_date?: string
+}): Promise<ApiResponse<FinanceSummary>> {
+  const { data } = await apiClient.get('/admin/finance/summary', { params })
   return data
 }

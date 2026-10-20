@@ -165,6 +165,7 @@ export default function NewShipmentPage() {
       sender_address: sender.address.trim(),
       receiver_address: receiver.address.trim(),
       weight: Number(weightInKg.toFixed(2)),
+      category: pkg.category ? String(pkg.category).trim().toUpperCase() : undefined,
       sender_email: sender.email.trim() || undefined,
       sender_phone_number: ensureIntlPhone(sender.phone, getDialCode(sender.countryCode)) || undefined,
     }

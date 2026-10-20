@@ -27,7 +27,7 @@ export function LandingHeader() {
             className={cn(
                 'w-full bg-[#F3F9FD] sticky top-0 z-40 transition-all duration-300 ease-in-out',
                 scrolled &&
-                    'backdrop-blur-md supports-[backdrop-filter]:bg-[#F3F9FD]/90 shadow-sm border-b border-gray-100/60'
+                    'backdrop-blur-md supports-backdrop-filter:bg-[#F3F9FD]/90 shadow-sm border-b border-gray-100/60'
             )}
         >
             <div className="mx-auto w-full max-w-9xl px-4 lg:px-12 flex items-center justify-between py-3 md:py-4 lg:py-5">
@@ -41,7 +41,7 @@ export function LandingHeader() {
                     <a href="/" className="text-gray-700 hover:text-[#4043FF] transition-colors">Home</a>
                     <a href="/shipment/new" className="text-gray-700 hover:text-[#4043FF] transition-colors">Ship</a>
                     <a href="/search" className="text-gray-700 hover:text-[#4043FF] transition-colors">Track</a>
-                    <a href="/#" className="text-gray-700 hover:text-[#4043FF] transition-colors">Shop & Ship</a>
+                    <a href="/shop-and-ship" className="text-gray-700 hover:text-[#4043FF] transition-colors">Shop & Ship</a>
                 </nav>
 
                 <div className="hidden md:flex items-center gap-4">
