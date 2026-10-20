@@ -4,6 +4,7 @@ import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { AuthGuard } from '@/components/auth-guard'
 import { useAuth } from '@/hooks/use-auth'
+import { useInboxUnread } from '@/hooks/use-support'
 import { useProfile } from '@/hooks/use-profile'
 import { isAdmin as hasAdminRole } from '@/lib/rbac'
 import { NAV_ITEMS, type UserNavKey } from '@/components/shared/nav-icons'
@@ -49,6 +50,8 @@ function UserAppLayoutInner({
   const pathname = usePathname()
   const { user } = useAuth()
   const isAdmin = hasAdminRole(user?.role)
+  const inboxUnread = useInboxUnread()
+  const resolvedInboxBadge = inboxBadge ?? inboxUnread
 
   
   const { profile, loading: profileLoading } = useProfile()
@@ -107,9 +110,9 @@ function UserAppLayoutInner({
         }}
       />
       <div className="flex flex-1 min-h-0">
-        <DesktopSidebar activeNav={resolvedActiveNav} inboxBadge={inboxBadge} />
+        <DesktopSidebar activeNav={resolvedActiveNav} inboxBadge={resolvedInboxBadge} />
         {mobileMenuOpen && (
-          <MobileSidebar onClose={() => setMobileMenuOpen(false)} activeNav={resolvedActiveNav} inboxBadge={inboxBadge} />
+          <MobileSidebar onClose={() => setMobileMenuOpen(false)} activeNav={resolvedActiveNav} inboxBadge={resolvedInboxBadge} />
         )}
 
         <div className="flex-1 flex flex-col min-w-0">
@@ -133,7 +136,7 @@ function UserAppLayoutInner({
             {children}
           </main>
 
-          <MobileBottomNav activeNav={resolvedActiveNav} />
+          <MobileBottomNav activeNav={resolvedActiveNav} inboxBadge={resolvedInboxBadge} />
         </div>
       </div>
     </div>

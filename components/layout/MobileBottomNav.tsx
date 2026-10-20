@@ -5,9 +5,10 @@ import { BottomNavLink } from './BottomNavLink'
 
 interface MobileBottomNavProps {
     activeNav?: UserNavKey
+    inboxBadge?: boolean
 }
 
-export function MobileBottomNav({ activeNav }: MobileBottomNavProps) {
+export function MobileBottomNav({ activeNav, inboxBadge }: MobileBottomNavProps) {
     return (
         <div className="lg:hidden sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 safe-area-pb shrink-0">
             <nav className="flex justify-around items-center">
@@ -18,6 +19,7 @@ export function MobileBottomNav({ activeNav }: MobileBottomNavProps) {
                         label={item.label}
                         icon={item.icon}
                         active={activeNav === item.key}
+                        hasBadge={item.key === 'inbox' ? inboxBadge : undefined}
                     />
                 ))}
             </nav>
