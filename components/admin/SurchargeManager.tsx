@@ -4,6 +4,13 @@ import { useState } from 'react'
 import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { toast } from '@/components/ui/use-toast'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   useCreateSurcharge,
   useDeleteSurcharge,
   useSurcharges,
@@ -104,17 +111,18 @@ export function SurchargeManager() {
 
       {/* Add row */}
       <div className="flex flex-col sm:flex-row gap-2 mb-5">
-        <select
-          value={addCategory}
-          onChange={(e) => setAddCategory(e.target.value)}
-          disabled={busy}
-          className="flex-1 h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF]"
-        >
-          <option value="">Select category…</option>
-          {availableCategories.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
+        <div className="flex-1">
+          <Select value={addCategory} onValueChange={setAddCategory} disabled={busy}>
+            <SelectTrigger className="h-10 w-full bg-white text-left">
+              <SelectValue placeholder="Select category…" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCategories.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <input
           type="text"
           inputMode="decimal"
@@ -122,7 +130,7 @@ export function SurchargeManager() {
           onChange={(e) => setAddCost(e.target.value.replace(/[^0-9.]/g, ''))}
           placeholder="Cost per kg (₦)"
           disabled={busy}
-          className="h-10 w-full sm:w-40 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF]"
+          className="h-10 w-full sm:w-40 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm transition-colors focus:border-[#4043FF] focus:outline-none focus:ring-2 focus:ring-[#4043FF]/30 disabled:cursor-not-allowed disabled:bg-gray-50"
         />
         <button
           type="button"

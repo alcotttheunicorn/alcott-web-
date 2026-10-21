@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useAdminRateChecks, type RateCheck } from '@/hooks/use-admin'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { SurchargeManager } from '@/components/admin/SurchargeManager'
 
 interface RateEntry {
     id: string
@@ -57,7 +56,6 @@ export default function RatesCheckPage() {
     const [currentMonthIndex, setCurrentMonthIndex] = useState(now.getMonth())
     const [selectedDay, setSelectedDay] = useState(now.getDate())
     const [calendarOpen, setCalendarOpen] = useState(false)
-    const [showSurcharges, setShowSurcharges] = useState(false)
 
     const { data, isLoading, error: queryError } = useAdminRateChecks({ limit: 100 })
     const errorMsg = queryError
@@ -138,20 +136,7 @@ export default function RatesCheckPage() {
                     </svg>
                 </Link>
                 <h1 className="text-lg lg:text-xl font-bold text-gray-900">RATE CHECK</h1>
-                <button
-                    type="button"
-                    onClick={() => setShowSurcharges((v) => !v)}
-                    className="ml-auto h-9 rounded-md bg-[#4043FF] px-4 text-xs font-semibold text-white transition hover:bg-[#3333CC]"
-                >
-                    {showSurcharges ? 'Hide surcharges' : 'Manage surcharges'}
-                </button>
             </div>
-
-            {showSurcharges && (
-                <div className="mb-6">
-                    <SurchargeManager />
-                </div>
-            )}
 
             {/* Month Navigation */}
             <div className="relative flex items-center gap-2 mb-6 lg:mb-8">
