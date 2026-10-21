@@ -10,6 +10,7 @@ import { useState } from 'react'
 const sidebarLinks = [
     { href: '/admin/orders', label: 'Orders', icon: 'orders' },
     { href: '/admin/rates', label: 'Rates Check', icon: 'rates' },
+    { href: '/admin/surcharges', label: 'Surcharges', icon: 'surcharge' },
     { href: '/admin/users', label: 'Users', icon: 'users' },
     { href: '/admin/inbox', label: 'Support Inbox', icon: 'inbox' },
 ]
@@ -50,6 +51,13 @@ function SidebarIcon({ type }: { type: string }) {
             return (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+            )
+        case 'surcharge':
+            return (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M4.9 4.9h.01M19.1 19.1h.01M9 9h.01M15 15h.01M3 3l18 18" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12a5 5 0 015-5M12 17a5 5 0 005-5" />
                 </svg>
             )
         case 'settings':
