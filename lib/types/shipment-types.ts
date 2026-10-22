@@ -52,6 +52,8 @@ export interface ShipmentPackage {
   length: string
   width: string
   height: string
+  declaredValue: string
+  declaredValueCurrency: string
   shippingOption: ShipmentOptionId
   weightUnit: ShipmentWeightUnit
   dimensionUnit: ShipmentDimensionUnit

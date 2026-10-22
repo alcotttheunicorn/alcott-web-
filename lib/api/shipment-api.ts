@@ -28,6 +28,8 @@ export interface CreateShipmentRequest {
   package_length?: number
   package_width?: number
   package_height?: number
+  shipment_value?: number
+  shipment_value_currency?: string
 }
 
 export interface CategorySurcharge {

@@ -16,8 +16,7 @@ const STATUS_STYLES: Record<string, string> = {
   CANCELLED: 'bg-rose-100 text-rose-700',
 }
 
-// Friendly labels for the backend ShipmentStatus enum
-// (UNPAID · SUBMITTED · ON_PROCESS · DELIVERED · CANCELLED).
+
 const STATUS_LABELS: Record<string, string> = {
   UNPAID: 'Unpaid',
   SUBMITTED: 'Awaiting pickup',
@@ -169,6 +168,9 @@ function OrderDetailContent() {
                     : '—'}
                 </dd></div>
                 <div className="flex justify-between"><dt>Payment method</dt><dd className="text-gray-900">{shipment.payment_method ?? '—'}</dd></div>
+                {shipment.shipment_value != null && (
+                  <div className="flex justify-between"><dt>Declared value</dt><dd className="text-gray-900">{shipment.shipment_value.toLocaleString()} {shipment.shipment_value_currency ?? 'NGN'}</dd></div>
+                )}
                 {shipment.price != null && (
                   <div className="flex justify-between"><dt>Price</dt><dd className="text-gray-900">₦{Number(shipment.price).toLocaleString()}</dd></div>
                 )}

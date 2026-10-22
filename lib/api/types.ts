@@ -95,6 +95,8 @@ export interface ShipmentData {
   package_length?: number
   package_width?: number
   package_height?: number
+  shipment_value?: number | null
+  shipment_value_currency?: string | null
   payment_method?: string
   payment_status?: string
   price?: number
