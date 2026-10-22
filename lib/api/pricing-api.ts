@@ -8,6 +8,7 @@ import type {
   RegionPricing,
   PremisePricing,
   CategorySurchargeRow,
+  ZoneSurchargeRow,
 } from './types'
 
 export async function checkPricing(
@@ -148,5 +149,37 @@ export async function updateSurcharge(
 
 export async function deleteSurcharge(id: string): Promise<MessageResponse> {
   const { data } = await apiClient.delete(`/admin/surcharges/${id}`)
+  return data
+}
+
+// --- Admin zone surcharges (/api/admin/zone-surcharges) ---
+
+export async function getZoneSurcharges(params?: {
+  from_zone?: number
+  to_zone?: number
+}): Promise<ApiResponse<ZoneSurchargeRow[]>> {
+  const { data } = await apiClient.get('/admin/zone-surcharges', { params })
+  return data
+}
+
+export async function createZoneSurcharge(payload: {
+  from_zone: number
+  to_zone: number
+  cost_per_kg: number
+}): Promise<ApiResponse<ZoneSurchargeRow>> {
+  const { data } = await apiClient.post('/admin/zone-surcharges', payload)
+  return data
+}
+
+export async function updateZoneSurcharge(
+  id: string,
+  payload: { cost_per_kg: number },
+): Promise<ApiResponse<ZoneSurchargeRow>> {
+  const { data } = await apiClient.patch(`/admin/zone-surcharges/${id}`, payload)
+  return data
+}
+
+export async function deleteZoneSurcharge(id: string): Promise<MessageResponse> {
+  const { data } = await apiClient.delete(`/admin/zone-surcharges/${id}`)
   return data
 }

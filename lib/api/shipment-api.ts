@@ -101,6 +101,61 @@ export async function getCategories(): Promise<ApiResponse<ShipmentCategoryOptio
   return data
 }
 
+// --- Admin category management (/api/admin/categories) ---
+// Categories moved from a static enum to this admin-managed table. The
+// public list keeps its { value, label, surcharge } shape; `code` is
+// auto-generated from the name on create and immutable afterwards.
+
+export interface AdminCategory {
+  id: string
+  code: string
+  name: string
+  description: string | null
+  is_active: boolean
+  // Present when a DELETE archived the row instead of hard-deleting it.
+  archived?: boolean
+  surcharge?: CategorySurcharge | null
+  _count?: { shipments: number }
+  created_at?: string
+  updated_at?: string
+}
+
+// DELETE forks: unused categories are hard-deleted ({ deleted: true });
+// categories linked to shipments are archived instead (protecting FKs).
+export interface CategoryDeleteResult {
+  status: string
+  message: string
+  data: { deleted?: boolean; id?: string; code?: string; archived?: boolean; is_active?: boolean }
+}
+
+export async function getAdminCategories(
+  params?: { is_active?: boolean },
+): Promise<ApiResponse<AdminCategory[]>> {
+  const { data } = await apiClient.get('/admin/categories', { params })
+  return data
+}
+
+export async function createCategory(payload: {
+  name: string
+  description?: string
+}): Promise<ApiResponse<AdminCategory>> {
+  const { data } = await apiClient.post('/admin/categories', payload)
+  return data
+}
+
+export async function updateCategory(
+  id: string,
+  payload: { name?: string; description?: string; is_active?: boolean },
+): Promise<ApiResponse<AdminCategory>> {
+  const { data } = await apiClient.patch(`/admin/categories/${id}`, payload)
+  return data
+}
+
+export async function deleteCategory(id: string): Promise<CategoryDeleteResult> {
+  const { data } = await apiClient.delete(`/admin/categories/${id}`)
+  return data
+}
+
 export async function verifyPayment(
   reference: string,
 ): Promise<MessageResponse> {

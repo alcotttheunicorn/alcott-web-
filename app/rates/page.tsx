@@ -265,10 +265,12 @@ export default function CheckRatesPage() {
                   : zoneSum
               const surchargeAmount =
                 typeof pricingResult.surcharge?.amount === 'number' ? pricingResult.surcharge.amount : 0
+              const zoneSurchargeAmount =
+                typeof pricingResult.zone_surcharge?.amount === 'number' ? pricingResult.zone_surcharge.amount : 0
               const baseAmount =
                 typeof pricingResult.base_price === 'number'
                   ? pricingResult.base_price
-                  : totalAmount - surchargeAmount
+                  : totalAmount - surchargeAmount - zoneSurchargeAmount
 
               const sourceCurrency =
                 pricingResult.price?.currency || pricingResult.export_price?.currency || 'NGN'
@@ -285,7 +287,7 @@ export default function CheckRatesPage() {
                 return v ? formatCurrency(v, currency) : '—'
               }
 
-              const hasSurcharge = surchargeAmount > 0
+              const hasSurcharge = surchargeAmount > 0 || zoneSurchargeAmount > 0
 
               return (
                 <div className="max-w-4xl mx-auto rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
@@ -301,10 +303,23 @@ export default function CheckRatesPage() {
                         <span>Base price</span>
                         <span>{display(baseAmount)}</span>
                       </div>
-                      <div className="flex items-center justify-between text-gray-500">
-                        <span>Category surcharge</span>
-                        <span>{display(surchargeAmount)}</span>
-                      </div>
+                      {surchargeAmount > 0 && (
+                        <div className="flex items-center justify-between text-gray-500">
+                          <span>Category surcharge</span>
+                          <span>{display(surchargeAmount)}</span>
+                        </div>
+                      )}
+                      {zoneSurchargeAmount > 0 && (
+                        <div className="flex items-center justify-between text-gray-500">
+                          <span>
+                            Zone surcharge
+                            {pricingResult.zone_surcharge?.from_zone != null && pricingResult.zone_surcharge?.to_zone != null
+                              ? ` (${pricingResult.zone_surcharge.from_zone} → ${pricingResult.zone_surcharge.to_zone})`
+                              : ''}
+                          </span>
+                          <span>{display(zoneSurchargeAmount)}</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between font-semibold text-gray-900">
                         <span>Total</span>
                         <span>{display(totalAmount)}</span>
