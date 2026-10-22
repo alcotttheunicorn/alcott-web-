@@ -844,6 +844,19 @@ function PaymentForm({
         </Link>
       )}
 
+      <div className="mb-4 rounded-xl border border-[#E56A1A]/30 bg-[#FFF7ED] p-4">
+        <div className="flex items-start gap-3">
+          <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#E56A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="space-y-2">
+            <p className="text-sm font-bold text-gray-900">A Quick Note on Customs Charges</p>
+            <p className="text-xs leading-relaxed text-gray-600">Your shipment may be subject to customs duties, taxes, or other charges depending on the destination country and the items being shipped. If any charges apply, the recipient may need to pay them directly to customs or the relevant authorities before the shipment can be delivered.</p>
+            <p className="text-xs leading-relaxed text-gray-600">Please note that these charges are separate from your shipping fee and are not included unless stated otherwise. We recommend keeping this in mind when booking your shipment to ensure a smooth delivery experience.</p>
+          </div>
+        </div>
+      </div>
+
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue || quoteLoading || totalAmount == null} />
     </FormSection>
   )
