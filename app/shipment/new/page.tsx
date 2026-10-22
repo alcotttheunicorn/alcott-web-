@@ -64,6 +64,8 @@ const initialPackage: ShipmentPackage = {
   length: '',
   width: '',
   height: '',
+  declaredValue: '',
+  declaredValueCurrency: 'NGN',
   shippingOption: 'express',
   weightUnit: 'kg',
   dimensionUnit: 'cm',
@@ -257,6 +259,13 @@ export default function NewShipmentPage() {
     const widthInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.width) * 2.54 : toNumber(pkg.width)
     const heightInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.height) * 2.54 : toNumber(pkg.height)
 
+    
+    const parsedDeclaredValue = parseFloat(pkg.declaredValue)
+    const declaredValue =
+      Number.isFinite(parsedDeclaredValue) && parsedDeclaredValue >= 0
+        ? parsedDeclaredValue
+        : null
+
     const payload: CreateShipmentRequest = {
       sender_name: sender.name.trim(),
       sender_phone_number: ensureIntlPhone(sender.phone, getDialCode(sender.countryCode)),
@@ -278,6 +287,8 @@ export default function NewShipmentPage() {
       package_length: parseFloat(lengthInCm.toFixed(2)),
       package_width: parseFloat(widthInCm.toFixed(2)),
       package_height: parseFloat(heightInCm.toFixed(2)),
+      shipment_value: declaredValue != null ? declaredValue : undefined,
+      shipment_value_currency: declaredValue != null ? (pkg.declaredValueCurrency || 'NGN') : undefined,
     }
 
     try {
@@ -743,6 +754,30 @@ function PackageForm({
           sanitizeDecimal={sanitizeDecimal}
         />
       </div>
+      <InputRow
+        label="Declared Value (optional)"
+        placeholder="Value of contents"
+        value={data.declaredValue}
+        onChange={(value) => onChange({ ...data, declaredValue: value })}
+        type="text"
+        inputMode="decimal"
+        pattern="[0-9.]*"
+        transform={sanitizeDecimal}
+        suffix={
+          <select
+            value={data.declaredValueCurrency}
+            onChange={(e) => onChange({ ...data, declaredValueCurrency: e.target.value })}
+            className="bg-transparent text-sm font-semibold text-gray-900 outline-none cursor-pointer"
+            aria-label="Declared value currency"
+          >
+            <option value="NGN">NGN</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+            <option value="EUR">EUR</option>
+          </select>
+        }
+        suffixClassName="pr-3 text-gray-900"
+      />
       <ContinueButton onClick={onContinue} label="Continue" disabled={!canContinue} />
     </FormSection>
   )

@@ -11,6 +11,7 @@ const sidebarLinks = [
     { href: '/admin/orders', label: 'Orders', icon: 'orders' },
     { href: '/admin/rates', label: 'Rates Check', icon: 'rates' },
     { href: '/admin/surcharges', label: 'Surcharges', icon: 'surcharge' },
+    { href: '/admin/categories', label: 'Categories', icon: 'categories' },
     { href: '/admin/users', label: 'Users', icon: 'users' },
     { href: '/admin/inbox', label: 'Support Inbox', icon: 'inbox' },
 ]
@@ -58,6 +59,12 @@ function SidebarIcon({ type }: { type: string }) {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M4.9 4.9h.01M19.1 19.1h.01M9 9h.01M15 15h.01M3 3l18 18" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12a5 5 0 015-5M12 17a5 5 0 005-5" />
+                </svg>
+            )
+        case 'categories':
+            return (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
             )
         case 'settings':
