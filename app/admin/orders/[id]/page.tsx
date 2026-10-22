@@ -257,6 +257,7 @@ export default function OrderDetailsPage() {
             { label: 'Package category', value: str(shipment.package_category) },
             { label: 'Package weight', value: typeof shipment.package_weight === 'number' ? `${shipment.package_weight} kg` : '—' },
             { label: 'Package dimensions', value: dims || '—' },
+            { label: 'Declared value', value: typeof shipment.shipment_value === 'number' ? `${shipment.shipment_value.toLocaleString()} ${shipment.shipment_value_currency ?? 'NGN'}` : '—' },
             { label: 'Price', value: typeof shipment.price === 'number' ? `NGN ${shipment.price.toLocaleString()}` : '—' },
           ]} />
         </div>

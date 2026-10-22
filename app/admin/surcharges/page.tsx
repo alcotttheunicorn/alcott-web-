@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { SurchargeManager } from '@/components/admin/SurchargeManager'
+import { ZoneSurchargeManager } from '@/components/admin/ZoneSurchargeManager'
 
 export default function SurchargesPage() {
     return (
@@ -16,8 +17,9 @@ export default function SurchargesPage() {
                 <h1 className="text-lg lg:text-xl font-bold text-gray-900">SURCHARGES</h1>
             </div>
 
-            <div className="max-w-3xl">
+            <div className="max-w-3xl space-y-6">
                 <SurchargeManager />
+                <ZoneSurchargeManager />
             </div>
         </div>
     )

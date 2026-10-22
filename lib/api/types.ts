@@ -95,6 +95,8 @@ export interface ShipmentData {
   package_length?: number
   package_width?: number
   package_height?: number
+  shipment_value?: number | null
+  shipment_value_currency?: string | null
   payment_method?: string
   payment_status?: string
   price?: number
@@ -130,6 +132,15 @@ export interface PricingSurcharge {
   amount?: number
 }
 
+// Directional per-kg surcharge applied when origin and destination zones
+// differ (ZoneSurcharge). Itemised under `zone_surcharge` in pricing checks.
+export interface PricingZoneSurcharge {
+  from_zone?: number
+  to_zone?: number
+  cost_per_kg?: number
+  amount?: number
+}
+
 export interface PricingResult {
   pricing_type: string
   weight: number
@@ -146,6 +157,11 @@ export interface PricingResult {
   category?: string | null
   base_price?: number
   surcharge?: PricingSurcharge | null
+  // Zone surcharge (present when origin/destination are in different zones
+  // and a ZoneSurcharge is configured for that direction):
+  from_zone?: number
+  to_zone?: number
+  zone_surcharge?: PricingZoneSurcharge | null
   [key: string]: unknown
 }
 
@@ -205,6 +221,18 @@ export interface PremisePricing {
 export interface CategorySurchargeRow {
   id: string
   category: string
+  cost_per_kg: number
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+// Admin-managed directional zone surcharge (/api/admin/zone-surcharges).
+// from_zone !== to_zone is enforced server-side (same zone returns 400).
+export interface ZoneSurchargeRow {
+  id: string
+  from_zone: number
+  to_zone: number
   cost_per_kg: number
   created_at?: string
   updated_at?: string

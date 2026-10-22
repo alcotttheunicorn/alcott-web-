@@ -41,6 +41,8 @@ export const queryKeys = {
     regions: ['pricing', 'admin', 'regions'] as const,
     premise: ['pricing', 'admin', 'premise'] as const,
     surcharges: ['pricing', 'admin', 'surcharges'] as const,
+    zoneSurcharges: ['pricing', 'admin', 'zone-surcharges'] as const,
+    categories: ['pricing', 'admin', 'categories'] as const,
     exchangeRate: ['pricing', 'exchange-rate'] as const,
   },
 } as const

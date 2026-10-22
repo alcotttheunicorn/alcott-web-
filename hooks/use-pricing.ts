@@ -23,8 +23,19 @@ import {
   createSurcharge,
   updateSurcharge,
   deleteSurcharge,
+  getZoneSurcharges,
+  createZoneSurcharge,
+  updateZoneSurcharge,
+  deleteZoneSurcharge,
 } from '@/lib/api/pricing-api'
-import type { ZonePricing, PremisePricing, RegionPricing, RegionZoneRateCard, CategorySurchargeRow } from '@/lib/api/types'
+import {
+  getAdminCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  type AdminCategory,
+} from '@/lib/api/shipment-api'
+import type { ZonePricing, PremisePricing, RegionPricing, RegionZoneRateCard, CategorySurchargeRow, ZoneSurchargeRow } from '@/lib/api/types'
 import { queryKeys } from '@/components/providers/query-provider'
 
 export function useCheckPricing() {
@@ -341,6 +352,127 @@ export function useDeleteSurcharge() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.pricing.surcharges })
       queryClient.invalidateQueries({ queryKey: queryKeys.shipments.categories })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Admin category management (dynamic DB categories)
+// ---------------------------------------------------------------------------
+
+export function useAdminCategories(params?: { is_active?: boolean }) {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: queryKeys.pricing.categories,
+    queryFn: async () => {
+      const res = await getAdminCategories(params)
+      const payload = res.data as unknown
+      if (Array.isArray(payload)) return payload as AdminCategory[]
+      const wrapped = payload as { categories?: unknown; data?: unknown } | null
+      if (Array.isArray(wrapped?.categories)) return wrapped!.categories as AdminCategory[]
+      if (Array.isArray(wrapped?.data)) return wrapped!.data as AdminCategory[]
+      return []
+    },
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: { name: string; description?: string }) => createCategory(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.categories })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.categories })
+    },
+  })
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...payload
+    }: { id: string; name?: string; description?: string; is_active?: boolean }) =>
+      updateCategory(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.categories })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.categories })
+    },
+  })
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteCategory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.categories })
+      queryClient.invalidateQueries({ queryKey: queryKeys.shipments.categories })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Admin zone surcharges (directional cross-zone per-kg fee)
+// ---------------------------------------------------------------------------
+
+export function useZoneSurcharges() {
+  const { isAuthenticated, user } = useAuth()
+  const hasAdminAccess = isAdmin(user?.role)
+
+  return useQuery({
+    queryKey: queryKeys.pricing.zoneSurcharges,
+    queryFn: async () => {
+      const res = await getZoneSurcharges()
+      const payload = res.data as unknown
+      if (Array.isArray(payload)) return payload as ZoneSurchargeRow[]
+      const wrapped = payload as { zone_surcharges?: unknown; data?: unknown } | null
+      if (Array.isArray(wrapped?.zone_surcharges)) return wrapped!.zone_surcharges as ZoneSurchargeRow[]
+      if (Array.isArray(wrapped?.data)) return wrapped!.data as ZoneSurchargeRow[]
+      return []
+    },
+    enabled: isAuthenticated && hasAdminAccess,
+  })
+}
+
+export function useCreateZoneSurcharge() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: { from_zone: number; to_zone: number; cost_per_kg: number }) =>
+      createZoneSurcharge(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.zoneSurcharges })
+    },
+  })
+}
+
+export function useUpdateZoneSurcharge() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, cost_per_kg }: { id: string; cost_per_kg: number }) =>
+      updateZoneSurcharge(id, { cost_per_kg }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.zoneSurcharges })
+    },
+  })
+}
+
+export function useDeleteZoneSurcharge() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteZoneSurcharge(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pricing.zoneSurcharges })
     },
   })
 }
