@@ -21,7 +21,16 @@ export interface ShipmentWizardOptions {
 const defaultValidation: Record<ShipmentStepKey, (state: ShipmentFormState) => boolean> = {
   sender: (state) => Boolean(state.sender.name && state.sender.phone && state.sender.address),
   receiver: (state) => Boolean(state.receiver.name && state.receiver.phone && state.receiver.address),
-  package: (state) => Boolean(state.package.category && state.package.description && state.package.weight),
+  package: (state) => {
+    const declaredValue = parseFloat(state.package.declaredValue)
+    return Boolean(
+      state.package.category &&
+        state.package.description &&
+        state.package.weight &&
+        Number.isFinite(declaredValue) &&
+        declaredValue >= 0,
+    )
+  },
   payment: (state) => Boolean(state.payment.method),
   finish: () => true,
 }
