@@ -304,8 +304,8 @@ export function useAppendShipmentEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, event_id, location }: { id: string; event_id: string; location: string }) =>
-      appendShipmentEvent(id, { event_id, location }),
+    mutationFn: ({ id, event_id, location, timestamp }: { id: string; event_id: string; location: string; timestamp?: string }) =>
+      appendShipmentEvent(id, { event_id, location, ...(timestamp ? { timestamp } : {}) }),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipmentEvents(variables.id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.shipmentDetail(variables.id) })
