@@ -17,6 +17,9 @@ interface ShipmentBookingHeroProps {
   onDeliveryChange: (value: string) => void
   weight: string
   onWeightChange: (value: string) => void
+  categories: { value: string; label: string }[]
+  category: string
+  onCategoryChange: (value: string) => void
   onCheckRates: (phoneNumber: string, email: string) => void
   isCheckingRates: boolean
   pricingResult: PricingResult | null
@@ -40,6 +43,9 @@ export function ShipmentBookingHero({
   onDeliveryChange,
   weight,
   onWeightChange,
+  categories,
+  category,
+  onCategoryChange,
   onCheckRates,
   isCheckingRates,
   pricingResult,
@@ -261,6 +267,32 @@ export function ShipmentBookingHero({
                       value={weight}
                       onChange={(e) => onWeightChange(e.target.value)}
                     />
+                  </span>
+                </label>
+
+                {/* Category */}
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-gray-700 text-xs font-semibold ">
+                    Category
+                  </span>
+                  <span className="flex h-12 items-center gap-2.5 px-3.5 bg-gray-50 rounded-xl border border-gray-200">
+                    <svg className="w-4 h-4 shrink-0 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                      <path d="M20.59 13.41 12 22 2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z" />
+                      <circle cx="7" cy="7" r="1.5" />
+                    </svg>
+                    <select
+                      aria-label="Package category"
+                      value={category}
+                      onChange={(e) => onCategoryChange(e.target.value)}
+                      className="min-w-0 w-full bg-transparent outline-none text-gray-700 text-sm appearance-none cursor-pointer"
+                    >
+                      <option value="">Select category</option>
+                      {categories.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
                   </span>
                 </label>
 
