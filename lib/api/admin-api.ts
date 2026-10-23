@@ -142,7 +142,9 @@ export async function getShipmentEvents(id: string): Promise<ApiResponse<AdminSh
 
 export async function appendShipmentEvent(
   id: string,
-  payload: { event_id: string; location: string },
+  // timestamp is optional; when omitted the backend stamps the event "now".
+  // When present it must be an ISO 8601 date string.
+  payload: { event_id: string; location: string; timestamp?: string },
 ): Promise<ApiResponse<AdminShipmentEvent>> {
   const { data } = await apiClient.post(`/admin/shipments/${id}/events`, payload)
   return data
@@ -188,12 +190,7 @@ export async function getAdminRateChecks(
   return data
 }
 
-// Revenue/cost/profit totals for an optional date window, computed server-side
-// off when a shipment was created. Note the endpoint's own rule: `profit` sums
-// (price − cost) over ONLY the shipments an admin has costed, so
-// revenue − cost ≠ profit; `uncosted` carries the gap and `profit` is null while
-// nothing is costed. `cancelled_after_payment` is now the REFUNDED figure
-// (cancel auto-refunds to the wallet), not refund exposure.
+
 export interface FinanceSummary {
   currency: string
   period: { start_date: string | null; end_date: string | null }

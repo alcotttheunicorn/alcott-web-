@@ -76,6 +76,7 @@ export default function OrderDetailsPage() {
   const [showEventForm, setShowEventForm] = useState(false)
   const [selectedEventId, setSelectedEventId] = useState('')
   const [location, setLocation] = useState('')
+  const [eventTimestamp, setEventTimestamp] = useState('')
 
   const busy =
     startProcessing.isPending ||
@@ -140,12 +141,23 @@ export default function OrderDetailsPage() {
       toast({ title: 'Missing details', description: 'Pick an event and enter a location.' })
       return
     }
+    // Timestamp is optional; when left blank the backend stamps the event "now".
+    let timestamp: string | undefined
+    if (eventTimestamp) {
+      const parsed = new Date(eventTimestamp)
+      if (Number.isNaN(parsed.getTime())) {
+        toast({ title: 'Invalid time', description: 'Enter a valid date and time, or leave it blank.' })
+        return
+      }
+      timestamp = parsed.toISOString()
+    }
     try {
-      await appendEvent.mutateAsync({ id: orderId, event_id: selectedEventId, location: location.trim() })
+      await appendEvent.mutateAsync({ id: orderId, event_id: selectedEventId, location: location.trim(), timestamp })
       toast({ title: 'Event added', description: 'Event appended to the timeline.' })
       setShowEventForm(false)
       setSelectedEventId('')
       setLocation('')
+      setEventTimestamp('')
     } catch (err) {
       handleError(err)
     }
@@ -255,6 +267,7 @@ export default function OrderDetailsPage() {
           ]} />
           <DetailInfoCard title="Package" fields={[
             { label: 'Package category', value: str(shipment.package_category) },
+            { label: 'Package description', value: str(shipment.package_description) },
             { label: 'Package weight', value: typeof shipment.package_weight === 'number' ? `${shipment.package_weight} kg` : '—' },
             { label: 'Package dimensions', value: dims || '—' },
             { label: 'Declared value', value: typeof shipment.shipment_value === 'number' ? `${shipment.shipment_value.toLocaleString()} ${shipment.shipment_value_currency ?? 'NGN'}` : '—' },
@@ -300,6 +313,17 @@ export default function OrderDetailsPage() {
                 placeholder="Location"
                 className="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
               />
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Timestamp <span className="text-gray-400 font-normal">(optional — defaults to now)</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={eventTimestamp}
+                  onChange={(e) => setEventTimestamp(e.target.value)}
+                  className="w-full h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4043FF] focus:border-transparent"
+                />
+              </div>
               <button
                 onClick={handleAppendEvent}
                 disabled={busy}

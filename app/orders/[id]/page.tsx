@@ -2,11 +2,13 @@
 
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useState } from 'react'
 import { OrderDetailSkeleton } from '@/components/shared/skeletons'
 import { useShipmentById, usePayShipment } from '@/hooks/use-shipments'
 import { useWalletBalance } from '@/hooks/use-wallet'
 import { toast } from '@/components/ui/use-toast'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
+import { EditUnpaidShipmentModal } from '@/components/user/EditUnpaidShipmentModal'
 
 const STATUS_STYLES: Record<string, string> = {
   UNPAID: 'bg-yellow-100 text-yellow-700',
@@ -39,6 +41,7 @@ function OrderDetailContent() {
   const payMutation = usePayShipment()
   const { data: balance } = useWalletBalance()
   const walletBalance = balance ?? null
+  const [editOpen, setEditOpen] = useState(false)
 
   const error = queryError
     ? ((queryError as any)?.response?.status === 404 ? 'Order not found.' : 'Could not load this order.')
@@ -161,6 +164,9 @@ function OrderDetailContent() {
               <h2 className="text-sm font-bold text-gray-900 mb-3">Package</h2>
               <dl className="space-y-1 text-sm text-gray-600">
                 <div className="flex justify-between"><dt>Category</dt><dd className="text-gray-900">{shipment.package_category ?? '—'}</dd></div>
+                {shipment.package_description && (
+                  <div className="flex justify-between gap-4"><dt className="shrink-0">Description</dt><dd className="text-gray-900 text-right min-w-0 wrap-break-word">{shipment.package_description}</dd></div>
+                )}
                 <div className="flex justify-between"><dt>Weight</dt><dd className="text-gray-900">{shipment.package_weight ? `${shipment.package_weight} kg` : '—'}</dd></div>
                 <div className="flex justify-between"><dt>Dimensions</dt><dd className="text-gray-900">
                   {shipment.package_length && shipment.package_width && shipment.package_height
@@ -182,6 +188,14 @@ function OrderDetailContent() {
 
             {shipment.status === 'UNPAID' && (
               <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="w-full rounded-xl border border-[#4043FF] bg-white px-4 py-3 text-sm font-semibold text-[#4043FF] hover:bg-[#F0F0FF]"
+                >
+                  Edit details
+                </button>
+
                 <button
                   type="button"
                   onClick={handlePayWithWallet}
@@ -215,6 +229,12 @@ function OrderDetailContent() {
                 </p>
               </div>
             )}
+
+            <EditUnpaidShipmentModal
+              shipment={shipment}
+              open={editOpen}
+              onClose={() => setEditOpen(false)}
+            />
           </div>
         ) : null}
     </div>

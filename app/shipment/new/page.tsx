@@ -259,7 +259,8 @@ export default function NewShipmentPage() {
     const widthInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.width) * 2.54 : toNumber(pkg.width)
     const heightInCm = pkg.dimensionUnit === 'in' ? toNumber(pkg.height) * 2.54 : toNumber(pkg.height)
 
-    
+    // Declared value is required on the package step, so it is a valid
+    // non-negative number here; the guard keeps the payload type-safe.
     const parsedDeclaredValue = parseFloat(pkg.declaredValue)
     const declaredValue =
       Number.isFinite(parsedDeclaredValue) && parsedDeclaredValue >= 0
@@ -755,7 +756,7 @@ function PackageForm({
         />
       </div>
       <InputRow
-        label="Declared Value (optional)"
+        label="Declared Value"
         placeholder="Value of contents"
         value={data.declaredValue}
         onChange={(value) => onChange({ ...data, declaredValue: value })}
@@ -772,8 +773,8 @@ function PackageForm({
           >
             <option value="NGN">NGN</option>
             <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            <option value="EUR">EUR</option>
+            {/* <option value="GBP">GBP</option>
+            <option value="EUR">EUR</option> */}
           </select>
         }
         suffixClassName="pr-3 text-gray-900"
