@@ -267,6 +267,7 @@ export default function OrderDetailsPage() {
           ]} />
           <DetailInfoCard title="Package" fields={[
             { label: 'Package category', value: str(shipment.package_category) },
+            { label: 'Package description', value: str(shipment.package_description) },
             { label: 'Package weight', value: typeof shipment.package_weight === 'number' ? `${shipment.package_weight} kg` : '—' },
             { label: 'Package dimensions', value: dims || '—' },
             { label: 'Declared value', value: typeof shipment.shipment_value === 'number' ? `${shipment.shipment_value.toLocaleString()} ${shipment.shipment_value_currency ?? 'NGN'}` : '—' },
