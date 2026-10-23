@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import { useCheckPricing, useExchangeRate } from '@/hooks/use-pricing'
+import { useShipmentCategories } from '@/hooks/use-shipments'
 import { useCurrency } from '@/components/providers/currency-provider'
 import type { PricingResult } from '@/lib/api/types'
 import { TopContactBar } from '@/components/landing/TopContactBar'
@@ -24,9 +25,11 @@ export default function HomePage() {
   const checkRatesMutation = useCheckPricing()
   const { currency } = useCurrency()
   const { data: exchangeRate } = useExchangeRate()
+  const { data: categories = [] } = useShipmentCategories()
   const [pickupAddress, setPickupAddress] = useState('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [weight, setWeight] = useState('')
+  const [category, setCategory] = useState('')
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
   const [isCheckingRates, setIsCheckingRates] = useState(false)
 
@@ -54,6 +57,7 @@ export default function HomePage() {
         sender_address: pickupAddress.trim(),
         receiver_address: deliveryAddress.trim(),
         weight: weightValue,
+        category: category ? category.toUpperCase() : undefined,
         sender_email: email.trim() || undefined,
         sender_phone_number: phoneNumber.trim() || undefined,
       })
@@ -80,6 +84,9 @@ export default function HomePage() {
           onDeliveryChange={setDeliveryAddress}
           weight={weight}
           onWeightChange={setWeight}
+          categories={categories}
+          category={category}
+          onCategoryChange={setCategory}
           onCheckRates={handleCheckRates}
           isCheckingRates={isCheckingRates}
           pricingResult={pricingResult}
