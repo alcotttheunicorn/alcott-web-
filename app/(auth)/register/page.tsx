@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { signUp } from '@/lib/api/auth-api'
+import { trackCompleteRegistration } from '@/lib/analytics/metaPixel'
 import { toast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 
@@ -76,6 +77,8 @@ export default function RegisterPage() {
                     res?.message ||
                     'Verification email sent. Please verify your email to continue.'
                   setSuccessMessage(message)
+                  
+                  trackCompleteRegistration()
                   toast({
                     title: 'Signup successful',
                     description: message,

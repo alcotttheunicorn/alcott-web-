@@ -9,6 +9,7 @@ import { PickupMarkerIcon, DeliveryPinIcon } from '@/components/shared/location-
 import type { PricingResult } from '@/lib/api/types'
 import type { CurrencyCode } from '@/components/providers/currency-provider'
 import { convertCurrency, formatCurrency } from '@/lib/currency'
+import { trackLead } from '@/lib/analytics/metaPixel'
 
 interface ShipmentBookingHeroProps {
   pickupAddress: string
@@ -76,6 +77,8 @@ export function ShipmentBookingHero({
       router.push('/shipment/new')
       return
     }
+    
+    trackLead({ content_name: 'request_delivery' })
     router.push('/lets-get-you-in')
   }
 
@@ -346,7 +349,7 @@ export function ShipmentBookingHero({
               {pricingResult && (
                 <div className="flex items-center justify-between p-[11px] bg-[#f3f7ff] rounded-[10px] overflow-hidden">
                   <div className="flex flex-col items-start gap-0.5">
-                    <span className="text-[#4043ff] text-[8px] font-semibold [font-family:Plus_Jakarta_Sans',system-ui,sans-serif]">
+                    <span className="text-[#4043ff] text-[8px] font-semibold font-[Plus_Jakarta_Sans',system-ui,sans-serif]">
                       Estimated Rate
                     </span>
                     <span className="text-[#12141d] text-[13px] font-extrabold ">
@@ -366,14 +369,14 @@ export function ShipmentBookingHero({
                     <button
                       type="button"
                       onClick={() => onClearResult?.()}
-                      className="text-[#5b6070] text-[8px] [font-family:Plus_Jakarta_Sans',system-ui,sans-serif] hover:text-[#4043ff]"
+                      className="text-[#5b6070] text-[8px] font-[Plus_Jakarta_Sans',system-ui,sans-serif] hover:text-[#4043ff]"
                     >
                       Clear
                     </button>
                     <button
                       type="button"
                       onClick={handleRequestDelivery}
-                      className="text-[#21a366] text-[9px] font-bold [font-family:Plus_Jakarta_Sans',system-ui,sans-serif] hover:underline"
+                      className="text-[#21a366] text-[9px] font-bold font-[Plus_Jakarta_Sans',system-ui,sans-serif] hover:underline"
                     >
                       Request Delivery →
                     </button>
