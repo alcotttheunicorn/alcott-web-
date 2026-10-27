@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { Suspense } from 'react'
 
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
@@ -52,8 +53,11 @@ export default function RootLayout({
         <Toaster />
         <Analytics />
 
-    
-        <MetaPixelPageView />
+        {/* Consent-gated Meta Pixel. Suspense isolates MetaPixelPageView's
+            useSearchParams() so the rest of the tree still statically prerenders. */}
+        <Suspense fallback={null}>
+          <MetaPixelPageView />
+        </Suspense>
         <CookieConsent />
       </body>
     </html>
