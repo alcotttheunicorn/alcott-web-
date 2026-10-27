@@ -14,6 +14,7 @@ import { convertCurrency, formatCurrency } from '@/lib/currency'
 import { useAuth } from '@/hooks/use-auth'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { toast } from '@/components/ui/use-toast'
+import { trackInitiateCheckout, trackAddPaymentInfo } from '@/lib/analytics/metaPixel'
 import { Stepper } from '@/components/shipment/Stepper'
 import { FormSection } from '@/components/shipment/FormSection'
 import { ContinueButton } from '@/components/shipment/ContinueButton'
@@ -152,6 +153,20 @@ export default function NewShipmentPage() {
     }
     moveToPrevious()
   }
+
+  
+  useEffect(() => {
+    trackInitiateCheckout()
+  }, [])
+
+
+  const addPaymentFired = useRef(false)
+  useEffect(() => {
+    if (currentStep === 'payment' && !addPaymentFired.current) {
+      addPaymentFired.current = true
+      trackAddPaymentInfo()
+    }
+  }, [currentStep])
 
   const totalAmount = quotedAmountNGN
 

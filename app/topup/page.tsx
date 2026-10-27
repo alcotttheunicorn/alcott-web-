@@ -71,7 +71,7 @@ function TopUpContent() {
             // verify-payment-handler.tsx).
             window.sessionStorage.setItem(
               'alcott_pending_topup_ref',
-              JSON.stringify({ reference: res.data.reference, ts: Date.now() }),
+              JSON.stringify({ reference: res.data.reference, amount, ts: Date.now() }),
             )
           } catch {
             // ignore storage errors

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CookiePreferencesLink } from '@/components/analytics/CookiePreferencesLink'
 
 const companyLinks = ['About', 'Features', 'Works', 'Career']
 const serviceLinks = ['For Business', 'For Partners']
@@ -74,6 +75,7 @@ export function SiteFooterSection() {
             <Link href="/policies" className="hover:text-[#4043ff] transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-[#4043ff] transition-colors">Terms &amp; Conditions</Link>
             <a href="#" className="hover:text-[#4043ff] transition-colors">Support</a>
+            <CookiePreferencesLink className="hover:text-[#4043ff] transition-colors" />
           </nav>
 
           <p className="text-gray-600 text-[13px] text-center md:text-right">

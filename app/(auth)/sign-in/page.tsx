@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from '@/lib/api/auth-api'
 import { setSession } from '@/lib/auth-store'
+import { trackLogin } from '@/lib/analytics/metaPixel'
 import { toast } from '@/components/ui/use-toast'
 
 function SignInContent() {
@@ -67,6 +68,9 @@ function SignInContent() {
       }
 
       setSession(user, token, rememberMe)
+
+      
+      trackLogin()
 
       toast({
         title: 'Welcome back!',

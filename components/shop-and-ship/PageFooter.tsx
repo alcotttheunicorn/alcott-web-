@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CookiePreferencesLink } from '@/components/analytics/CookiePreferencesLink'
 
 export function PageFooter() {
   return (
@@ -25,6 +26,7 @@ export function PageFooter() {
           <Link href="/help" className="hover:text-white">
             Help
           </Link>
+          <CookiePreferencesLink className="hover:text-white" />
         </nav>
         <p className="text-xs text-[#747b8f]">
           © {new Date().getFullYear()} Alcott. All rights reserved.
