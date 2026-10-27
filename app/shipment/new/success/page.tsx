@@ -1,11 +1,12 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { AuthGuard } from '@/components/auth-guard'
 import { useVerifyShipmentPayment } from '@/hooks/use-shipments'
+import { trackPurchase } from '@/lib/analytics/metaPixel'
 import type { ShipmentData } from '@/lib/api/types'
 
 const PENDING_REF_KEY = 'alcott_pending_shipment_ref'
@@ -55,6 +56,15 @@ function SuccessContent() {
   const [shipment, setShipment] = useState<ShipmentData | null>(null)
   const [status, setStatus] = useState<'checking' | 'ready' | 'failed'>('checking')
   const verifyPaymentMutation = useVerifyShipmentPayment()
+
+ 
+  const purchaseFired = useRef(false)
+  useEffect(() => {
+    if (status === 'ready' && !purchaseFired.current) {
+      purchaseFired.current = true
+      trackPurchase({ value: shipment?.price, currency: shipment?.currency ?? 'NGN', contentName: 'shipment_booking' })
+    }
+  }, [status, shipment])
 
   useEffect(() => {
     const stored = loadLastCreatedShipment()

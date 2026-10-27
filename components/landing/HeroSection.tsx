@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/use-auth'
+import { trackLead } from '@/lib/analytics/metaPixel'
 
 export function HeroSection() {
     const router = useRouter()
@@ -23,6 +24,8 @@ export function HeroSection() {
             return
         }
 
+        
+        trackLead({ content_name: 'request_delivery' })
         router.push('/lets-get-you-in')
     }
 

@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from 'next'
+import { Suspense } from 'react'
 
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
+import { MetaPixelPageView } from '@/components/analytics/MetaPixelPageView'
+import { CookieConsent } from '@/components/analytics/CookieConsent'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { CurrencyProvider } from '@/components/providers/currency-provider'
 import { AuthHydrator } from '@/components/providers/auth-hydrator'
@@ -49,6 +52,13 @@ export default function RootLayout({
         </QueryProvider>
         <Toaster />
         <Analytics />
+
+        {/* Consent-gated Meta Pixel. Suspense isolates MetaPixelPageView's
+            useSearchParams() so the rest of the tree still statically prerenders. */}
+        <Suspense fallback={null}>
+          <MetaPixelPageView />
+        </Suspense>
+        <CookieConsent />
       </body>
     </html>
   )

@@ -11,6 +11,7 @@ import { useCheckPricingAuth } from '@/hooks/use-pricing'
 import { useExchangeRate } from '@/hooks/use-pricing'
 import { useShipmentCategories } from '@/hooks/use-shipments'
 import { useCurrency } from '@/components/providers/currency-provider'
+import { trackLead } from '@/lib/analytics/metaPixel'
 import { convertCurrency, formatCurrency } from '@/lib/currency'
 import type { PricingResult } from '@/lib/api/types'
 
@@ -88,6 +89,8 @@ export default function CheckRatesPage() {
 
           setPricingResult(res.data)
           setShowRates(true)
+          
+          trackLead({ content_name: 'check_rates' })
         },
         onError: (err: any) => {
           console.error('checkPricingAuth failed:', err?.response?.data ?? err)

@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useVerifyFund } from '@/hooks/use-wallet'
 import { SuccessModal } from '@/components/ui/success-modal'
 import { toast } from '@/components/ui/use-toast'
+import { trackPurchase } from '@/lib/analytics/metaPixel'
 
 const PENDING_REF_KEY = 'alcott_pending_topup_ref'
 const ATTEMPTS_KEY_PREFIX = 'alcott_topup_verify_attempts'
@@ -136,6 +137,15 @@ export function VerifyPaymentHandler() {
       verifyFundMutation.mutate(reference, {
         onSuccess: () => {
           if (cancelled) return
+          
+          let topupAmount: number | undefined
+          try {
+            const raw = window.sessionStorage.getItem(PENDING_REF_KEY)
+            topupAmount = raw ? Number(JSON.parse(raw)?.amount) || undefined : undefined
+          } catch {
+            topupAmount = undefined
+          }
+          trackPurchase({ value: topupAmount, contentName: 'wallet_topup' })
           clearPendingReference(reference)
           setConfirming(false)
           setShowSuccess(true)
