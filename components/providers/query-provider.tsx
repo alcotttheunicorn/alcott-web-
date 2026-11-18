@@ -28,6 +28,13 @@ export const queryKeys = {
     activityLogs: ['admin', 'activity-logs'] as const,
     rateChecks: ['admin', 'rate-checks'] as const,
     financeSummary: ['admin', 'finance-summary'] as const,
+    analytics: {
+      overview: (range: unknown) => ['admin', 'analytics', 'overview', range] as const,
+      timeseries: (range: unknown) => ['admin', 'analytics', 'timeseries', range] as const,
+      pages: (params: unknown) => ['admin', 'analytics', 'pages', params] as const,
+      referrers: (params: unknown) => ['admin', 'analytics', 'referrers', params] as const,
+      devices: (range: unknown) => ['admin', 'analytics', 'devices', range] as const,
+    },
   },
   support: {
     tickets: ['support', 'tickets'] as const,

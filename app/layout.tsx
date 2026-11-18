@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
 import { MetaPixelPageView } from '@/components/analytics/MetaPixelPageView'
 import { CookieConsent } from '@/components/analytics/CookieConsent'
+import { SiteVisitTracker } from '@/components/analytics/SiteVisitTracker'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { CurrencyProvider } from '@/components/providers/currency-provider'
 import { AuthHydrator } from '@/components/providers/auth-hydrator'
@@ -50,7 +51,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-            <QueryProvider>
+          <QueryProvider>
             <CurrencyProvider>
               <AuthHydrator>
                 {children}
@@ -61,11 +62,13 @@ export default function RootLayout({
           <Analytics />
 
           {/* Consent-gated Meta Pixel. Suspense isolates MetaPixelPageView's
-              useSearchParams() so the rest of the tree still statically prerenders. */}
+            useSearchParams() so the rest of the tree still statically prerenders. */}
           <Suspense fallback={null}>
             <MetaPixelPageView />
           </Suspense>
           <CookieConsent />
+          {/* First-party, consent-independent page-view beacon (fire-and-forget). */}
+          <SiteVisitTracker />
         </ThemeProvider>
       </body>
     </html>
