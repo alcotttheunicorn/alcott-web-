@@ -344,7 +344,7 @@ export default function ProfileSetupPage() {
         <div className="hidden lg:flex w-2/5 items-center justify-center p-6">
           <ImagePicker 
             onImageSelect={handleImageSelect}
-            
+            defaultImage={profile?.profile_pic_link}
           />
         </div>
         </>

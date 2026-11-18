@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ImagePickerProps {
@@ -12,6 +12,15 @@ interface ImagePickerProps {
 export function ImagePicker({ onImageSelect, className, defaultImage }: ImagePickerProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(defaultImage || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const objectUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    setPreviewUrl(defaultImage || null)
+  }, [defaultImage])
+
+  useEffect(() => () => {
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+  }, [])
 
   const handleImageClick = () => {
     fileInputRef.current?.click()
@@ -32,7 +41,9 @@ export function ImagePicker({ onImageSelect, className, defaultImage }: ImagePic
         return
       }
 
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
       const url = URL.createObjectURL(file)
+      objectUrlRef.current = url
       setPreviewUrl(url)
       onImageSelect?.(file, url)
     }

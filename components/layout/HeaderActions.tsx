@@ -151,7 +151,20 @@ export function HeaderActions({ showCurrencySelector = true, showNotifications =
           aria-expanded={openMenu === 'profile'}
           className="flex items-center gap-2 rounded-lg p-1 hover:bg-gray-50 lg:gap-3"
         >
-          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-300"><img src="/avatar-placeholder.png" alt="Profile" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.style.display = 'none' }} /></div>
+          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-300">
+            <img
+              src={profile?.profile_pic_link || '/avatar-placeholder.png'}
+              alt="Profile"
+              className="h-full w-full object-cover"
+              onError={(event) => {
+                if (event.currentTarget.src.endsWith('/avatar-placeholder.png')) {
+                  event.currentTarget.style.display = 'none'
+                } else {
+                  event.currentTarget.src = '/avatar-placeholder.png'
+                }
+              }}
+            />
+          </div>
           <span className={`${compact ? 'hidden' : 'hidden md:block'} text-sm font-semibold text-gray-900`}>{displayName ?? 'Guest'}</span>
           <svg className="hidden h-4 w-4 shrink-0 text-gray-400 md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </button>
