@@ -8,6 +8,7 @@ import { CookieConsent } from '@/components/analytics/CookieConsent'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { CurrencyProvider } from '@/components/providers/currency-provider'
 import { AuthHydrator } from '@/components/providers/auth-hydrator'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 // Import Urbanist font from Google Fonts with fallback
@@ -37,28 +38,35 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Urbanist font fallback for SSR */}
         <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={urbanist.className}>
-        <QueryProvider>
-          <CurrencyProvider>
-            <AuthHydrator>
-              {children}
-            </AuthHydrator>
-          </CurrencyProvider>
-        </QueryProvider>
-        <Toaster />
-        <Analytics />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+            <QueryProvider>
+            <CurrencyProvider>
+              <AuthHydrator>
+                {children}
+              </AuthHydrator>
+            </CurrencyProvider>
+          </QueryProvider>
+          <Toaster />
+          <Analytics />
 
-        {/* Consent-gated Meta Pixel. Suspense isolates MetaPixelPageView's
-            useSearchParams() so the rest of the tree still statically prerenders. */}
-        <Suspense fallback={null}>
-          <MetaPixelPageView />
-        </Suspense>
-        <CookieConsent />
+          {/* Consent-gated Meta Pixel. Suspense isolates MetaPixelPageView's
+              useSearchParams() so the rest of the tree still statically prerenders. */}
+          <Suspense fallback={null}>
+            <MetaPixelPageView />
+          </Suspense>
+          <CookieConsent />
+        </ThemeProvider>
       </body>
     </html>
   )

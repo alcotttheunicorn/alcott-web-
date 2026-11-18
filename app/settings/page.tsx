@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { ChevronRight, LogOut, Moon, Bell, UserRound, Shield, CreditCard, Languages, Lock, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import { UserAppLayout } from '@/components/layout/UserAppLayout'
 import { PageHeading } from '@/components/user/page-primitives'
 import { useAuth } from '@/hooks/use-auth'
@@ -23,34 +23,38 @@ export default function SettingsPage() {
   const router = useRouter(); 
   const { logout } = useAuth(); 
   const { profile } = useProfile(); 
-  const [darkMode, setDarkMode] = useState(false)
+  const { resolvedTheme, setTheme } = useTheme()
+  const darkMode = resolvedTheme === 'dark'
   return (
-    <UserAppLayout activeNav="settings" contentBgClass="bg-[#F8F9FA]">
+    <UserAppLayout activeNav="settings" contentBgClass="bg-background">
       <div className="max-w-8xl mx-auto p-4 lg:p-6">
         <PageHeading title="Settings" onBack={() => router.back()} />
-        <section className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
-            <p className="font-bold text-gray-900">{profile?.first_name ?? 'Profile'}</p>
-            <p className="text-sm text-gray-500">Manage your account preferences</p>
+        <section className="bg-card text-card-foreground rounded-xl border border-border overflow-hidden">
+          <div className="p-5 border-b border-border">
+            <p className="font-bold text-foreground">{profile?.first_name ?? 'Profile'}</p>
+            <p className="text-sm text-muted-foreground">Manage your account preferences</p>
           </div>
           {settings.map(({ label, Icon, href, subtitle }) => 
             <button 
               key={label} 
               onClick={() => href && router.push(href)} 
-              className="w-full flex items-center gap-3 p-4 text-left border-b border-gray-100 hover:bg-gray-50"
+              className="w-full flex items-center gap-3 p-4 text-left border-b border-border hover:bg-accent"
             >
               <Icon className="w-5 h-5 text-[#4043FF]" />
-              <span className="flex-1 font-semibold text-gray-900">{label}</span>
-              {subtitle && <span className="text-sm text-gray-500">{subtitle}</span>}
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              <span className="flex-1 font-semibold text-foreground">{label}</span>
+              {subtitle && <span className="text-sm text-muted-foreground">{subtitle}</span>}
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
           )}
-          <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+          <div className="flex items-center gap-3 p-4 border-b border-border">
             <Moon className="w-5 h-5 text-[#4043FF]" />
-            <span className="flex-1 font-semibold text-gray-900">Dark Mode</span>
+            <span className="flex-1 font-semibold text-foreground">Dark Mode</span>
             <button 
-              onClick={() => setDarkMode((value) => !value)} 
-              aria-pressed={darkMode} 
+              type="button"
+              role="switch"
+              aria-checked={darkMode}
+              aria-label="Dark Mode"
+              onClick={() => setTheme(darkMode ? 'light' : 'dark')}
               className={`w-11 h-6 rounded-full p-0.5 transition-colors ${darkMode ? 'bg-[#4043FF]' : 'bg-gray-200'}`}
             >
               <span className={`block w-5 h-5 bg-white rounded-full transition-transform ${darkMode ? 'translate-x-5' : ''}`} />
@@ -58,7 +62,7 @@ export default function SettingsPage() {
           </div>
           <button 
             onClick={logout} 
-            className="w-full flex items-center gap-3 p-4 text-red-600 hover:bg-red-50"
+            className="w-full flex items-center gap-3 p-4 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
           >
             <LogOut className="w-5 h-5" />
             <span className="font-semibold">Logout</span>

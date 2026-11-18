@@ -42,7 +42,7 @@ function UserAppLayoutInner({
   showCurrencySelector = true,
   showNotifications = true,
   showSearch = true,
-  contentBgClass = 'bg-[#F8F9FA]',
+  contentBgClass = 'bg-background',
   inboxBadge,
 }: UserAppLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
